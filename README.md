@@ -1,2 +1,2 @@
-# projectbirdracing
+# Project Bird Racing
 An online world where you breed and race bird like creatures.
