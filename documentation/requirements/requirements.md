@@ -4,6 +4,7 @@
   - [Client](#client)
   - [Server](#server)
   - [Data Store](#data-store)
+  - [Overall Architecture](#overall-architecture)
 
 Project Bird Racing is an online world where players can breed, raise and care for the local bird like creatures and race them in both local and national races. 
 
@@ -30,3 +31,9 @@ See [here](server.md) for the detailed client requirements.
 Data that requires permanent persistance is stored on the server. Player and game information is stored here. Only data relevant to the game is stored. Any sensitive data, such as passwords, will be hashed and salted.
 
 See [here](data_store.md) for detailed data store requirements.
+
+## Overall Architecture
+
+Here is a diagram describing the overall architecture:
+
+![Overall Architecture](images/overall_architecture.drawio.png)
