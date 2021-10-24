@@ -50,6 +50,7 @@ Avions have various attributes:
 * Speed
 * Stamina
 * Agility
+* Health
 
 #### In the Wild
 
@@ -61,7 +62,7 @@ Avions have various attributes:
 
 Avions can breed to create other avions. Each time they breed, an egg may be layed. The child avion will inherit some of the attributes from its parents using a genetic algorithm.
 
-Breeding may or may not be successful. Success is dependent on fitness and health.
+Breeding may or may not be successful. Success is dependent on overall fitness and health.
 
 Players can breed avions they are raising. Avions in the wild will also breed.
 
