@@ -6,10 +6,6 @@
   - [Data Store](#data-store)
   - [Overall Architecture](#overall-architecture)
 
-Project Bird Racing is an online world where players can breed, raise and care for the local bird like creatures and race them in both local and national races. 
-
-See [here](premise.md) for the game's premise.
-
 There are three main components - the client, the server and the data store.
 
 ## Client
