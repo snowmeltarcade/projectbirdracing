@@ -20,9 +20,13 @@ See [here](client.md) for the detailed client requirements.
 
 All main game logic and critical game data will be stored on the server. The server is the source of truth. Data on the server is the most up-to-date and is considered as fact.
 
+The server allows the user to view and explore any game world and also to manage players. Players can be moved within a world, moved to a different world or kicked from the game. Player stats can also be altered. Game entities can be viewed and modified as needed.
+
+Only basic 2D graphics rendering is required.
+
 The server must run on iOS, Android and Windows devices. It must not overuse device resources and must respect the device's energy efficiency settings.
 
-See [here](server.md) for the detailed client requirements.
+See [here](server.md) for the detailed server requirements.
 
 ## Data Store
 
