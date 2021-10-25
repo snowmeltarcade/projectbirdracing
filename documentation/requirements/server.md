@@ -13,6 +13,7 @@
   - [UI](#ui)
   - [ECS](#ecs)
   - [Scripting](#scripting)
+  - [Component Architecture](#component-architecture)
 
 All game logic and data is handled by the server.
 
@@ -130,3 +131,9 @@ Customizable workflows will be handled by scripting. These workflows are:
 * World tile triggers
 * Avion AI behaviors
 * Farming and mining tool behaviors
+
+## Component Architecture
+
+This is a diagram describing the overall architecture of the server:
+
+![Overall Server Architecture](images/server_architecture.drawio.png)

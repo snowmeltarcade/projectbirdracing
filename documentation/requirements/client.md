@@ -16,6 +16,7 @@
   - [UI](#ui)
   - [ECS](#ecs)
   - [Scripting](#scripting)
+  - [Component Architecture](#component-architecture)
 
 The player uses the client to connect to the server and play the game.
 
@@ -126,6 +127,8 @@ Game logic and related scripting is handled on the server. Scripting will be use
 
 Any scripting on the client must not be able to affect game play data on the server.
 
-This is a diagram describing the overall architecture for the client:
+## Component Architecture
+
+This is a diagram describing the overall architecture of the client:
 
 ![Overall Client Architecture](images/client_architecture.drawio.png)
