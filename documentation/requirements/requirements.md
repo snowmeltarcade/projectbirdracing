@@ -4,6 +4,7 @@
   - [Client](#client)
   - [Server](#server)
   - [Data Store](#data-store)
+  - [System Workflows](#system-workflows)
   - [Overall Architecture](#overall-architecture)
 
 There are three main components - the client, the server and the data store.
@@ -33,6 +34,10 @@ See [here](server.md) for the detailed server requirements.
 Data that requires permanent persistance is stored on the server. Player and game information is stored here. Only data relevant to the game is stored. Any sensitive data, such as passwords, will be hashed and salted.
 
 See [here](data_store.md) for detailed data store requirements.
+
+## System Workflows
+
+There are various workflows the manage data and interactions between the client, server and data store. See [here](system_workflows.md) for more information.
 
 ## Overall Architecture
 
