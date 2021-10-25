@@ -125,3 +125,7 @@ The following components are required:
 Game logic and related scripting is handled on the server. Scripting will be used primarily by the UI system to handle UI events.
 
 Any scripting on the client must not be able to affect game play data on the server.
+
+This is a diagram describing the overall architecture for the client:
+
+![Overall Client Architecture](images/client_architecture.drawio.png)
