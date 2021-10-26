@@ -34,7 +34,7 @@ When a UI element is in focus, it is to have a highlighted border.
 
 Each UI element can have a corresponding CSS class. This class can set basic attributes of elements. See [here](ui_css.md) for more information on UI CSS styling.
 
-The following UI components are required:
+The following UI components are required for both client and server:
 
 * Canvas
   * The root UI element. It has no renderable or intractable function. Its only purpose is to hold child UI elements.
@@ -59,3 +59,8 @@ The following UI components are required:
     * Click up
 * Textbox
   * Allows user to enter a single line of text. A password mode renders a `*` for each character instead of the inputted character. The `color` attribute sets the color of the text to that color.
+
+The following controls are required for the client:
+
+* Minimap
+  * A 2D map of the world. This will show the location of all villages. Avions that are within viewing distance are also shown on this map. This map is rendered from the same world data as the main world, but using a 2D tile map renderer.
