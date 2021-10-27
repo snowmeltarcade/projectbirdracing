@@ -1,7 +1,9 @@
 # System Workflows
 
-Client logon and connect
+## Client Logon and Connect
 
-World updates from server to client
+![Client Logon and Connect Workflow](images/workflow_client_logon_and_connect.drawio.png)
 
-Player moving a character
+## Updating World Data on Client
+
+## Player Moving a Character
