@@ -8,6 +8,13 @@
   - [Reduced Complexity](#reduced-complexity)
   - [Well Designed](#well-designed)
   - [Programming Language](#programming-language)
+  - [APIs](#apis)
+    - [Windowing](#windowing)
+    - [Graphics](#graphics)
+    - [Input](#input)
+    - [Audio](#audio)
+    - [Network](#network)
+    - [Scripting](#scripting)
   - [Client](#client)
   - [Server](#server)
   - [Data Store](#data-store)
@@ -60,6 +67,40 @@ As much as possible, all high level designs will be documented. The code itself 
 C++17 will be used. The latest version of Clang will be used.
 
 The code must compile on Windows, Mac, Linux, iOS and Android. Platform specific code must be kept to a minimum. Cross platform APIs and frameworks will be used. As much as possible, STL should be used.
+
+## APIs
+
+All APIs will be abstracted out into their own modules to keep code decoupled, testable and to reduce complexity.
+
+The following APIs will be used:
+
+### Windowing
+
+[SDL 2.0](https://www.libsdl.org/) is a cross platform, C++ API that works on all target devices. It handles window creation and destruction, full screen, screen resolutions and event loop management.
+
+### Graphics
+
+[SDL 2.0](https://www.libsdl.org/) is a cross platform, C++ API that works on all target devices. This will be used to setup the graphics device and handle window management.
+
+[SDL Image 2.0](https://www.libsdl.org/projects/SDL_image/) is a cross platform, C++ API that works on all target devices. It handles the loading of various image formats.
+
+Actual rendering will be done using [OpenGL 4.6](https://www.opengl.org/) for Windows, Mac and Linux and [OpenGL ES 3.0](https://www.khronos.org/api/opengles) for iOS and Android.
+
+### Input
+
+[SDL 2.0](https://www.libsdl.org/) is a cross platform, C++ API that works on all target devices. Input from the keyboard, mouse and touch screen is handled by the event loop. Joysticks and game controllers are handled by separate APIs.
+
+### Audio
+
+[SDL Mixer 2.0](https://www.libsdl.org/projects/SDL_mixer/) is a cross platform, C++ API that works on all target devices. It handles playing basic audio files.
+
+### Network
+
+[SDL Net 2.0](https://www.libsdl.org/projects/SDL_net/) is a cross platform, C++ API that works on all target devices. It handles TCP and UDP connections.
+
+### Scripting
+
+[v8](https://v8.dev/) is a cross platform scripting engine that uses JavaScript. The version is updated regularly, so the latest version will used when it is released.
 
 ## Client
 
