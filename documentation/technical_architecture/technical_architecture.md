@@ -48,6 +48,8 @@ Code will be developed with testing in mind. Although 100% code coverage will no
 
 Tests will be run by both the developer and by the build pipelines.
 
+[Catch2](https://github.com/catchorg/Catch2) will be used as the unit test framework.
+
 ## Decoupling
 
 As much as possible, code will modularized. This will help with code sharing and testing.
@@ -67,6 +69,12 @@ As much as possible, all high level designs will be documented. The code itself 
 C++17 will be used. The latest version of Clang will be used.
 
 The code must compile on Windows, Mac, Linux, iOS and Android. Platform specific code must be kept to a minimum. Cross platform APIs and frameworks will be used. As much as possible, STL should be used.
+
+[CMake](https://cmake.org/) will be used to manage projects and [Ninja](https://ninja-build.org/) will be used as the build system.
+
+All code will be 64-bit.
+
+Where possible C++'s RAII will be used to create and destroy objects, using constructors and destructors, instead of using `init` and `shutdown` functions.
 
 ## APIs
 
@@ -104,6 +112,12 @@ Actual rendering will be done using [OpenGL 4.6](https://www.opengl.org/) for Wi
 
 ## Client
 
+See [here](client.md) for information about the client.
+
 ## Server
 
+See [here](server.md) for information about the server.
+
 ## Data Store
+
+Persistent data will be stored in a [SQLite](https://www.sqlite.org/index.html).
