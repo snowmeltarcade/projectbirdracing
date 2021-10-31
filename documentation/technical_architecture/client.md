@@ -4,7 +4,7 @@ The player will communicate with the server by means of the client. All player i
 
 ## Class Design
 
-The main orchestrating class is `Game`. This will hold instances of all main modules and will manage the game loop.
+See [here](shared_classes.md) for more details on the major classes.
 
 The overall class structure of the client will be as follows:
 
