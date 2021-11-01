@@ -12,12 +12,16 @@
   - [Reduced Complexity](#reduced-complexity)
   - [Well Designed](#well-designed)
   - [Programming Language](#programming-language)
+    - [Code Practices](#code-practices)
     - [Error Handling](#error-handling)
     - [Compiling](#compiling)
+    - [Profiling and Optimization](#profiling-and-optimization)
+    - [Static Analysis](#static-analysis)
     - [Comments and Documentation](#comments-and-documentation)
   - [APIs](#apis)
     - [Windowing](#windowing)
     - [Graphics](#graphics)
+    - [Math](#math)
     - [Input](#input)
     - [Audio](#audio)
     - [Network](#network)
@@ -105,7 +109,26 @@ The code must compile on Windows, Mac, Linux, iOS and Android. Platform specific
 
 All code will be 64-bit.
 
+### Code Practices
+
 Where possible C++'s RAII will be used to create and destroy objects, using constructors and destructors, instead of using `init` and `shutdown` functions.
+
+When declaring variables, specify the exact type you want - `uint32_t` instead of `int`, for example. When assigning from a function return value, use `auto` to allow the compiler to do this work for you.
+
+Hide as much information as is reasonable. For instance, do:
+
+```cpp
+using IdType = uint32_t;
+IdType _id = new_id();
+```
+
+instead of:
+
+```cpp
+uint32_t _id = ++_global_ids;
+```
+
+Avoid undefined behavior, as this can introduce subtle bugs when running on a different platform of upgrading a compiler version.
 
 ### Error Handling
 
@@ -126,6 +149,18 @@ Where possible, debug builds must be built with ASAN enabled, using this flag:
 > -fsanitize=address
 
 See [here](https://clang.llvm.org/docs/AddressSanitizer.html) for more details.
+
+### Profiling and Optimization
+
+Premature optimization should be avoided wherever possible.
+
+Good code practices should be used at all times, such as relying on [RVO](https://en.cppreference.com/w/cpp/language/copy_elision), passing by `const &`, using `std::vector<>` over `std::list<>` etc... Favor moves over copies.
+
+[Optick](https://github.com/bombomby/optick) will be used to provide in built profiling and sampling functionality.
+
+### Static Analysis
+
+As there are few free static analysis tools, use the tool that comes with the IDE you use.
 
 ### Comments and Documentation
 
@@ -149,7 +184,11 @@ The following APIs will be used:
 
 [SDL Image 2.0](https://www.libsdl.org/projects/SDL_image/) is a cross platform, C++ API that works on all target devices. It handles the loading of various image formats.
 
-Actual rendering will be done using [OpenGL 4.6](https://www.opengl.org/) for Windows, Mac and Linux and [OpenGL ES 3.0](https://www.khronos.org/api/opengles) for iOS and Android.
+Actual rendering will be done using [Vulkan](https://www.vulkan.org/) for Windows, Linux and Android and [MoltenVK](https://github.com/KhronosGroup/MoltenVK/) for Mac and iOS.
+
+### Math
+
+[GLM](https://github.com/g-truc/glm) will be used to provide tested and optimized mathematical functions and classes.
 
 ### Input
 

@@ -13,6 +13,7 @@
   - [UI](#ui)
   - [ECS](#ecs)
   - [Scripting](#scripting)
+  - [Data](#data)
   - [Component Architecture](#component-architecture)
 
 All game logic and data is handled by the server.
@@ -49,10 +50,10 @@ UDP packets will be sent with a timestamp. This will help the client discard pac
 
 Manages the current scene the user is in. A scene may or may not contain a world. The required scenes are:
 
-* Loading
-  * Handles the loading of worlds, various components and displays the loading UIs
-* World
-  * Contains the current running world and the UIs
+- Loading
+  - Handles the loading of worlds, various components and displays the loading UIs
+- World
+  - Contains the current running world and the UIs
 
 ## World
 
@@ -68,31 +69,31 @@ World tiles have attributes and types. Attributes indicate how avatars can inter
 
 The following are the tile attributes:
 
-* `runnable`
-  * An avatar can run on this tile
-* `walkable`
-  * An avatar can walk on this tile
-* `plantable`
-  * Crops can be planted on this tile
-* `teleport`
-  * Teleport an avatar to another world
-* `trigger`
-  * Triggers a scripted action
+- `runnable`
+  - An avatar can run on this tile
+- `walkable`
+  - An avatar can walk on this tile
+- `plantable`
+  - Crops can be planted on this tile
+- `teleport`
+  - Teleport an avatar to another world
+- `trigger`
+  - Triggers a scripted action
 
 The following are the tile types:
 
-* `grass`
-  * A patch of grass
-* `beach`
-  * A segment of beach
-* `rock`
-  * A segment of rock
-* `mud`
-  * A patch of mud
-* `water_shallow`
-  * Shallow water
-* `water_deep`
-  * Deep water
+- `grass`
+  - A patch of grass
+- `beach`
+  - A segment of beach
+- `rock`
+  - A segment of rock
+- `mud`
+  - A patch of mud
+- `water_shallow`
+  - Shallow water
+- `water_deep`
+  - Deep water
 
 ## Physics
 
@@ -112,25 +113,29 @@ All entities in the server are managed by the ECS (entity component system).
 
 The following components are required:
 
-* `location_2d`
-  * Contains the 2D location of this entity in screen space
-* `sprite`
-  * Contains the data needed to render a 2D sprite. Requires a `location_2d` component.
-* `material`
-  * Contains the needed material data to render this entity, such as shader and textures.
-* `rigid_body_2d`
-  * Contains the needed data to handle 2D collisions, such as bounding box and circle collisions.
-* `velocity_2d`
-  * Contains the needed data to impart movement to the attached `location_2d` component.
+- `location_2d`
+  - Contains the 2D location of this entity in screen space
+- `sprite`
+  - Contains the data needed to render a 2D sprite. Requires a `location_2d` component.
+- `material`
+  - Contains the needed material data to render this entity, such as shader and textures.
+- `rigid_body_2d`
+  - Contains the needed data to handle 2D collisions, such as bounding box and circle collisions.
+- `velocity_2d`
+  - Contains the needed data to impart movement to the attached `location_2d` component.
 
 ## Scripting
 
 Customizable workflows will be handled by scripting. These workflows are:
 
-* UI events
-* World tile triggers
-* Avion AI behaviors
-* Farming and mining tool behaviors
+- UI events
+- World tile triggers
+- Avion AI behaviors
+- Farming and mining tool behaviors
+
+## Data
+
+All external data should be stored in a folder called `data` that is in the same directory as the server's executable.
 
 ## Component Architecture
 

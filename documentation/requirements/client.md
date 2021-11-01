@@ -16,6 +16,7 @@
   - [UI](#ui)
   - [ECS](#ecs)
   - [Scripting](#scripting)
+  - [Data](#data)
   - [Component Architecture](#component-architecture)
 
 The player uses the client to connect to the server and play the game.
@@ -62,10 +63,10 @@ UDP packets will be sent with a timestamp. This will help the server discard pac
 
 Manages the current scene the player is in. A scene may or may not contain a world. The required scenes are:
 
-* Loading
-  * Handles the loading of worlds, various components and displays the loading UIs
-* World
-  * Contains the current running world and the UIs
+- Loading
+  - Handles the loading of worlds, various components and displays the loading UIs
+- World
+  - Contains the current running world and the UIs
 
 ## World
 
@@ -103,29 +104,34 @@ All entities in the game are managed by the ECS (entity component system). The c
 
 The following components are required:
 
-* `location_2d`
-  * Contains the 2D location of this entity in screen space
-* `location_3d`
-  * contains the 3D location of this entity in the world
-* `sprite`
-  * Contains the data needed to render a 2D sprite. Requires a `location_2d` component.
-* `mesh`
-  * Contains the data needed to render a 3D mesh. If a `location_3d` component is attached, this mesh is rendered in world space. If a `location_2d` location is attached, the mesh is rendered in screen space.
-* `material`
-  * Contains the needed material data to render this entity, such as shader and textures.
-* `rigid_body_2d`
-  * Contains the needed data to handle 2D collisions, such as bounding box and circle collisions.
-* `rigid_body_3d`
-  * Contains the needed data to handle 3D collisions, such as sphere and AABB collisions.
-* `velocity_2d`
-  * Contains the needed data to impart movement to the attached `location_2d` component.
-* `velocity_3d`
-  * Contains the needed data to impart movement to the attached `location_3d` component.
+- `location_2d`
+  - Contains the 2D location of this entity in screen space
+- `location_3d`
+  - contains the 3D location of this entity in the world
+- `sprite`
+  - Contains the data needed to render a 2D sprite. Requires a `location_2d` component.
+- `mesh`
+  - Contains the data needed to render a 3D mesh. If a `location_3d` component is attached, this mesh is rendered in world space. If a `location_2d` location is attached, the mesh is rendered in screen space.
+- `material`
+  - Contains the needed material data to render this entity, such as shader and textures.
+- `rigid_body_2d`
+  - Contains the needed data to handle 2D collisions, such as bounding box and circle collisions.
+- `rigid_body_3d`
+  - Contains the needed data to handle 3D collisions, such as sphere and AABB collisions.
+- `velocity_2d`
+  - Contains the needed data to impart movement to the attached `location_2d` component.
+- `velocity_3d`
+  - Contains the needed data to impart movement to the attached `location_3d` component.
 
 ## Scripting
+
 Game logic and related scripting is handled on the server. Scripting will be used primarily by the UI system to handle UI events.
 
 Any scripting on the client must not be able to affect game play data on the server.
+
+## Data
+
+All external data should be stored in a folder called `data` that is in the same directory as the server's executable.
 
 ## Component Architecture
 
