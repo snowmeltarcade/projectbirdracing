@@ -106,13 +106,25 @@ To avoid loading the same resource more than once, each time a resource is reque
 
 ## Memory Manager
 
+Needed memory will be requested and freed through this manager. It will keep a log of how much memory is used.
+
+To help with thread safety, each thread should have its own memory manager.
+
 ## Script Manager
+
+Loads and executes scripts. These scripts will be used by the UI system and ECS.
 
 ## Scene Manager
 
+Loads, destroys and runs the active scene. On the server, will hold all active scenes - the main world, villages, race tracks etc...
+
 ## Scene
 
+Runs all aspects of the scene - the UI manager, the ECS, the physics simulator and the world.
+
 ## UI Manager
+
+Loads and manages the UI. Handles the rendering of the UI.
 
 ## UI Renderer
 
