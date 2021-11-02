@@ -101,7 +101,9 @@ As much as possible, all high level designs will be documented. The code itself 
 
 ## Programming Language
 
-C++17 will be used. The latest version of Clang will be used.
+Primarily C++17 will be used. The aim is to use C++20 when it has better support in Clang. For now, C++20 concepts will also be used where possible.
+
+The latest version of Clang will be used.
 
 The code must compile on Windows, Mac, Linux, iOS and Android. Platform specific code must be kept to a minimum. Cross platform APIs and frameworks will be used. As much as possible, STL should be used.
 
@@ -136,7 +138,10 @@ As far as it possible, all functions should be marked `[[nodiscard]]`, as this a
 
 We will not throw any exceptions. If an exception is thrown by something, this will truly be an exceptional circumstance. To enforce this, all functions should be marked as `noexcept`.
 
-Functions that must indicate  error or success should return a boolean value, returning `true` for success and `false` to indicate an error. This will allow the system to halt on an error gracefully. If the error is unrecoverable, an `assert` must be used to halt the system. Before returning `false` or calling `assert`, the error must be written to the log if possible.
+Functions that must indicate  error or success should return a boolean value, returning `true` for success and `false` to indicate an error. This will allow the system to halt on an error gracefully. If the error is unrecoverable, an `assert` must 
+be used to halt the system. Before returning `false` or calling `assert`, the error must be written to the log if possible.
+
+Error codes must be used and checked when performing `std::filesystem` calls.
 
 ### Compiling
 
@@ -155,6 +160,8 @@ See [here](https://clang.llvm.org/docs/AddressSanitizer.html) for more details.
 Premature optimization should be avoided wherever possible.
 
 Good code practices should be used at all times, such as relying on [RVO](https://en.cppreference.com/w/cpp/language/copy_elision), passing by `const &`, using `std::vector<>` over `std::list<>` etc... Favor moves over copies.
+
+`constexpr` must be used where possible to perform logic during compile time instead of runtime.
 
 [Optick](https://github.com/bombomby/optick) will be used to provide in built profiling and sampling functionality.
 

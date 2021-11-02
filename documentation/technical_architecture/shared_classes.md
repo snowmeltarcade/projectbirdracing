@@ -25,6 +25,9 @@
   - [World](#world)
   - [Action Manager](#action-manager)
   - [World Renderer](#world-renderer)
+  - [Diagnostics Manager](#diagnostics-manager)
+  - [Time Manager](#time-manager)
+  - [Memory Manager](#memory-manager-1)
 
 As the major game components should be able to run in their own threads, communication between these components will happen using thread safe message queues. The `Game` class will decide which components run in which threads.
 
@@ -122,3 +125,9 @@ To avoid loading the same resource more than once, each time a resource is reque
 ## Action Manager
 
 ## World Renderer
+
+## Diagnostics Manager
+
+## Time Manager
+
+## Memory Manager
