@@ -123,6 +123,8 @@ The following components are required:
   - Contains the needed data to handle 2D collisions, such as bounding box and circle collisions.
 - `velocity_2d`
   - Contains the needed data to impart movement to the attached `location_2d` component.
+- `script`
+  - Contains the data needed to run a script that will act on this entity in some way. This will be used extensively for NPCs to run their AI.
 
 ## Scripting
 
