@@ -4,6 +4,8 @@
   - [Graphics](#graphics)
     - [2D Graphics](#2d-graphics)
     - [3D Graphics](#3d-graphics)
+    - [Materials](#materials)
+    - [Cameras](#cameras)
   - [Window](#window)
   - [Audio](#audio)
   - [Input](#input)
@@ -36,6 +38,14 @@ Rendering is done in screen space. Animated sprites, tile maps, fonts, particles
 ### 3D Graphics
 
 Ability to render both in screen space and world space is required. Height maps, static models, skeletal animation, particles, special effects, billboards, fluid, animated textures and reflections should be supported.
+
+### Materials
+
+See [here](graphics_materials.md) for more information.
+
+### Cameras
+
+See [here](graphics_cameras.md) for more information.
 
 ## Window
 
