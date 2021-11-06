@@ -27,6 +27,7 @@
     - [Network](#network)
     - [Scripting](#scripting)
     - [JSON](#json)
+    - [Compression/Decompression](#compressiondecompression)
   - [Client](#client)
   - [Server](#server)
   - [Data Store](#data-store)
@@ -68,7 +69,7 @@ All merges to `main` must be linked to a work item and submitted via a pull requ
 
 Github actions will be used for build automation.
 
-All merges to `main` will trigger a build and development release. A documentation build and release will also take place.
+All merges to `main` will trigger a build and development release. A documentation build and release for botht he game code and scripting API will also take place.
 
 Pushes to all branches will have their code scanned using the `CodeQL` Github action.
 
@@ -214,11 +215,23 @@ Actual rendering will be done using [Vulkan](https://www.vulkan.org/) for Window
 
 ### Scripting
 
-[v8](https://v8.dev/) is a cross platform scripting engine that uses JavaScript. The version is updated regularly, so the latest version will used when it is released.
+[TypeScript](https://www.typescriptlang.org/) will be the scripting language. It will be compiled down to JavaScript.
+
+The scripting engine will be [v8](https://v8.dev/), which is a cross platform scripting engine that uses JavaScript. The version is updated regularly, so the latest version will used when it is released.
+
+Scripts will be compiled during game startup and then saved to a cache directory. Scripts will only be compiled if there is not cached compiled version or if the cached version is out of date. To do this, the [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) compiler will need to be shipped with the client and server.
+
+APIs and classes will be defined in TypeScript [d.ts](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html) files.
+
+Documentation for the scripts will be generated from the [d.ts](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html) files using [Type Doc](https://typedoc.org/).
 
 ### JSON
 
 [Nlohmann JSON](https://github.com/nlohmann/json) will be used for reading/writing JSON.
+
+### Compression/Decompression
+
+[LZ4](https://en.wikipedia.org/wiki/LZ4_(compression_algorithm)) will be used.
 
 ## Client
 

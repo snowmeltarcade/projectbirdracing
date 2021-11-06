@@ -115,7 +115,7 @@ The following components are required:
 
 ## Scripting
 
-Game logic and related scripting is handled on the server. Scripting will be used primarily by the UI system to handle UI events.
+Game logic and related scripting is handled on the server. Scripting will be used primarily by the UI system to handle UI events. Graphics materials can also be updated by script.
 
 Any scripting on the client must not be able to affect game play data on the server.
 

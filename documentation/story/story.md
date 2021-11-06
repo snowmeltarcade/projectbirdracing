@@ -20,7 +20,7 @@
       - [Challenge Races](#challenge-races)
       - [Stamina Boosting Nuts](#stamina-boosting-nuts)
 
-Project Bird Racing is an online world where players can breed, raise and care for the local bird like creatures called avions and race them in both local and national races. 
+Project Bird Racing is an online world where players can breed, raise and care for the local bird like creatures called avions and race them in both local and national races.
 
 ## Premise
 
@@ -58,15 +58,15 @@ The native animal life in Silva are avions. They are bird like creatures that ca
 
 Avions have various attributes:
 
-* Color
-* Speed
-* Stamina
-* Agility
-* Health
-* Hunger
-* Lifespan
-* Age
-  * As the age increases, the attributes are negatively affected
+- Color
+- Speed
+- Stamina
+- Agility
+- Health
+- Hunger
+- Lifespan
+- Age
+  - As the age increases, the attributes are negatively affected
 
 They also have a level and experience points. Each time an avion wins a race, it gains experience points. Once a certain number of experience points are gained, the avion levels up. When it levels up, its attributes also increase.
 

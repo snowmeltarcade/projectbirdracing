@@ -26,6 +26,7 @@
     - [Loading World](#loading-world)
     - [Main World](#main-world)
     - [Race Track](#race-track)
+    - [World Data](#world-data)
   - [Action Manager](#action-manager)
   - [World Renderer](#world-renderer)
   - [Diagnostics Manager](#diagnostics-manager)
@@ -81,7 +82,9 @@ The following log levels are provided:
 
 ## Graphics Manager
 
-Handles rendering all graphical elements. See [here](./graphics.md) for more information.
+Handles rendering all graphical elements.
+
+See [here](./graphics.md) for more information.
 
 ## Audio Manager
 
@@ -100,6 +103,8 @@ Application windows will be managed here. A separate console window will also be
 TCP and UDP streams, as well as packet sending and receiving will be managed here.
 
 Packets to send are added to a send queue. Received packets are stored on a receive queue. These queues are thread safe so other managers can access these queues.
+
+See [here](./networking.md) for more information.
 
 ## Resource Manager
 
@@ -158,6 +163,22 @@ The world map. This includes the outside world and all villages.
 ### Race Track
 
 All races will happen on a race track. This world will manage all race mechanics.
+
+### World Data
+
+The world data itself will be stored as a 2D grid of tiles. Each tile has a type. The client will interpret these types and will render accordingly.
+
+All changes to the world data will be added to a ledger. This will be a list storing the latest types of all changed tiles. This entire ledger will be sent to all clients each time an entry is made. The client will parse this list and update the respective tile types accordingly.
+
+Each time an entry is made, any previous entries into the ledger at that X/Y index should be updated with the new tile type. This will avoid duplicate entries in the ledger and will also avoid the ledger growing any bigger than the maximum size of the world itself.
+
+The fields needed for each ledger entry are:
+
+| Field | Type |
+| --- | --- |
+| Tile X Index | Integer |
+| Tile Y Index | Integer |
+| Tile Type | Tile Type |
 
 ## Action Manager
 
