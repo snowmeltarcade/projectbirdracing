@@ -26,6 +26,7 @@
     - [Audio](#audio)
     - [Network](#network)
     - [Scripting](#scripting)
+    - [JSON](#json)
   - [Client](#client)
   - [Server](#server)
   - [Data Store](#data-store)
@@ -193,6 +194,8 @@ The following APIs will be used:
 
 Actual rendering will be done using [Vulkan](https://www.vulkan.org/) for Windows, Linux and Android and [MoltenVK](https://github.com/KhronosGroup/MoltenVK/) for Mac and iOS.
 
+[GLSL](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language#:~:text=The%20OpenGL%20Shading%20Language%20(GLSL,is%20a%20C%2Dstyle%20language.&text=The%20current%20version%20of%20GLSL%20is%204.60.) will be used as the shader language.
+
 ### Math
 
 [GLM](https://github.com/g-truc/glm) will be used to provide tested and optimized mathematical functions and classes.
@@ -212,6 +215,10 @@ Actual rendering will be done using [Vulkan](https://www.vulkan.org/) for Window
 ### Scripting
 
 [v8](https://v8.dev/) is a cross platform scripting engine that uses JavaScript. The version is updated regularly, so the latest version will used when it is released.
+
+### JSON
+
+[Nlohmann JSON](https://github.com/nlohmann/json) will be used for reading/writing JSON.
 
 ## Client
 

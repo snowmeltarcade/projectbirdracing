@@ -2,7 +2,6 @@
 
 - [Server](#server)
   - [Graphics](#graphics)
-    - [2D Graphics](#2d-graphics)
   - [Window](#window)
   - [Input](#input)
   - [Networking](#networking)
@@ -26,9 +25,7 @@ Where possible, each component should work in its own thread and work independen
 
 Basic 2D graphics are required to display a UI and the current world.
 
-### 2D Graphics
-
-Rendering is done in screen space. Animated sprites, tile maps, fonts, particles and special effects are required.
+See [here](graphics.md) for more information.
 
 ## Window
 

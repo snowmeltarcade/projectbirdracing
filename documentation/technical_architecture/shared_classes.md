@@ -81,7 +81,7 @@ The following log levels are provided:
 
 ## Graphics Manager
 
-The rendering loop will be managed here.
+Handles rendering all graphical elements. See [here](./graphics.md) for more information.
 
 ## Audio Manager
 

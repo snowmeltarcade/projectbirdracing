@@ -2,10 +2,6 @@
 
 - [Client](#client)
   - [Graphics](#graphics)
-    - [2D Graphics](#2d-graphics)
-    - [3D Graphics](#3d-graphics)
-    - [Materials](#materials)
-    - [Cameras](#cameras)
   - [Window](#window)
   - [Audio](#audio)
   - [Input](#input)
@@ -29,23 +25,7 @@ Where possible, each component should work in its own thread and work independen
 
 ## Graphics
 
-Both 2D and 3D rendering must be supported. Rendering should take place in its own thread. Data to be rendered should be pushed into this component and not read from other components.
-
-### 2D Graphics
-
-Rendering is done in screen space. Animated sprites, tile maps, fonts, particles and special effects are required.
-
-### 3D Graphics
-
-Ability to render both in screen space and world space is required. Height maps, static models, skeletal animation, particles, special effects, billboards, fluid, animated textures and reflections should be supported.
-
-### Materials
-
-See [here](graphics_materials.md) for more information.
-
-### Cameras
-
-See [here](graphics_cameras.md) for more information.
+See [here](graphics.md) for more information.
 
 ## Window
 
