@@ -11,6 +11,9 @@
   - [Decoupling](#decoupling)
   - [Reduced Complexity](#reduced-complexity)
   - [Well Designed](#well-designed)
+  - [Versioning](#versioning)
+    - [Comparing Versions](#comparing-versions)
+  - [Naming](#naming)
   - [Programming Language](#programming-language)
     - [Code Practices](#code-practices)
     - [Error Handling](#error-handling)
@@ -100,6 +103,44 @@ Code and processes will be kept as simple as possible.
 ## Well Designed
 
 As much as possible, all high level designs will be documented. The code itself will be self describing.
+
+## Versioning
+
+The server, client and shared libraries will follow the same versioning scheme:
+
+> major.minor.build
+
+Any time a major feature has been added, the `major` component must increase.
+
+Bug fixes will increase the `minor` component.
+
+For each build, the `build` number must increase.
+
+Version numbers do not need to be consistent across the server, client or shared libraries.
+
+### Comparing Versions
+
+Comparing versions is defined as follows:
+
+> `major` > `minor.build`
+
+> `minor` > `build`
+
+So, `2.0.0` is greater than `1.99.1234`, `3.4.5` is greater than `3.3.99` and `1.2.3` is greater than `1.2.2`.
+
+## Naming
+
+Projects will have the following naming scheme:
+
+`organization.solution.project`
+
+This solution's projects will have the following names:
+
+| Name | Description |
+| --- | --- |
+| `SnowMeltArcade.ProjectBirdRacing.Client` | The client project |
+| `SnowMeltArcade.ProjectBirdRacing.Server` | The server project |
+| `SnowMeltArcade.ProjectBirdRacing.Shared` | The shared libraries project |
 
 ## Programming Language
 
