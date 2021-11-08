@@ -72,7 +72,7 @@ They also have a level and experience points. Each time an avion wins a race, it
 
 #### Levels and Experience Points
 
-The experience given to the winner of a race depends on the levels of the other avions in the race. The high the levels, the more experience given.
+The experience given to the winner of a race depends on the levels of the other avions in the race. The higher the levels, the more experience given.
 
 #### In the Wild
 
@@ -86,11 +86,17 @@ Avions are captured by challenging them to a race. If the race is won, the avion
 
 #### Being Cared For
 
+As time passes, hunger and stamina increases. Age and health also decrease.
+
+Avions must be fed for hunger to go down. Rest and medicine must be given for their health to increase.
+
+If age reaches lifespan, the avion dies.
+
 #### Breeding
 
 Avions can breed to create other avions. Each time they breed, an egg may be layed. The child avion will inherit some of the attributes from its parents using a genetic algorithm.
 
-Breeding may or may not be successful. Success is dependent on overall fitness and health.
+Breeding may or may not be successful. Success is dependent on level, health and age.
 
 Players can breed avions they are raising. Avions in the wild will also breed.
 

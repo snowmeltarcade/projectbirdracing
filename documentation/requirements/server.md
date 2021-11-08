@@ -7,6 +7,7 @@
   - [Networking](#networking)
   - [Scene](#scene)
   - [World](#world)
+    - [World Simulations](#world-simulations)
   - [Physics](#physics)
     - [2D Physics](#2d-physics)
   - [UI](#ui)
@@ -92,6 +93,10 @@ The following are the tile types:
 - `water_deep`
   - Deep water
 
+### World Simulations
+
+There are various simulations that are run. See [here](world_simulations.md) for more information.
+
 ## Physics
 
 2D is required.
@@ -122,6 +127,8 @@ The following components are required:
   - Contains the needed data to impart movement to the attached `location_2d` component.
 - `script`
   - Contains the data needed to run a script that will act on this entity in some way. This will be used extensively for NPCs to run their AI.
+
+See [here](ai.md) for more information on how AI is managed.
 
 ## Scripting
 

@@ -34,6 +34,10 @@
   - [Client](#client)
   - [Server](#server)
   - [Data Store](#data-store)
+  - [Game Logic](#game-logic)
+    - [Avions](#avions)
+    - [Mining](#mining)
+    - [Farming](#farming)
 
 They key technical aims for this project are:
 
@@ -285,3 +289,15 @@ See [here](server.md) for information about the server.
 ## Data Store
 
 Persistent data will be stored in a [SQLite](https://www.sqlite.org/index.html).
+
+## Game Logic
+
+As far as is possible, scripts will be used to manage game logic.
+
+### Avions
+
+All avions will have scripts to manage how their actions influence their attributes. These scripts will also manage time based effects, such as age and health.
+
+### Mining
+
+### Farming
