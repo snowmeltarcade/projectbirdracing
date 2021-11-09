@@ -39,6 +39,7 @@
     - [Mining](#mining)
     - [Farming](#farming)
     - [Breeding](#breeding)
+    - [World Generation](#world-generation)
 
 They key technical aims for this project are:
 
@@ -304,3 +305,7 @@ All avions will have scripts to manage how their actions influence their attribu
 ### Farming
 
 ### Breeding
+
+### World Generation
+
+See [here](world_generation.md) for more information.

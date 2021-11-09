@@ -10,8 +10,6 @@
     - [World Generation](#world-generation)
       - [World Data Files](#world-data-files)
       - [Biomes](#biomes)
-      - [Terrain Generation Algorithm](#terrain-generation-algorithm)
-      - [Race Course Generation Algorithm](#race-course-generation-algorithm)
     - [World Simulations](#world-simulations)
   - [Physics](#physics)
     - [2D Physics](#2d-physics)
@@ -169,10 +167,6 @@ Data about world tiles are stored in the file `data/world/tiles.json`. It has th
 A biome will define the types of tiles are generated and also what minerals, crops and avions can be found there. Weather is also defined by a biome. Differing weather will affect avions as they race.
 
 See [here](world_generation_biomes.md) for more information about biomes.
-
-#### Terrain Generation Algorithm
-
-#### Race Course Generation Algorithm
 
 ### World Simulations
 

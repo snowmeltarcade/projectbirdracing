@@ -19,6 +19,7 @@
       - [National Races](#national-races)
       - [Challenge Races](#challenge-races)
       - [Stamina Boosting Nuts](#stamina-boosting-nuts)
+  - [Artistic Style](#artistic-style)
 
 Project Bird Racing is an online world where players can breed, raise and care for the local bird like creatures called avions and race them in both local and national races.
 
@@ -117,3 +118,9 @@ Eight avions are required per race.
 #### Challenge Races
 
 #### Stamina Boosting Nuts
+
+## Artistic Style
+
+Simple shading and a simple design are the leading directions. Pastel and relaxing colors will give the player a soothing experience. Toon shading will help achieve this mood.
+
+During races, special effects, lighting and fun visual extras will make the racing experience exciting and dramatic. 
