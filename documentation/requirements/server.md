@@ -7,6 +7,11 @@
   - [Networking](#networking)
   - [Scene](#scene)
   - [World](#world)
+    - [World Generation](#world-generation)
+      - [World Data Files](#world-data-files)
+      - [Biomes](#biomes)
+      - [Terrain Generation Algorithm](#terrain-generation-algorithm)
+      - [Race Course Generation Algorithm](#race-course-generation-algorithm)
     - [World Simulations](#world-simulations)
   - [Physics](#physics)
     - [2D Physics](#2d-physics)
@@ -14,6 +19,13 @@
   - [ECS](#ecs)
   - [Scripting](#scripting)
   - [Data](#data)
+  - [Game Logic](#game-logic)
+    - [Avions](#avions)
+    - [Mining](#mining)
+    - [Farming](#farming)
+    - [Breeding](#breeding)
+      - [Breeding Avions](#breeding-avions)
+      - [Breeding Crops](#breeding-crops)
   - [Component Architecture](#component-architecture)
 
 All game logic and data is handled by the server.
@@ -81,17 +93,86 @@ The following are the tile attributes:
 The following are the tile types:
 
 - `grass`
-  - A patch of grass
+  - A patch of grass. Will appear as dry ground.
 - `beach`
-  - A segment of beach
+  - A segment of beach. Will appear in between water and `grass`.
 - `rock`
-  - A segment of rock
+  - A segment of rock. Will appear on steeper inclines.
 - `mud`
-  - A patch of mud
+  - A patch of mud. Will appear where `grass` has been tilled, ready for farming.
 - `water_shallow`
-  - Shallow water
+  - Shallow water. Will appear under shallow water, such as rivers.
 - `water_deep`
-  - Deep water
+  - Deep water. Will appear under deep water, such as oceans.
+
+### World Generation
+
+When the server starts, a random world is generated, or loaded if world data has been saved. A pseudo-random number generator (PRNG) will be used to generate the world. After a world has been generated, the PRNG's seed and the world's data will be saved.
+
+Each world tile will represent a 1m x 1m square. The generated main world will be 10000x10000 tiles, and a generated race map will be 1000x1000 tiles.
+
+A world consists of a base, or default, biome. Throughout the world, multiple other biomes will be generated.
+
+Villages will be randomly placed in a main world. Each main world will have 25 villages, with a minimum of 1km distance between each village. Different biomes will have a different chance of villages being generated within them.
+
+#### World Data Files
+
+The world data file will be stored in `data/worlds/` with the filename being `the_world_name.json`. The name of the world will be entered by the user of the server as part of the world generation process.
+
+The file structure will be as follows:
+
+```json
+{
+  "seed": 123456,
+  "width": 10000,
+  "height": 10000,
+  "tiles": [ 0, 1, 2, 3, ]
+}
+```
+
+`seed` is the PRNG's seed.
+
+`width` is the world's width in tiles.
+
+`height` is the world's height in tiles.
+
+`tiles` specifies the tile indexes used for the world. The size of data is `width x height` in a single array. If `tiles` is an incorrect size, an error will occur.
+
+Data about world tiles are stored in the file `data/world/tiles.json`. It has the following structure:
+
+```json
+{
+  "tiles": [
+    {
+      "id": 1,
+      "attributes": [ "runnable", "walkable" ],
+      "type": "grass",
+      "texture_name": "texture_name",
+      // TODO: Audio names? Per attribute, one sound for running, one for walking?
+    }
+  ]
+}
+```
+
+`tiles` is the list of available.
+
+`id` is the id of the tile. This must be unique for all tiles. If a duplicate id is found, an error will occur.
+
+`attributes` specifies the attributes this tile has. See [here](#world) for more information.
+
+`type` specifies the type of this tile. See [here](#world) for more information.
+
+`texture_name` is the name of the texture that this tile should render with.
+
+#### Biomes
+
+A biome will define the types of tiles are generated and also what minerals, crops and avions can be found there. Weather is also defined by a biome. Differing weather will affect avions as they race.
+
+See [here](world_generation_biomes.md) for more information about biomes.
+
+#### Terrain Generation Algorithm
+
+#### Race Course Generation Algorithm
 
 ### World Simulations
 
@@ -142,6 +223,26 @@ Customizable workflows will be handled by scripting. These workflows are:
 ## Data
 
 All external data should be stored in a folder called `data` that is in the same directory as the server's executable.
+
+## Game Logic
+
+All game logic is to be handled on the server.
+
+### Avions
+
+### Mining
+
+### Farming
+
+### Breeding
+
+Avions and crops can be bred. When bred, the attributes of the parents are merged and passed to the child using a genetic algorithm.
+
+#### Breeding Avions
+
+#### Breeding Crops
+
+Seeds can be bred to create new types of seed.
 
 ## Component Architecture
 
