@@ -107,7 +107,7 @@ The following are the tile types:
 
 When the server starts, a random world is generated, or loaded if world data has been saved. A pseudo-random number generator (PRNG) will be used to generate the world. After a world has been generated, the PRNG's seed and the world's data will be saved.
 
-Each world tile will represent a 1m x 1m square. The generated main world will be 10000x10000 tiles, and a generated race map will be 1000x1000 tiles.
+Each world tile will represent a 1m x 1m square. The generated main world will be 10000x10000 tiles, a generated race map will be 1000x1000 tiles and a generated village map will be 500x500 tiles.
 
 A world consists of a base, or default, biome. Throughout the world, multiple other biomes will be generated.
 

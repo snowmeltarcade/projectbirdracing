@@ -4,6 +4,7 @@
   - [Premise](#premise)
   - [Game Play](#game-play)
     - [Silva](#silva)
+    - [Villages](#villages)
     - [Time](#time)
     - [Setting up a Home](#setting-up-a-home)
     - [Mining Materials](#mining-materials)
@@ -37,11 +38,15 @@ Players can explore the world, setup a home in one of the many villages; mine ma
 
 Silva is Latin for forest. This name was chosen as forests are typically home to many varieties of birds.
 
-Silva is a large, randomly generated, 3D world that players can explore. It acts as a "world map", containing villages, forests, oceans, mountains, caves and wild avions. The player has a minimap to assist with exploring the world.
+Silva is a large, randomly generated, 3D world that players can explore. It acts as a "world map", containing villages, forests, oceans, mountains and wild avions. The player has a minimap to assist with exploring the world.
 
 Players explore Silva to accomplish the game's goals. There are two main modes of travel - walking and riding an avion.
 
 Villages are shown on the world as village model. When a player walks into the village model, the player is transported into the actual village.
+
+### Villages
+
+Shops, stalls for avions, applying for national races, setting up a home and managing your own garden happen in a village.
 
 ### Time
 
