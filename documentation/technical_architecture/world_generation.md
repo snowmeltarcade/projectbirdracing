@@ -2,6 +2,8 @@
 
 - [World Generation](#world-generation)
   - [Terrain Generation](#terrain-generation)
+    - [Terrain Generation Inputs](#terrain-generation-inputs)
+    - [Terrain Generation Algorithm](#terrain-generation-algorithm)
   - [Main World Generation](#main-world-generation)
   - [Race Course Generation](#race-course-generation)
   - [Village Generation](#village-generation)
@@ -9,6 +11,20 @@
 All worlds have the same terrain generation algorithm. Specific worlds will have further refinements according to their types.
 
 ## Terrain Generation
+
+A height map will be generated in this step. The height, as defined in the alpha channel, describes the height of the tile. The values in the red channel describe the chosen biome. The blue channel describes the types of foliage at that location. The green channel will not be used.
+
+### Terrain Generation Inputs
+
+1. Desired base biome
+2. Modifier biomes
+3. Extra biomes
+4. Number of required extra biomes
+
+### Terrain Generation Algorithm
+
+* Assign modifier biomes an index
+* Randomly select a location for the number of extra biomes
 
 The main phases of this algorithm are:
 

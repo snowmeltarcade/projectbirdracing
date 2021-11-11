@@ -5,6 +5,7 @@
   - [Game Play](#game-play)
     - [Silva](#silva)
     - [Villages](#villages)
+      - [Shops](#shops)
     - [Time](#time)
     - [Setting up a Home](#setting-up-a-home)
     - [Mining Materials](#mining-materials)
@@ -47,6 +48,10 @@ Villages are shown on the world as village model. When a player walks into the v
 ### Villages
 
 Shops, stalls for avions, applying for national races, setting up a home and managing your own garden happen in a village.
+
+#### Shops
+
+There are x types of shops. They all have a set, not random, layout...
 
 ### Time
 
