@@ -2,13 +2,14 @@
 
 The following base biomes are available:
 
-- Field
+- Grass
 - Snow
 - Desert
 
 Each base biome can be modified with the following modifier biome:
 
 - Wet
+- Field
 - Forest
 - Hilly
 - Mountainous
@@ -16,9 +17,13 @@ Each base biome can be modified with the following modifier biome:
 Extra biomes that can be interspersed randomly, are as follows:
 
 - Volcanic
-  - Chance of village generation: 0%
+  - Maximum height: `1.0`
+  - Minimum height: `0.9`
+  - Chance of village generation: `0%`
 - Ocean
-  - Chance of village generation: 0%
+  - Maximum height: `0.1`
+  - Minimum height: `0.0`
+  - Chance of village generation: `0%`
 
 ## Biomes File
 

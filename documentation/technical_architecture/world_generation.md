@@ -4,6 +4,9 @@
   - [Terrain Generation](#terrain-generation)
     - [Terrain Generation Inputs](#terrain-generation-inputs)
     - [Terrain Generation Algorithm](#terrain-generation-algorithm)
+      - [Generate Biome Distribution](#generate-biome-distribution)
+      - [Generate Rivers](#generate-rivers)
+      - [Generate Foliage](#generate-foliage)
   - [Main World Generation](#main-world-generation)
   - [Race Course Generation](#race-course-generation)
   - [Village Generation](#village-generation)
@@ -12,25 +15,43 @@ All worlds have the same terrain generation algorithm. Specific worlds will have
 
 ## Terrain Generation
 
-A height map will be generated in this step. The height, as defined in the alpha channel, describes the height of the tile. The values in the red channel describe the chosen biome. The blue channel describes the types of foliage at that location. The green channel will not be used.
+A height map will be generated in this step. The height, as defined in the alpha channel, describes the height of the tile. The values in the red channel describe the chosen biome. The blue channel describes the types of foliage at that location. The green channel will describe the locations of rivers.
 
 ### Terrain Generation Inputs
 
-1. Desired base biome
-2. Modifier biomes
-3. Extra biomes
-4. Number of required extra biomes
+* Desired base biome
+* Modifier biomes
+* Extra biomes
+* Ocean biome index within extra biomes
+* Number of required extra biomes
+* Minimum biome size in meters from center
+* Maximum biome size in meters from center
+* Sea level (between `0.0` and `1.0`)
 
 ### Terrain Generation Algorithm
-
-* Assign modifier biomes an index
-* Randomly select a location for the number of extra biomes
 
 The main phases of this algorithm are:
 
 1. Generate biome distribution
 2. Generate rivers going from highest point to sea level
 3. Generate foliage
+
+#### Generate Biome Distribution
+
+1. Assign modifier biomes an index
+2. Create terrain with default modifier biome
+3. Randomly select a location for the number of extra biomes
+4. Add extra biomes with a spacing of at least the minimum biome size
+5. Create height map using the heights from the extra biomes
+   1. A height should be selected between the minimum and maximum heights
+   2. The result should look like a [3D surface plot](https://www.google.com/search?q=3d+surface+plot)
+6. Assign modifier biomes based on the heights of the rest of the points
+   1. Any point below the sea level will be set to the ocean biome
+7. Use [perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to add noise to the height values of the map
+
+#### Generate Rivers
+
+#### Generate Foliage
 
 ## Main World Generation
 
