@@ -6,7 +6,6 @@
     - [Terrain Generation Algorithm](#terrain-generation-algorithm)
       - [Generate Biome Distribution](#generate-biome-distribution)
       - [Generate Height Points](#generate-height-points)
-      - [Generate Rivers](#generate-rivers)
       - [Generate Foliage](#generate-foliage)
   - [Main World Generation](#main-world-generation)
   - [Race Course Generation](#race-course-generation)
@@ -35,8 +34,7 @@ The main phases of this algorithm are:
 
 1. Generate biome distribution
 2. Generate height points
-3. Generate rivers going from highest point to sea level
-4. Generate foliage
+3. Generate foliage
 
 #### Generate Biome Distribution
 
@@ -56,13 +54,18 @@ The main phases of this algorithm are:
 
 1. Flatten all heights
 2. Modify height points based on biome height modifiers
-   1. Set to a random value between the biomes minimum and maximum height
-   2. Smooth out all points using a [moving average](https://en.wikipedia.org/wiki/Moving_average)
-3. Use [perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to add noise to the height values of the map
-
-#### Generate Rivers
+   1. For each biome, generate a height map using [perlin noise](https://en.wikipedia.org/wiki/Perlin_noise)
+      1. Use the biome's minimum and maximum height, number of octaves and redistribution values
+         1. See [here](https://www.redblobgames.com/maps/terrain-from-noise/) for a good description of height map generation
+      2. Multiple each octave's height map together to form the final height map
+   2. Iterate over each point
+      1. For that point's biome, set the point height to the height maps point
+3. Smooth out all points using a [moving average](https://en.wikipedia.org/wiki/Moving_average)
+4. Use [perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to add noise to the height values of the map
 
 #### Generate Foliage
+
+Use [Poisson Disk Sampling](http://devmag.org.za/2009/05/03/poisson-disk-sampling/) for foliage location generation.
 
 ## Main World Generation
 
