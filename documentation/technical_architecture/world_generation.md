@@ -5,6 +5,7 @@
     - [Terrain Generation Inputs](#terrain-generation-inputs)
     - [Terrain Generation Algorithm](#terrain-generation-algorithm)
       - [Generate Biome Distribution](#generate-biome-distribution)
+      - [Generate Height Points](#generate-height-points)
       - [Generate Rivers](#generate-rivers)
       - [Generate Foliage](#generate-foliage)
   - [Main World Generation](#main-world-generation)
@@ -33,8 +34,9 @@ A height map will be generated in this step. The height, as defined in the alpha
 The main phases of this algorithm are:
 
 1. Generate biome distribution
-2. Generate rivers going from highest point to sea level
-3. Generate foliage
+2. Generate height points
+3. Generate rivers going from highest point to sea level
+4. Generate foliage
 
 #### Generate Biome Distribution
 
@@ -46,8 +48,17 @@ The main phases of this algorithm are:
    1. A height should be selected between the minimum and maximum heights
    2. The result should look like a [3D surface plot](https://www.google.com/search?q=3d+surface+plot)
 6. Assign modifier biomes based on the heights of the rest of the points
-   1. Any point below the sea level will be set to the ocean biome
-7. Use [perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to add noise to the height values of the map
+   1. The value from `0.0` to `1.0` should be assigned to a biome by means of a percentage
+      1. If there are 5 modifier biomes, then `0.0` to `0.2` will be assigned to the modifier biome with index 0
+   2. Any point below the sea level will be set to the ocean biome
+
+#### Generate Height Points
+
+1. Flatten all heights
+2. Modify height points based on biome height modifiers
+   1. Set to a random value between the biomes minimum and maximum height
+   2. Smooth out all points using a [moving average](https://en.wikipedia.org/wiki/Moving_average)
+3. Use [perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to add noise to the height values of the map
 
 #### Generate Rivers
 

@@ -8,22 +8,20 @@ The following base biomes are available:
 
 Each base biome can be modified with the following modifier biome:
 
-- Wet
-- Field
-- Forest
-- Hilly
-- Mountainous
+| Biome Name | Maximum Height | Minimum Height | Chance of Village Generation | Chance of Foliage Generation |
+| --- | --- | --- | --- | --- |
+| Beach | 0.15 | 0.1 | 0% | 0% |
+| Field | 0.2 | 0.15 | 0% | 0% |
+| Forest | 0.3 | 0.2 | 0% | 0% |
+| Hilly | 0.5 | 0.3 | 0% | 0% |
+| Mountainous | 1.0 | 0.5 | 0% | 0% |
 
 Extra biomes that can be interspersed randomly, are as follows:
 
-- Volcanic
-  - Maximum height: `1.0`
-  - Minimum height: `0.9`
-  - Chance of village generation: `0%`
-- Ocean
-  - Maximum height: `0.1`
-  - Minimum height: `0.0`
-  - Chance of village generation: `0%`
+| Biome Name | Maximum Height | Minimum Height | Chance of Village Generation | Chance of Foliage Generation |
+| --- | --- | --- | --- | --- |
+| Volcanic | 1.0 | 0.5 | 0% | 0% |
+| Ocean | 0.1 | 0.0 | 0% | 0% |
 
 ## Biomes File
 
