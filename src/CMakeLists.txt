@@ -46,5 +46,5 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/buildsettings.cmake")
 include_directories("${CMAKE_CURRENT_LIST_DIR}")
 
 add_subdirectory("shared")
-# add_subdirectory("client")
+add_subdirectory("client")
 # add_subdirectory("server")
