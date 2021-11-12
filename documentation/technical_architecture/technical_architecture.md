@@ -14,7 +14,7 @@
   - [Versioning](#versioning)
     - [Comparing Versions](#comparing-versions)
   - [Naming](#naming)
-  - [Programming Language](#programming-language)
+  - [Programming](#programming)
     - [Code Practices](#code-practices)
     - [Error Handling](#error-handling)
     - [Compiling](#compiling)
@@ -148,11 +148,15 @@ This solution's projects will have the following names:
 | `SnowMeltArcade.ProjectBirdRacing.Server` | The server project |
 | `SnowMeltArcade.ProjectBirdRacing.Shared` | The shared libraries project |
 
-## Programming Language
+## Programming
+
+Source code will be stored in the `/src` directory.
 
 Primarily C++17 will be used. The aim is to use C++20 when it has better support in Clang. For now, C++20 concepts will also be used where possible.
 
 The latest version of Clang will be used.
+
+Clang format will be used for code formatting.
 
 The code must compile on Windows, Mac, Linux, iOS and Android. Platform specific code must be kept to a minimum. Cross platform APIs and frameworks will be used. As much as possible, STL should be used.
 
