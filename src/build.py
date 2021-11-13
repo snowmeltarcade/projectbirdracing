@@ -151,7 +151,7 @@ def do_install(install_dir, archive_name_override):
     format = "zip"
     version = get_project_version()
 
-    archive_file_name = f"projectbirdracing-{version}-{platform.system().lower()}"
+    archive_file_name = f"SnowMeltArcade.ProjectBirdRacing-{version}-{platform.system().lower()}"
 
     if not archive_name_override is None and len(archive_name_override) > 0:
         archive_file_name = archive_name_override
@@ -210,7 +210,7 @@ def get_project_version():
     with open(makefile_dir) as f:
         file_contents = f.read()
 
-    match = re.search(r'projectbirdracing VERSION (\d+\.\d+\.\d+)', file_contents)
+    match = re.search(r'\"SnowMeltArcade\.ProjectBirdRacing\" VERSION (\d+\.\d+\.\d+)', file_contents)
 
     version = match.group(1)
 
