@@ -1,0 +1,20 @@
+{
+    "dependencies": [
+        {
+            "name": "catch2",
+            "version": "2.13.6"
+        },
+        {
+            "name": "clang",
+            "version": "12.0.0"
+        },
+        {
+            "name": "ninja",
+            "version": "1.10.2"
+        },
+        {
+            "name": "glm",
+            "version": "0.9.9.8"
+        }
+    ]
+}
