@@ -47,4 +47,5 @@ jobs:
       - name: Copy documentation
         run: |
           ls
+          mkdir -p documentation_repo/test/docs/
           cp -a src/documentation/code/. documentation_repo/test/docs/
