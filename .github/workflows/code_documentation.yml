@@ -24,11 +24,18 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Install dependencies
-        run: python3 src/build.py --install-dependencies --no-build --no-install
       
       # Build documentation
       - name: Build documentation
         run: python3 src/build_documentation.py
+      
+      # Checkout documentation repo
+      - name: Checkout documentation repo
+        run: |
+          mkdir documentation_repo
+          cd documentation_repo
+          git clone git@github.com:richardjhughes/test.git
+
+      # Copy in documentation
+      - name: Copy documentation
+        run: cp -a src/documentation/code/. documentation_repo/test/docs/
