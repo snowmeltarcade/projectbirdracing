@@ -6,3 +6,4 @@ src/archives/*
 src/version.h
 src/cmake*/*
 .idea/*
+documentation/code/*
