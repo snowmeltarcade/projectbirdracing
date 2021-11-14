@@ -31,14 +31,11 @@ jobs:
       
       # Build documentation
       - name: Build documentation
-        run: |
-          ls
-          python3 src/build_documentation.py
+        run: python3 src/build_documentation.py
       
       # Checkout documentation repo
       - name: Checkout documentation repo
         run: |
-          ls
           mkdir documentation_repo
           cd documentation_repo
           git clone https://github.com/snowmeltarcade/test.git
@@ -46,12 +43,11 @@ jobs:
       # Copy in documentation
       - name: Copy documentation
         run: |
-          ls
-          ls documentation_repo/
-          ls documentation_repo/test/
           mkdir -p documentation_repo/test/docs/
-          ls documentation_repo/test/docs/
-          ls src/
-          ls documentation/
-          ls documentation/code/
           cp -a documentation/code/. documentation_repo/test/docs/
+
+      # Commit documentation
+      - name: Commit documentation
+        run: |
+          cd documentation_repo
+          git status
