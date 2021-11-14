@@ -27,7 +27,7 @@ jobs:
       
       # Install doxygen
       - name: Install doxygen
-        run: apt-get install doxygen -y
+        run: sudo apt-get install doxygen -y
       
       # Build documentation
       - name: Build documentation
