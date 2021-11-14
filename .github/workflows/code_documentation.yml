@@ -49,6 +49,6 @@ jobs:
           ls
           ls documentation_repo/
           ls documentation_repo/test/
-          ls documentation_repo/test/docs/
           mkdir -p documentation_repo/test/docs/
+          ls documentation_repo/test/docs/
           cp -a src/documentation/code/. documentation_repo/test/docs/
