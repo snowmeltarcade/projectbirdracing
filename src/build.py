@@ -77,6 +77,7 @@ def get_platform_name():
     else:
         return "windows"
 
+
 def do_make(no_build, no_install, debug):
     print("Making...")
 

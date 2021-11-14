@@ -1,6 +1,11 @@
-# Build
+# Building
 
-## CLI
+- [Building](#building)
+  - [Code](#code)
+    - [CLion](#clion)
+  - [Documentation](#documentation)
+
+## Code
 
 To build, run `build.py`:
 ```
@@ -51,3 +56,12 @@ Set the CMake settings as follows:
 > CMake -> Toolchain -> *Set to the toolchain with Ninja as the make tool*
 
 > CMake -> CMake options -> -GNinja -DCMAKE_CXX_COMPILER=/*{project_root}*/src/libraries/clang/darwin/bin/clang++ -DCMAKE_C_COMPILER=/*{project_root}*/src/libraries/clang/darwin/bin/clang
+
+## Documentation
+
+To build the documentation, run `build_documentation.py`:
+```
+python3 build_documentation.py
+```
+
+This will build the documentation in `/documentation/code/`.

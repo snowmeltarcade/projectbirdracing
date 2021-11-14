@@ -1,8 +1,9 @@
-src/build/*
+**/build/*
+**/.vscode/*
 src/libraries/*
 src/install/*
 src/archives/*
 src/version.h
-src/.vscode/*
 src/cmake*/*
 .idea/*
+documentation/code/*
