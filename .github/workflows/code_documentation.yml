@@ -50,6 +50,8 @@ jobs:
       - name: Commit documentation
         run: |
           cd /tmp/documentation_repo/test/
+          pwd
+          ls
           git config user.name "Code Documentation Github Action"
           git config user.email "noop@snowmeltarcade.com"
           git status
