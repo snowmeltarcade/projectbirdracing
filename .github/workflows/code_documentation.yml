@@ -55,4 +55,4 @@ jobs:
           git status
           git add .
           git commit -m "Updating documentation"
-          git push
+          git push "https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/projectbirdracingdocumentation.git"
