@@ -36,7 +36,7 @@ jobs:
       # Checkout documentation repo
       - name: Checkout documentation repo
         run: |
-          mkdir documentation_repo
+          mkdir documentation_repo -p
           cd documentation_repo
           git clone "https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/projectbirdracingdocumentation.git"
 
