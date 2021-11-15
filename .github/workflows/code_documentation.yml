@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir documentation_repo
           cd documentation_repo
-          git clone https://github.com/snowmeltarcade/test.git
+          git clone https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/test.git
 
       # Copy in documentation
       - name: Copy documentation
