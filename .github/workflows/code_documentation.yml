@@ -29,32 +29,35 @@ jobs:
       - name: Install doxygen
         run: sudo apt-get install doxygen -y
       
-      # Build documentation
-      - name: Build documentation
-        run: python3 src/build_documentation.py
+      # # Build documentation
+      # - name: Build documentation
+      #   run: python3 src/build_documentation.py
       
       # Checkout documentation repo
       - name: Checkout documentation repo
         run: |
           mkdir /tmp/documentation_repo -p
-          cd /tmp/documentation_repo
+          cd /tmp/documentation_repo/
           git clone "https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/projectbirdracingdocumentation.git"
-
-      # Copy in documentation
-      - name: Copy documentation
-        run: |
-          mkdir -p /tmp/documentation_repo/test/docs/
-          cp -a documentation/code/. /tmp/documentation_repo/test/docs/
-
-      # Commit documentation
-      - name: Commit documentation
-        run: |
-          cd /tmp/documentation_repo/test/
-          pwd
-          ls
-          git config user.name "Code Documentation Github Action"
-          git config user.email "noop@snowmeltarcade.com"
+          ls -a
           git status
-          git add .
-          git commit -m "Updating documentation"
-          git push "https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/projectbirdracingdocumentation.git"
+
+      # # Copy in documentation
+      # - name: Copy documentation
+      #   run: |
+      #     mkdir -p /tmp/documentation_repo/test/docs/
+      #     cp -a documentation/code/. /tmp/documentation_repo/test/docs/
+
+      # # Commit documentation
+      # - name: Commit documentation
+      #   run: |
+      #     cd /tmp/documentation_repo/test/
+      #     pwd
+      #     ls -a
+      #     ls -a docs/
+      #     git config user.name "Code Documentation Github Action"
+      #     git config user.email "noop@snowmeltarcade.com"
+      #     git status
+      #     git add .
+      #     git commit -m "Updating documentation"
+      #     git push "https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/projectbirdracingdocumentation.git"
