@@ -226,7 +226,7 @@ As there are few free static analysis tools, use the tool that comes with the ID
 
 All classes and public interfaces must be commented, stating their purpose, inputs and outputs.
 
-[Doxygen](https://www.doxygen.nl/index.html) will be used to generate documentation from these comments. The resulting documentation will be hosted by Github Pages.
+[Doxygen](https://www.doxygen.nl/index.html) will be used to generate documentation from these comments. The resulting documentation will be hosted by Github Pages. The repository [https://github.com/snowmeltarcade/projectbirdracingdocumentation](https://github.com/snowmeltarcade/projectbirdracingdocumentation) will be used to host the generated code documentation. The code documentation will be generated each time a push is made to the `main` branch.
 
 ## APIs
 
