@@ -36,20 +36,20 @@ jobs:
       # Checkout documentation repo
       - name: Checkout documentation repo
         run: |
-          mkdir /documentation_repo -p
-          cd /documentation_repo
+          mkdir /tmp/documentation_repo -p
+          cd /tmp/documentation_repo
           git clone "https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/projectbirdracingdocumentation.git"
 
       # Copy in documentation
       - name: Copy documentation
         run: |
-          mkdir -p /documentation_repo/test/docs/
-          cp -a documentation/code/. /documentation_repo/test/docs/
+          mkdir -p /tmp/documentation_repo/test/docs/
+          cp -a documentation/code/. /tmp/documentation_repo/test/docs/
 
       # Commit documentation
       - name: Commit documentation
         run: |
-          cd /documentation_repo/test/
+          cd /tmp/documentation_repo/test/
           git config user.name "Code Documentation Github Action"
           git config user.email "noop@snowmeltarcade.com"
           git status
