@@ -49,7 +49,7 @@ jobs:
       # Commit documentation
       - name: Commit documentation
         run: |
-          cd documentation_repo
+          cd documentation_repo/test/
           git config user.name "Code Documentation Github Action"
           git config user.email "noop@snowmeltarcade.com"
           git status
