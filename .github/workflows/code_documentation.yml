@@ -44,6 +44,7 @@ jobs:
       - name: Copy documentation
         run: |
           mkdir -p /tmp/documentation_repo/projectbirdracingdocumentation/docs/
+          rm -rf *
           cp -a documentation/code/. /tmp/documentation_repo/projectbirdracingdocumentation/docs/
 
       # Commit documentation
