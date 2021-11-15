@@ -39,19 +39,20 @@ jobs:
           mkdir /tmp/documentation_repo -p
           cd /tmp/documentation_repo/
           git clone "https://${{secrets.REPO_TOKEN}}@github.com/snowmeltarcade/projectbirdracingdocumentation.git"
+          cd projectbirdracingdocumentation
           ls -a
           git status
 
       # # Copy in documentation
       # - name: Copy documentation
       #   run: |
-      #     mkdir -p /tmp/documentation_repo/test/docs/
-      #     cp -a documentation/code/. /tmp/documentation_repo/test/docs/
+      #     mkdir -p /tmp/documentation_repo/projectbirdracingdocumentation/docs/
+      #     cp -a documentation/code/. /tmp/documentation_repo/projectbirdracingdocumentation/docs/
 
       # # Commit documentation
       # - name: Commit documentation
       #   run: |
-      #     cd /tmp/documentation_repo/test/
+      #     cd /tmp/documentation_repo/projectbirdracingdocumentation/
       #     pwd
       #     ls -a
       #     ls -a docs/
