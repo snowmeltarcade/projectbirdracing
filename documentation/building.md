@@ -19,10 +19,14 @@ python3 build.py
     Skip the build step. Defaults to `false`.
 * `-ni` / `--no-install`
     Skip the install step. Defaults to `false`.
+* `an` / `--archive-name`
+    What to name the archive
 * `-c` / `--cleanup`
     Deletes the build and install data/temp files after build. Defaults to `false`.
 * `-d` / `--debug`
     Build in debug
+* `-nt` / `--no-tests`
+    Do not run the tests
 
 After the build, the client, server and data will be copied to the `./src/install` directory. This directory has the following structure:
 

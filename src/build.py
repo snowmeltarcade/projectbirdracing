@@ -24,6 +24,7 @@ def configure_arguments():
     parser.add_argument("-an", "--archive-name", action="store", required=False, help="what to name the built archive")
     parser.add_argument("-c", "--cleanup", action="store_true", required=False, help="clean up build and install data/temp files after build")
     parser.add_argument("-d", "--debug", action="store_true", required=False, help="build in debug")
+    parser.add_argument("-nt", "--no-tests", action="store_true", required=False, help="do not run tests")
     args = parser.parse_args()
 
     return args
@@ -78,7 +79,7 @@ def get_platform_name():
         return "windows"
 
 
-def do_make(no_build, no_install, debug):
+def do_make(no_build, no_install, debug, no_tests):
     print("Making...")
 
     build_dir = os.path.join(cwd, build_dir_name)
@@ -127,8 +128,9 @@ def do_make(no_build, no_install, debug):
 
         run_cmd_env(cmd, env)
 
-        cmd = [ctest_path]
-        run_cmd_env(cmd, env)
+        if not no_tests:
+            cmd = [ctest_path]
+            run_cmd_env(cmd, env)
 
         if not no_install:
             cmd = [cmake_path, "--install", ".", "--config", f"{config}"]
@@ -225,7 +227,7 @@ args = configure_arguments()
 if args.install_dependencies:
     install_dependencies()
 
-build_dir, install_dir = do_make(args.no_build, args.no_install, args.debug)
+build_dir, install_dir = do_make(args.no_build, args.no_install, args.debug, args.no_tests)
 
 if not args.no_install:
     do_install(install_dir, args.archive_name)
