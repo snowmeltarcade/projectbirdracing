@@ -4,6 +4,5 @@ src/libraries/*
 src/install/*
 src/archives/*
 src/version.h
-src/cmake*/*
 .idea/*
 documentation/code/*
