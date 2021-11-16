@@ -14,12 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-      - name: Test
-        id: test
-        run: |
-          ls
-          ls src
-          ls src/cmake
+    - name: Test
+      id: test
+      run: |
+        ls
+        ls src
+        ls src/cmake
 
     # - name: Build
     #   id: build
