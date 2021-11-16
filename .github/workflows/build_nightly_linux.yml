@@ -14,46 +14,38 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Test
-      id: test
+    - name: Build
+      id: build
       run: |
-        ls
-        ls src
-        ls src/cmake
-
-    # - name: Build
-    #   id: build
-    #   run: |
-    #     cd src
-    #     python3 build.py --install-dependencies --archive-name=snowmeltarcade_linux
-    #     echo '::set-output name=RELEASE_DATE::'$(python3 ./.github/tools/getdate.py)
+        cd src
+        python3 build.py --install-dependencies --archive-name=snowmeltarcade_linux
+        echo '::set-output name=RELEASE_DATE::'$(python3 ./.github/tools/getdate.py)
       
-    # - uses: dev-drprasad/delete-tag-and-release@v0.2.0
-    #   with:
-    #     delete_release: true
-    #     tag_name: linux_nightly
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: linux_nightly
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-    # - name: Release Nightly
-    #   id: nightly
-    #   uses: actions/create-release@latest
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     tag_name: linux_nightly
-    #     release_name: linux_nightly
-    #     draft: false
-    #     prerelease: false
+    - name: Release Nightly
+      id: nightly
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: linux_nightly
+        release_name: linux_nightly
+        draft: false
+        prerelease: false
       
-    # - name: Upload Release Asset
-    #   id: upload-release-asset 
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     upload_url: ${{ steps.nightly.outputs.upload_url }}
-    #     asset_path: ./src/archives/snowmeltarcade_linux.zip
-    #     asset_name: linux_nightly_${{ steps.build.outputs.RELEASE_DATE }}.zip
-    #     asset_content_type: application/zip
-        
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.nightly.outputs.upload_url }}
+        asset_path: ./src/archives/snowmeltarcade_linux.zip
+        asset_name: linux_nightly_${{ steps.build.outputs.RELEASE_DATE }}.zip
+        asset_content_type: application/zip
