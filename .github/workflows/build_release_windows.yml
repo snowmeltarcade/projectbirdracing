@@ -1,6 +1,9 @@
 name: Build Release Windows
 
 on:
+  push:
+    branches:
+      - main
   # allow manual running of this job
   workflow_dispatch:
       

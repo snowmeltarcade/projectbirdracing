@@ -1,6 +1,9 @@
 name: Build Release Mac
 
 on:
+  push:
+    branches:
+      - main
   # allow manual running of this job
   workflow_dispatch:
       
