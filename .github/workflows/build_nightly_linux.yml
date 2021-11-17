@@ -19,7 +19,7 @@ jobs:
       run: |
         cd src
         python3 build.py --install-dependencies --archive-name=snowmeltarcade_linux
-        echo '::set-output name=RELEASE_DATE::'$(python3 ./.github/tools/getdate.py)
+        echo '::set-output name=RELEASE_DATE::'$(python3 ../.github/tools/getdate.py)
       
     - uses: dev-drprasad/delete-tag-and-release@v0.2.0
       with:
