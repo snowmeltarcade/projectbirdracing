@@ -21,7 +21,7 @@ jobs:
       id: build
       run: |
         cd src
-        python3 build.py --install-dependencies --archive-name=snowmeltarcade_windows
+        python3 build.py --install-dependencies --archive-name=projectbirdracing_windows
         echo "::set-output name=VERSION::$(python3 ../.github/tools/getversion.py)"
 
     - name: Release Version
@@ -42,7 +42,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.version.outputs.upload_url }}
-        asset_path: ./src/archives/snowmeltarcade_windows.zip
-        asset_name: snowmeltarcade_windows_${{ steps.build.outputs.VERSION }}.${{ github.run_number }}.zip
+        asset_path: ./src/archives/projectbirdracing_windows.zip
+        asset_name: projectbirdracing_windows_${{ steps.build.outputs.VERSION }}.${{ github.run_number }}.zip
         asset_content_type: application/zip
   

@@ -18,7 +18,7 @@ jobs:
       id: build
       run: |
         cd src
-        python3 build.py --install-dependencies --archive-name=snowmeltarcade_mac
+        python3 build.py --install-dependencies --archive-name=projectbirdracing_mac
         echo '::set-output name=RELEASE_DATE::'$(python3 ../.github/tools/getdate.py)
       
     - uses: dev-drprasad/delete-tag-and-release@v0.2.0
@@ -46,6 +46,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.nightly.outputs.upload_url }}
-        asset_path: ./src/archives/snowmeltarcade_mac.zip
+        asset_path: ./src/archives/projectbirdracing_mac.zip
         asset_name: mac_nightly_${{ steps.build.outputs.RELEASE_DATE }}.zip
         asset_content_type: application/zip
