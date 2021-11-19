@@ -3,6 +3,10 @@
 
 #include "version.h"
 
+/// The server's main entry point
+/// \param argv The length of `args`
+/// \param args The program arguments
+/// \return Will always return `0`
 int main(int argv, char* args[]) {
     std::cout << "Starting server...\nProject Name: " << PROJECT_NAME << "\nVersion: " << PROJECT_VERSION << '\n';
 
