@@ -185,6 +185,18 @@ uint32_t _id = ++_global_ids;
 
 Avoid undefined behavior, as this can introduce subtle bugs when running on a different platform of upgrading a compiler version.
 
+### Namespaces
+
+The root namespace will be `pbr` - as in `Project Bird Racing`.
+
+The client will have the root namespace: `pbr::client`.
+
+The server will have the root namespace: `pbr::server`.
+
+The shared library will have the root namespace: `pbr::shared`.
+
+All project code, except the `main()` functions and the memory module's `operator new` and `operator delete` definitions, should be in one of the above respective namespaces. 
+
 ### Error Handling
 
 As far as it possible, all functions should be marked `[[nodiscard]]`, as this avoids bugs due to unused variables. It also forces functions to be used as they are designed to. Any exceptions should be noted in a comment.

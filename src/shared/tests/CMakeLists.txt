@@ -18,5 +18,6 @@ target_include_directories(
 )
 
 add_subdirectory("apis")
+add_subdirectory("memory")
 
 catch_discover_tests("${SHARED_TEST_PROJECT_NAME}")
