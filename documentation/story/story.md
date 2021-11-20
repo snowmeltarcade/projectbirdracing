@@ -57,6 +57,12 @@ There are x types of shops. They all have a set, not random, layout...
 
 Time progresses in Silva. With time, crops grow and avion age.
 
+### Currency
+
+The pecun is the basic form of currency in the world. This word is based on the Latin word for money. 
+
+ You start the game with no currency.  Currency can be earned by winning races, selling mined items and crops and by helping raise other villagers' avions. 
+
 ### Setting up a Home
 
 ### Mining Materials
