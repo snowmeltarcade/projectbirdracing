@@ -199,7 +199,7 @@ All project code, except the `main()` functions and the memory module's `operato
 
 ### Error Handling
 
-As far as it possible, all functions should be marked `[[nodiscard]]`, as this avoids bugs due to unused variables. It also forces functions to be used as they are designed to. Any exceptions should be noted in a comment.
+As far as is possible, all functions should be marked `[[nodiscard]]`, as this avoids bugs due to unused variables. It also forces functions to be used as they are designed to. Any exceptions should be noted in a comment.
 
 We will not throw any exceptions. If an exception is thrown by something, this will truly be an exceptional circumstance. To enforce this, all functions should be marked as `noexcept`.
 
