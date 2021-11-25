@@ -6,4 +6,5 @@ target_link_libraries("${SHARED_PROJECT_NAME}"
 )
 
 add_subdirectory("apis")
+add_subdirectory("memory")
 add_subdirectory("tests")
