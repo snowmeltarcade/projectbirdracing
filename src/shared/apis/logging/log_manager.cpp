@@ -49,8 +49,10 @@ namespace pbr::shared::apis::logging {
 
         std::scoped_lock<std::mutex> lock(g_mutex);
 
+        std::string formatted_message { to_string(level) + ": " + std::string(message) };
+
         for (const auto& e : g_endpoints) {
-            e->log(message);
+            e->log(formatted_message);
         }
     }
 }

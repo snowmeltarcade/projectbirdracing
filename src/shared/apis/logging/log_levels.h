@@ -1,5 +1,9 @@
 #pragma once
 
+#include "shared/memory/basic_allocators.h"
+
+#include <string>
+
 namespace pbr::shared::apis::logging {
     /// The levels to log against
     enum class log_levels : char {
@@ -16,4 +20,7 @@ namespace pbr::shared::apis::logging {
         /// It is the responsibility of the caller to halt the system
         fatal,
     };
+
+    /// Returns a string representation of the passed log level
+    std::string to_string(log_levels level) noexcept;
 }

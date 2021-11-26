@@ -30,7 +30,7 @@ namespace pbr::shared::apis::logging {
     log_levels get_log_level() noexcept;
 
     /// Logs a message to all added endpoints. If the set log level is less than the passed level,
-    /// the message will not be logged. The current date and time in UTC will be prefixed to the message
+    /// the message will not be logged. The level, current date and time in UTC will be prefixed to the message
     /// \param message The message to log
     /// \param level The logging level to log against
     void log_message(std::string_view message, const log_levels level) noexcept;

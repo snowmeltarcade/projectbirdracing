@@ -6,6 +6,7 @@ target_sources(
         log_manager.h
     PRIVATE
         log_manager.cpp
+        log_levels.cpp
 )
 
 add_subdirectory("endpoints")
