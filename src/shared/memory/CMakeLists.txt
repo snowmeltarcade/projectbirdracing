@@ -2,6 +2,14 @@ target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
         basic_allocators.h
+        bytes.h
+        kilobytes.h
+        megabytes.h
+        gigabytes.h
     PRIVATE
         basic_allocators.cpp
+        bytes.cpp
+        kilobytes.cpp
+        megabytes.cpp
+        gigabytes.cpp
 )

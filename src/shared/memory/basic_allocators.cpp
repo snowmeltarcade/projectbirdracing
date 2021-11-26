@@ -5,7 +5,7 @@
 #include "basic_allocators.h"
 
 /// Keeps track of the number of allocated bytes for the application as a whole, for all threads
-static std::atomic_uint64_t NumberOfAllocatedBytes {0};
+static std::atomic_uint64_t g_number_of_allocated_bytes {0};
 
 /// Allocates a block of memory with the header
 /// \param size The size of the block to allocate, not including the header size
@@ -42,7 +42,7 @@ std::pair<void*, size_t> get_ptr_to_free(void* ptr) {
 void* operator new(size_t size) {
     auto [ptr, total_size] = allocate_with_header(size);
 
-    NumberOfAllocatedBytes += total_size;
+    g_number_of_allocated_bytes += total_size;
 
     return ptr;
 }
@@ -52,11 +52,11 @@ void operator delete(void* ptr) noexcept {
 
     free(ptr_to_free);
 
-    NumberOfAllocatedBytes -= size;
+    g_number_of_allocated_bytes -= size;
 }
 
 namespace pbr::shared::memory {
-    uint64_t get_number_of_allocated_bytes() noexcept {
-        return NumberOfAllocatedBytes;
+    bytes get_number_of_allocated_bytes() noexcept {
+        return bytes(g_number_of_allocated_bytes.load());
     }
 }

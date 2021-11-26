@@ -1,5 +1,7 @@
 #pragma once
 
+#include "bytes.h"
+
 #include <new>
 
 #ifndef RELEASE
@@ -32,5 +34,5 @@ namespace pbr::shared::memory {
 
     /// Returns the total number of allocated bytes. This is thread safe.
     /// \return The total number of allocated bytes.
-    uint64_t get_number_of_allocated_bytes() noexcept;
+    bytes get_number_of_allocated_bytes() noexcept;
 }

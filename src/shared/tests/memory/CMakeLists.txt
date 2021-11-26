@@ -2,4 +2,8 @@ target_sources(
     "${SHARED_TEST_PROJECT_NAME}"
     PRIVATE
         basic_allocators.cpp
+        bytes.cpp
+        kilobytes.cpp
+        megabytes.cpp
+        gigabytes.cpp
 )

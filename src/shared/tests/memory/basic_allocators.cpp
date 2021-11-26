@@ -24,7 +24,7 @@ TEST_CASE("new - accumulates number of bytes allocated", "[shared/memory]") {
     auto after = get_number_of_allocated_bytes();
 
     auto result = after - before;
-    auto expected = sizeof(int) + sizeof(memory_block_header);
+    auto expected = bytes(sizeof(int) + sizeof(memory_block_header));
 
     REQUIRE(result == expected);
 
@@ -80,7 +80,9 @@ TEST_CASE("get_number_of_allocated_bytes - single thread - returns number of all
 
     auto result = end - start;
 
-    REQUIRE((sizeof(int) * array_size) + sizeof(memory_block_header) == result);
+    auto expected = bytes((sizeof(int) * array_size) + sizeof(memory_block_header));
+
+    REQUIRE(result == expected);
 
     delete[] ptr;
 }
@@ -115,5 +117,7 @@ TEST_CASE("get_number_of_allocated_bytes - multiple threads - returns number of 
 
     auto result = end - start;
 
-    REQUIRE(((sizeof(int) * array_size) + sizeof(memory_block_header)) * number_of_threads == result);
+    auto expected = bytes(((sizeof(int) * array_size) + sizeof(memory_block_header)) * number_of_threads);
+
+    REQUIRE(result == expected);
 }

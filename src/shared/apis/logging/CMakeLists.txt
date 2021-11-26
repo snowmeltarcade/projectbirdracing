@@ -1,7 +1,12 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
-        logging.h
+        endpoint.h
+        log_levels.h
+        log_manager.h
     PRIVATE
-        logging.cpp
+        log_manager.cpp
+        log_levels.cpp
 )
+
+add_subdirectory("endpoints")
