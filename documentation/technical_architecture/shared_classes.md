@@ -80,6 +80,8 @@ The following log levels are provided:
 | `error` | For recoverable errors that require attention |
 | `fatal` | For unrecoverable errors that require a system halt. It is the responsibility of the caller to halt the system |
 
+This will be thread safe. Logs can pass in an ID identifying the thread the message is associated with.
+
 ## Graphics Manager
 
 Handles rendering all graphical elements.

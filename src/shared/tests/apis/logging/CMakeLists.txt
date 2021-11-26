@@ -1,5 +1,5 @@
 target_sources(
     "${SHARED_TEST_PROJECT_NAME}"
     PRIVATE
-        logging.cpp
+        log_manager.cpp
 )
