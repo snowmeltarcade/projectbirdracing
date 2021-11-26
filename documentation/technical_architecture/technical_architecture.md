@@ -92,6 +92,8 @@ Major releases will consist only of release builds and will be hosted using Gith
 
 Code will be developed with testing in mind. Although 100% code coverage will not be possible, as much as possible should be tested using unit tests and integration tests.
 
+Only public facing APIs (those in the `public` part of a class) require explicit unit tests. `private` and `protected` functions should be tested as part of testing the `public` functions.
+
 Tests will be run by both the developer and by the build pipelines.
 
 [Catch2](https://github.com/catchorg/Catch2) will be used as the unit test framework.

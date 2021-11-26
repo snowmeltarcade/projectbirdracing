@@ -1,6 +1,8 @@
 #include "log_manager.h"
+#include "shared/apis/datetime/datetime_manager.h"
 
 #include <mutex>
+#include <sstream>
 
 namespace pbr::shared::apis::logging {
     /// Helps ensure logging is thread safe
@@ -11,6 +13,9 @@ namespace pbr::shared::apis::logging {
 
     /// The current log level
     static log_levels g_current_log_level { log_levels::info };
+
+    /// The datetime manager to use
+    static datetime::datetime_manager g_datetime_manager;
 
     bool add_endpoint(const std::shared_ptr<endpoint>& endpoint) noexcept {
         if (!endpoint) {
@@ -47,9 +52,17 @@ namespace pbr::shared::apis::logging {
             return;
         }
 
-        std::scoped_lock<std::mutex> lock(g_mutex);
+        // date time | level> message
+        std::stringstream ss;
+        ss << g_datetime_manager.get_date_time_as_utc_string()
+            << " | "
+            << to_string(level)
+            << "> "
+            << message;
 
-        std::string formatted_message { to_string(level) + ": " + std::string(message) };
+        auto formatted_message = ss.str();
+
+        std::scoped_lock<std::mutex> lock(g_mutex);
 
         for (const auto& e : g_endpoints) {
             e->log(formatted_message);
