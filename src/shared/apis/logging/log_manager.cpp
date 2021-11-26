@@ -31,10 +31,26 @@ namespace pbr::shared::apis::logging {
     }
 
     void set_log_level(const log_levels level) noexcept {
+        std::scoped_lock<std::mutex> lock(g_mutex);
+
         g_current_log_level = level;
     }
 
     log_levels get_log_level() noexcept {
+        std::scoped_lock<std::mutex> lock(g_mutex);
+
         return g_current_log_level;
+    }
+
+    void log_message(std::string_view message, const log_levels level) noexcept {
+        if (level < g_current_log_level) {
+            return;
+        }
+
+        std::scoped_lock<std::mutex> lock(g_mutex);
+
+        for (const auto& e : g_endpoints) {
+            e->log(message);
+        }
     }
 }
