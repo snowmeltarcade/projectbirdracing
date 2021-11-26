@@ -56,7 +56,7 @@ void operator delete(void* ptr) noexcept {
 }
 
 namespace pbr::shared::memory {
-    uint64_t get_number_of_allocated_bytes() noexcept {
-        return g_number_of_allocated_bytes;
+    bytes get_number_of_allocated_bytes() noexcept {
+        return bytes(g_number_of_allocated_bytes.load());
     }
 }
