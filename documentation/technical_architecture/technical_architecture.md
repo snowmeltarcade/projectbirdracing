@@ -203,7 +203,9 @@ All project code, except the `main()` functions and the memory module's `operato
 
 As far as is possible, all functions should be marked `[[nodiscard]]`, as this avoids bugs due to unused variables. It also forces functions to be used as they are designed to. Any exceptions should be noted in a comment.
 
-We will not throw any exceptions. If an exception is thrown by something, this will truly be an exceptional circumstance. To enforce this, all functions should be marked as `noexcept`.
+Fro the most part, we will not throw any exceptions. If an exception is thrown by something, this will truly be an exceptional circumstance. To enforce this, all functions should be marked as `noexcept`.
+
+As constructors cannot return error values, they will check their arguments using an `assert`. If an error is encountered, an exception should be thrown, as an object cannot be used if construction has failed.
 
 Functions that must indicate  error or success should return a boolean value, returning `true` for success and `false` to indicate an error. This will allow the system to halt on an error gracefully. If the error is unrecoverable, an `assert` must 
 be used to halt the system. Before returning `false` or calling `assert`, the error must be written to the log if possible.

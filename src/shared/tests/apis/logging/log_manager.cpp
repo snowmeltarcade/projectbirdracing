@@ -1,8 +1,10 @@
 #include "catch2/catch.hpp"
 #include "shared/apis/logging/log_manager.h"
+#include "shared/apis/datetime/datetime_manager.h"
 #include "shared/utils/strings.h"
 
 #include <thread>
+#include <memory>
 
 using namespace pbr::shared::apis::logging;
 using namespace pbr::shared::utils;
@@ -38,26 +40,35 @@ uint32_t test_endpoint::_log_call_count {0u};
 //////////
 
 TEST_CASE("add_endpoint - null endpoint - returns false", "[shared/apis/logging]") {
-    auto result = add_endpoint(nullptr);
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+    
+    auto result = l.add_endpoint(nullptr);
 
     REQUIRE_FALSE(result);
 }
 
 TEST_CASE("add_endpoint - valid endpoint - returns true", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     auto endpoint = std::make_shared<test_endpoint>();
 
-    auto result = add_endpoint(endpoint);
+    auto result = l.add_endpoint(endpoint);
 
     REQUIRE(result);
 }
 
 TEST_CASE("add_endpoint - valid endpoint - adds endpoint", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     auto endpoint = std::make_shared<test_endpoint>();
 
-    auto success = add_endpoint(endpoint);
+    auto success = l.add_endpoint(endpoint);
     REQUIRE(success);
 
-    auto endpoints = get_endpoints();
+    auto endpoints = l.get_endpoints();
 
     auto result = std::find_if(endpoints.begin(), endpoints.end(),
                             [endpoint](const auto& e) { return e == endpoint; });
@@ -70,6 +81,9 @@ TEST_CASE("add_endpoint - valid endpoint - adds endpoint", "[shared/apis/logging
 //////////
 
 TEST_CASE("get_endpoints - returns added endpoints", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     std::vector<std::shared_ptr<endpoint>> endpoints_to_add {
         std::make_shared<test_endpoint>(),
         std::make_shared<test_endpoint>(),
@@ -77,11 +91,11 @@ TEST_CASE("get_endpoints - returns added endpoints", "[shared/apis/logging]") {
     };
 
     for (const auto& e : endpoints_to_add) {
-        auto success = add_endpoint(e);
+        auto success = l.add_endpoint(e);
         REQUIRE(success);
     }
 
-    auto endpoints = get_endpoints();
+    auto endpoints = l.get_endpoints();
 
     for (const auto& added_endpoint : endpoints_to_add) {
         auto result = std::find_if(endpoints.begin(), endpoints.end(),
@@ -96,11 +110,14 @@ TEST_CASE("get_endpoints - returns added endpoints", "[shared/apis/logging]") {
 //////////
 
 TEST_CASE("set_log_level - log level - sets the log level", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     auto expected = log_levels::error;
 
-    set_log_level(expected);
+    l.set_log_level(expected);
 
-    auto result = get_log_level();
+    auto result = l.get_log_level();
 
     REQUIRE(result == expected);
 }
@@ -110,11 +127,14 @@ TEST_CASE("set_log_level - log level - sets the log level", "[shared/apis/loggin
 //////////
 
 TEST_CASE("get_log_level - gets the log level", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     auto expected = log_levels::error;
 
-    set_log_level(expected);
+    l.set_log_level(expected);
 
-    auto result = get_log_level();
+    auto result = l.get_log_level();
 
     REQUIRE(result == expected);
 }
@@ -124,6 +144,9 @@ TEST_CASE("get_log_level - gets the log level", "[shared/apis/logging]") {
 //////////
 
 TEST_CASE("log_message - valid message and level - logs the message to all endpoints", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     std::vector<std::shared_ptr<endpoint>> endpoints {
         std::make_shared<test_endpoint>(),
         std::make_shared<test_endpoint>(),
@@ -134,10 +157,10 @@ TEST_CASE("log_message - valid message and level - logs the message to all endpo
     auto level { log_levels::info };
 
     for (const auto& e : endpoints) {
-        REQUIRE(add_endpoint(e));
+        REQUIRE(l.add_endpoint(e));
     }
 
-    log_message(message, level);
+    l.log_message(message, level);
 
     auto result = test_endpoint::_log_call_count;
     auto expected = endpoints.size();
@@ -146,6 +169,9 @@ TEST_CASE("log_message - valid message and level - logs the message to all endpo
 }
 
 TEST_CASE("log_message - high log level - ignores messages from lower levels", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     std::vector<std::shared_ptr<endpoint>> endpoints {
         std::make_shared<test_endpoint>(),
         std::make_shared<test_endpoint>(),
@@ -157,12 +183,12 @@ TEST_CASE("log_message - high log level - ignores messages from lower levels", "
     auto high_log_level { log_levels::error };
 
     for (const auto& e : endpoints) {
-        REQUIRE(add_endpoint(e));
+        REQUIRE(l.add_endpoint(e));
     }
 
-    set_log_level(high_log_level);
+    l.set_log_level(high_log_level);
 
-    log_message(message, level);
+    l.log_message(message, level);
 
     auto result = test_endpoint::_log_call_count;
     auto expected = 0u;
@@ -171,6 +197,9 @@ TEST_CASE("log_message - high log level - ignores messages from lower levels", "
 }
 
 TEST_CASE("log_message - single thread - passes log message to all endpoints", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     std::vector<std::shared_ptr<test_endpoint>> endpoints {
         std::make_shared<test_endpoint>(),
         std::make_shared<test_endpoint>(),
@@ -181,10 +210,10 @@ TEST_CASE("log_message - single thread - passes log message to all endpoints", "
     auto level { log_levels::info };
 
     for (const auto& e : endpoints) {
-        REQUIRE(add_endpoint(e));
+        REQUIRE(l.add_endpoint(e));
     }
 
-    log_message(message, level);
+    l.log_message(message, level);
 
     for (const auto& e : endpoints) {
         auto result = ends_with(e->_logged_message, message);
@@ -193,6 +222,9 @@ TEST_CASE("log_message - single thread - passes log message to all endpoints", "
 }
 
 TEST_CASE("log_message - multiple threads - passes log message to all endpoints", "[shared/apis/logging]") {
+    auto datetime_manager = std::make_shared<pbr::shared::apis::datetime::datetime_manager>();
+    log_manager l(datetime_manager);
+
     auto number_of_threads { 1000u };
     std::vector<std::shared_ptr<test_endpoint>> endpoints;
     auto message { "message" };
@@ -201,15 +233,15 @@ TEST_CASE("log_message - multiple threads - passes log message to all endpoints"
     for (auto i { 0u }; i < number_of_threads; ++i) {
         auto e = std::make_shared<test_endpoint>();
         endpoints.push_back(e);
-        REQUIRE(add_endpoint(e));
+        REQUIRE(l.add_endpoint(e));
     }
 
     std::vector<std::thread> threads;
 
     // log the message to all endpoints `number_of_threads` of times
     for (auto i { 0u }; i < number_of_threads; ++i) {
-        threads.emplace_back([message, level](){
-            log_message(message, level);
+        threads.emplace_back([&l, message, level](){
+            l.log_message(message, level);
         });
     }
 

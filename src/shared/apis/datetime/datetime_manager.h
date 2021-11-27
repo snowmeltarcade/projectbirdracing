@@ -6,6 +6,9 @@ namespace pbr::shared::apis::datetime {
     /// Handles the date and time of the current running machine, not in game time
     class datetime_manager : public idatetime_manager {
     public:
+        datetime_manager() = default;
+        ~datetime_manager() override = default;
+
         /// Returns the current date in UTC as a string
         /// \returns The current date in UTC as a string
         [[nodiscard]]
