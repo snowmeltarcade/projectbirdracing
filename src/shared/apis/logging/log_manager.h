@@ -15,8 +15,7 @@ namespace pbr::shared::apis::logging {
         /// Constructs the log manager
         /// \param datetime_manager The datetime manager to use
         log_manager(std::shared_ptr<datetime::idatetime_manager> datetime_manager)
-            : _datetime_manager(std::move(datetime_manager))
-        {
+            : _datetime_manager(std::move(datetime_manager)) {
             assert((this->_datetime_manager));
         }
         ~log_manager() override = default;

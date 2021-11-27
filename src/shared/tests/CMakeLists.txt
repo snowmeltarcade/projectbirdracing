@@ -18,6 +18,7 @@ target_include_directories(
 )
 
 add_subdirectory("apis")
+add_subdirectory("game")
 add_subdirectory("memory")
 add_subdirectory("utils")
 

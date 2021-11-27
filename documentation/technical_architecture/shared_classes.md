@@ -37,7 +37,7 @@ As the major game components should be able to run in their own threads, communi
 
 These classes are used by both the client and server.
 
-## Game
+## Game Manager
 
 Holds instances of all main modules and manages the game loop.
 
@@ -65,7 +65,7 @@ Both packet sending and receiving will happen on this thread. Non-blocking APIs 
 
 The remaining managers, the scene and ECS will all run on this thread.
 
-For the server, all the scenes will run on this thread. If it becomes a bottleneck, as the scenes and worlds are designed to run on their own threads anyway, we can split the scenes up to run on other threads.
+For the server, all the scenes will run on this thread. If it becomes a bottleneck, as the scenes and worlds are designed to run on their own threads, we can split the scenes up to run on other threads.
 
 ## Log Manager
 
