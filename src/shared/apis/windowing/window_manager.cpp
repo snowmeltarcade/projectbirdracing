@@ -1,8 +1,15 @@
 #include "window_manager.h"
 
+#include <SDL.h>
+
 namespace pbr::shared::apis::windowing {
     bool window_manager::initialize() noexcept {
         this->_log_manager->log_message("Initializing the window manager...", apis::logging::log_levels::info);
+
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+            this->_log_manager->log_message("Failed to init SDL.", apis::logging::log_levels::error);
+            return false;
+        }
 
         this->_log_manager->log_message("Initialized the window manager.", apis::logging::log_levels::info);
         return true;

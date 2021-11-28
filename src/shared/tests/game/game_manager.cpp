@@ -50,7 +50,7 @@ TEST_CASE("initialize - successfully initializes game - returns true", "[shared/
     REQUIRE(result);
 }
 
-TEST_CASE("initialize - initialized window manager", "[shared/game]") {
+TEST_CASE("initialize - initializes window manager", "[shared/game]") {
     auto gm = create_game_manager();
 
     REQUIRE(gm.initialize());
