@@ -4,6 +4,7 @@
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
 #include "shared/apis/windowing/iconsole_window.h"
+#include "shared/scene/iscene_manager.h"
 
 #include <thread>
 #include <memory>
@@ -50,11 +51,23 @@ public:
     int frames_to_run_before_quit = 1;
 
     bool should_quit() const noexcept override {
-        return frames_to_run_before_quit <= 0;
+        return frames_to_run_before_quit < 0;
+    }
+};
+
+class test_scene_manager : public scene::iscene_manager {
+public:
+    bool run_called {false};
+    bool run_result {true};
+
+    bool run() noexcept override {
+        this->run_called = true;
+        return this->run_result;
     }
 };
 
 std::shared_ptr<test_window_manager> g_window_manager;
+std::shared_ptr<test_scene_manager> g_scene_manager;
 
 game_manager create_game_manager() {
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
@@ -62,7 +75,11 @@ game_manager create_game_manager() {
 
     g_window_manager = std::make_shared<test_window_manager>();
 
-    game_manager gm(log_manager, g_window_manager);
+    g_scene_manager = std::make_shared<test_scene_manager>();
+
+    game_manager gm(log_manager,
+                    g_window_manager,
+                    g_scene_manager);
     return gm;
 }
 
@@ -159,4 +176,26 @@ TEST_CASE("run - window manager requests quit - returns true", "[shared/game]") 
 
     auto result = gm.run();
     REQUIRE(result);
+}
+
+TEST_CASE("run - runs one frame - runs scene manager", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    REQUIRE(gm.run());
+
+    auto result = g_scene_manager->run_called;
+    REQUIRE(result);
+}
+
+TEST_CASE("run - running scene manager returns false - returns false", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    g_scene_manager->run_result = false;
+
+    auto result = gm.run();
+    REQUIRE_FALSE(result);
 }

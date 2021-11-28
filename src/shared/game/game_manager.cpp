@@ -33,6 +33,11 @@ namespace pbr::shared::game {
                 this->request_exit();
                 continue;
             }
+
+            if (!this->_scene_manager->run()) {
+                this->_log_manager->log_message("Failed to run scene manager.", apis::logging::log_levels::error);
+                return false;
+            }
         }
 
         this->_log_manager->log_message("Finished running the game manager.", apis::logging::log_levels::info);

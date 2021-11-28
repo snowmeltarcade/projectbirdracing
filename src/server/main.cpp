@@ -4,6 +4,7 @@
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/logging/endpoints/stdout.h"
 #include "shared/apis/windowing/window_manager.h"
+#include "shared/scene/scene_manager.h"
 
 #include <iostream>
 #include <vector>
@@ -24,7 +25,11 @@ game::game_manager create_game_manager() {
 
     auto window_manager = std::make_shared<apis::windowing::window_manager>(log_manager);
 
-    game::game_manager gm(log_manager, window_manager);
+    auto scene_manager = std::make_shared<scene::scene_manager>(log_manager);
+
+    game::game_manager gm(log_manager,
+                          window_manager,
+                          scene_manager);
     return gm;
 }
 

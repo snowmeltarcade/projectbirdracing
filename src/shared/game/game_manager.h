@@ -4,6 +4,7 @@
 #include "shared/apis/logging/ilog_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
 #include "shared/apis/windowing/iapplication_window.h"
+#include "shared/scene/iscene_manager.h"
 
 #include <cassert>
 #include <memory>
@@ -19,11 +20,14 @@ namespace pbr::shared::game {
         /// \param log_manager The log manager to use
         /// \param window_manager The window manager to use
         game_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
-                     std::shared_ptr<apis::windowing::iwindow_manager> window_manager)
+                     std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
+                     std::shared_ptr<scene::iscene_manager> scene_manager)
             : _log_manager(log_manager),
-              _window_manager(window_manager) {
+              _window_manager(window_manager),
+              _scene_manager(scene_manager) {
             assert((this->_log_manager));
             assert((this->_window_manager));
+            assert((this->_scene_manager));
         }
 
         /// Destructs this manager. The game will be shutdown here
@@ -62,6 +66,9 @@ namespace pbr::shared::game {
         /// The main render window
         std::shared_ptr<apis::windowing::iapplication_window> _application_window;
 
+        /// The scene manager
+        std::shared_ptr<scene::iscene_manager> _scene_manager;
+
         /// Has an exit been requested?
         std::atomic_bool _has_exit_been_requested {false};
 
@@ -72,6 +79,7 @@ namespace pbr::shared::game {
 
         /// Requests this game manager exits
         void request_exit() noexcept {
+            this->_log_manager->log_message("Requesting exit from game manager...", apis::logging::log_levels::info);
             this->_has_exit_been_requested = true;
         }
     };
