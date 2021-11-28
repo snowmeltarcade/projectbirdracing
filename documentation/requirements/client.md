@@ -148,7 +148,7 @@ Any scripting on the client must not be able to affect game play data on the ser
 
 ## Data
 
-All external data should be stored in a folder called `data` that is in the same directory as the server's executable.
+All external data should be stored in a folder called `data` that is in the same directory as the client's executable.
 
 ## Component Architecture
 

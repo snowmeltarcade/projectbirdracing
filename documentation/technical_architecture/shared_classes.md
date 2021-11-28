@@ -89,6 +89,16 @@ The following log levels are provided:
 
 This will be thread safe. Logs can pass in an ID identifying the thread the message is associated with.
 
+## Data Manager
+
+Loads data from the `data` folder. It will load the files in a format that it knows and will expose this data in a format agnostic way.
+
+The default data format is `JSON`.
+
+When loading a file from the `data` folder, the file extension is not required. The data manager will search for the file using file extensions of formats it knows about.
+
+Data can be set into the data manager, overwriting any data loaded from a file. New data can also be set.
+
 ## Graphics Manager
 
 Handles rendering all graphical elements.
