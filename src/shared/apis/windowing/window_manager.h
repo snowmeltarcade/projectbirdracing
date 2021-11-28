@@ -28,9 +28,24 @@ namespace pbr::shared::apis::windowing {
         [[nodiscard]]
         std::shared_ptr<iconsole_window> create_console_window() noexcept override;
 
+        /// Updates the windowing system
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool update() noexcept override;
+
+        /// Returns true if the windowing system has a quit event
+        /// \returns `true` if the windowing system has a quit event, else `false`
+        [[nodiscard]]
+        bool should_quit() const noexcept override {
+            return this->_should_quit;
+        }
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
+
+        /// Should the window manager quit?
+        bool _should_quit {false};
 
         /// Shuts down the window manager
         /// \returns `true` upon success, else `false`

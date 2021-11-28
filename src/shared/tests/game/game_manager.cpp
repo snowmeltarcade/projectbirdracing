@@ -13,17 +13,32 @@ using namespace pbr::shared::game;
 
 class test_window_manager : public apis::windowing::iwindow_manager {
 public:
-    bool initialize() noexcept {
-        this->initialize_called = true;
-        return this->initialize_result;
-    };
-
-    std::shared_ptr<apis::windowing::iconsole_window> create_console_window() noexcept {
-        return {};
-    };
-
     bool initialize_called {false};
     bool initialize_result {true};
+
+    bool initialize() noexcept override {
+        this->initialize_called = true;
+        return this->initialize_result;
+    }
+
+    std::shared_ptr<apis::windowing::iconsole_window> create_console_window() noexcept override {
+        return {};
+    }
+
+    bool update_called {false};
+    bool update_result {true};
+
+    bool update() noexcept override {
+        this->update_called = true;
+        --this->frames_to_run_before_quit;
+        return this->update_result;
+    }
+
+    int frames_to_run_before_quit = 1;
+
+    bool should_quit() const noexcept override {
+        return frames_to_run_before_quit <= 0;
+    }
 };
 
 std::shared_ptr<test_window_manager> g_window_manager;
@@ -79,5 +94,38 @@ TEST_CASE("run - runs one frame - returns true", "[shared/game]") {
 
     auto result = gm.run();
 
+    REQUIRE(result);
+}
+
+TEST_CASE("run - runs one frame - updates window manager", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    REQUIRE(gm.run());
+
+    auto result = g_window_manager->update_called;
+    REQUIRE(result);
+}
+
+TEST_CASE("run - update window manager returns false - returns false", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    g_window_manager->update_result = false;
+
+    auto result = gm.run();
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("run - window manager requests quit - returns true", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    g_window_manager->frames_to_run_before_quit = 2;
+
+    auto result = gm.run();
     REQUIRE(result);
 }

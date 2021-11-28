@@ -19,8 +19,41 @@ namespace pbr::shared::apis::windowing {
         return {};
     }
 
+    bool window_manager::update() noexcept {
+        SDL_Event e;
+
+        while (SDL_PollEvent(&e))
+        {
+            switch (e.type)
+            {
+                case SDL_APP_TERMINATING:
+                {
+                    this->_log_manager->log_message("Event: App terminating...", apis::logging::log_levels::info);
+
+                    this->_should_quit = true;
+                    break;
+                }
+                case SDL_QUIT:
+                {
+                    this->_log_manager->log_message("Event: Quit...", apis::logging::log_levels::info);
+
+                    this->_should_quit = true;
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+            }
+        }
+
+        return true;
+    }
+
     bool window_manager::shutdown() noexcept {
         this->_log_manager->log_message("Shutting down the window manager...", apis::logging::log_levels::info);
+
+        SDL_Quit();
 
         this->_log_manager->log_message("Shut down the window manager.", apis::logging::log_levels::info);
         return true;

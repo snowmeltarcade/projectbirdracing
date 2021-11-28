@@ -22,5 +22,15 @@ namespace pbr::shared::apis::windowing {
         /// \returns The created console window
         [[nodiscard]]
         virtual std::shared_ptr<iconsole_window> create_console_window() noexcept = 0;
+
+        /// Updates the windowing system
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        virtual bool update() noexcept = 0;
+
+        /// Returns true if the windowing system has a quit event
+        /// \returns `true` if the windowing system has a quit event, else `false`
+        [[nodiscard]]
+        virtual bool should_quit() const noexcept = 0;
     };
 }
