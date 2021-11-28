@@ -29,7 +29,34 @@ See [here](graphics.md) for more information.
 
 ## Window
 
-Ability to create game window required. Full screen and windowed mode in multiple resolutions should be supported.
+Ability to create game window required.
+
+### Resolutions
+
+Full screen and windowed mode in multiple resolutions should be supported.
+
+Available resolutions are:
+
+* 800x600
+* 1024x768
+* 1280x1024
+* 1920x1080
+* 3840x2160
+
+These resolutions will be saved in `data/window/sizes.json`.
+
+The file structure is as follows:
+
+```json
+{
+  "resolutions": [
+    {
+      "width": 800,
+      "height": 600
+    }
+  ]
+}
+```
 
 ## Audio
 

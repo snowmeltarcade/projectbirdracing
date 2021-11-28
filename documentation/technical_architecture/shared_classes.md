@@ -105,7 +105,13 @@ Keyboard, mouse, touch, joystick and game controller input will be managed here.
 
 ## Window Manager
 
-Application windows will be managed here. A separate console window will also be created to display any output from the standard streams.
+Application windows will be managed here.
+
+A separate console window will also be created to display any output from the standard streams.
+
+A window will have a title and a size. If the window is full screen, the resolution will be the window size. If the window is not full screen, the window position will start centered in the screen.
+
+The window loop will be handled by a `window` class. The window exit event will be passed to the game manager, which will then request the game manager to exit.
 
 ## Network Manager
 
