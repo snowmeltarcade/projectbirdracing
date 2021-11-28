@@ -1,0 +1,11 @@
+target_sources(
+    "${SHARED_PROJECT_NAME}"
+    PUBLIC
+        iconsole_window.h
+        iwindow_manager.h
+        console_window.h
+        window_manager.h
+    PRIVATE
+        console_window.cpp
+        window_manager.cpp
+)

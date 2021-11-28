@@ -2,6 +2,7 @@ target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
         endpoint.h
+        ilog_manager.h
         log_levels.h
         log_manager.h
     PRIVATE

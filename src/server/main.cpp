@@ -3,6 +3,7 @@
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/logging/endpoints/stdout.h"
+#include "shared/apis/windowing/window_manager.h"
 
 #include <iostream>
 #include <vector>
@@ -21,7 +22,9 @@ game::game_manager create_game_manager() {
         throw std::logic_error("Failed to add `stdout` logging endpoint.");
     }
 
-    game::game_manager gm(log_manager);
+    auto window_manager = std::make_shared<apis::windowing::window_manager>(log_manager);
+
+    game::game_manager gm(log_manager, window_manager);
     return gm;
 }
 

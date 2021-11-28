@@ -2,6 +2,7 @@
 
 #include "shared/memory/basic_allocators.h"
 #include "shared/apis/logging/ilog_manager.h"
+#include "shared/apis/windowing/iwindow_manager.h"
 
 #include <cassert>
 #include <memory>
@@ -15,9 +16,13 @@ namespace pbr::shared::game {
     public:
         /// Constructs this manager
         /// \param log_manager The log manager to use
-        game_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager)
-            : _log_manager(log_manager) {
+        /// \param window_manager The window manager to use
+        game_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
+                     std::shared_ptr<apis::windowing::iwindow_manager> window_manager)
+            : _log_manager(log_manager),
+              _window_manager(window_manager) {
             assert((this->_log_manager));
+            assert((this->_window_manager));
         }
 
         /// Destructs this manager. The game will be shutdown here
@@ -27,7 +32,13 @@ namespace pbr::shared::game {
             }
         }
 
-        game_manager(game_manager&&) = default;
+        /// Move constructor
+        /// \param The other game manager
+        game_manager(game_manager&& other) {
+            this->_log_manager = std::move(other._log_manager);
+            this->_window_manager = std::move(other._window_manager);
+            this->_has_exit_been_requested = other._has_exit_been_requested.load();
+        }
         game_manager(const game_manager&) = delete;
 
         /// Initializes the game
@@ -43,6 +54,9 @@ namespace pbr::shared::game {
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
+
+        /// The window manager
+        std::shared_ptr<apis::windowing::iwindow_manager> _window_manager;
 
         /// Has an exit been requested?
         std::atomic_bool _has_exit_been_requested {false};
