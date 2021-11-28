@@ -52,11 +52,18 @@ The file structure is as follows:
   "resolutions": [
     {
       "width": 800,
-      "height": 600
+      "height": 600,
+      "is_default": false
     }
   ]
 }
 ```
+
+`width` is the window's width.
+
+`height` is the window's height.
+
+`is_default` specifies if the resolution is default or not. If more than one resolution is marked as default, the first entry in this list will be used.
 
 ## Audio
 
