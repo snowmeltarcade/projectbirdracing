@@ -3,6 +3,7 @@
 #include "shared/memory/basic_allocators.h"
 #include "shared/apis/logging/ilog_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
+#include "shared/apis/windowing/iapplication_window.h"
 
 #include <cassert>
 #include <memory>
@@ -57,6 +58,9 @@ namespace pbr::shared::game {
 
         /// The window manager
         std::shared_ptr<apis::windowing::iwindow_manager> _window_manager;
+
+        /// The main render window
+        std::shared_ptr<apis::windowing::iapplication_window> _application_window;
 
         /// Has an exit been requested?
         std::atomic_bool _has_exit_been_requested {false};

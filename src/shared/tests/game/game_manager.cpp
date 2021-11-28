@@ -11,6 +11,10 @@
 using namespace pbr::shared;
 using namespace pbr::shared::game;
 
+class test_application_window : public apis::windowing::iapplication_window {
+
+};
+
 class test_window_manager : public apis::windowing::iwindow_manager {
 public:
     bool initialize_called {false};
@@ -23,6 +27,15 @@ public:
 
     std::shared_ptr<apis::windowing::iconsole_window> create_console_window() noexcept override {
         return {};
+    }
+
+    bool create_application_window_called {false};
+    std::shared_ptr<apis::windowing::iapplication_window> create_application_window_result
+        = std::make_shared<test_application_window>();
+
+    std::shared_ptr<apis::windowing::iapplication_window> create_application_window() noexcept override {
+        this->create_application_window_called = true;
+        return this->create_application_window_result;
     }
 
     bool update_called {false};
@@ -78,6 +91,24 @@ TEST_CASE("initialize - initialize window manager fails - returns false", "[shar
     auto gm = create_game_manager();
 
     g_window_manager->initialize_result = false;
+
+    auto result = gm.initialize();
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("initialize - creates application window", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    auto result = g_window_manager->create_application_window_called;
+    REQUIRE(result);
+}
+
+TEST_CASE("initialize - create application window fails - returns false", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    g_window_manager->create_application_window_result = {};
 
     auto result = gm.initialize();
     REQUIRE_FALSE(result);

@@ -9,6 +9,12 @@ namespace pbr::shared::game {
             return false;
         }
 
+        this->_application_window = this->_window_manager->create_application_window();
+        if (!this->_application_window) {
+            this->_log_manager->log_message("Failed to create application window.", apis::logging::log_levels::error);
+            return false;
+        }
+
         this->_log_manager->log_message("Initialized the game manager.", apis::logging::log_levels::info);
 
         return true;

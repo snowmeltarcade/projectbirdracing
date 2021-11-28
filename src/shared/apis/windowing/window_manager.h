@@ -28,6 +28,11 @@ namespace pbr::shared::apis::windowing {
         [[nodiscard]]
         std::shared_ptr<iconsole_window> create_console_window() noexcept override;
 
+        /// Creates an application window
+        /// \returns The created application window
+        [[nodiscard]]
+        std::shared_ptr<iapplication_window> create_application_window() noexcept override;
+
         /// Updates the windowing system
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
@@ -43,6 +48,9 @@ namespace pbr::shared::apis::windowing {
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
+
+        /// The created application windows
+        std::vector<std::shared_ptr<iapplication_window>> _application_windows;
 
         /// Should the window manager quit?
         bool _should_quit {false};

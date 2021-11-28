@@ -1,4 +1,5 @@
 #include "window_manager.h"
+#include "application_window.h"
 
 #include <SDL.h>
 
@@ -17,6 +18,14 @@ namespace pbr::shared::apis::windowing {
 
     std::shared_ptr<iconsole_window> window_manager::create_console_window() noexcept {
         return {};
+    }
+
+    std::shared_ptr<iapplication_window> window_manager::create_application_window() noexcept {
+        auto window = std::make_shared<application_window>(this->_log_manager, "PBR", 500, 500);
+
+        this->_application_windows.push_back(window);
+
+        return window;
     }
 
     bool window_manager::update() noexcept {
@@ -52,6 +61,9 @@ namespace pbr::shared::apis::windowing {
 
     bool window_manager::shutdown() noexcept {
         this->_log_manager->log_message("Shutting down the window manager...", apis::logging::log_levels::info);
+
+        // remove references we know about so, hopefully, the destructors will be called
+        this->_application_windows.clear();
 
         SDL_Quit();
 

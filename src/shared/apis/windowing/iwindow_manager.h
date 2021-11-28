@@ -2,6 +2,7 @@
 
 #include "shared/memory/basic_allocators.h"
 #include "iconsole_window.h"
+#include "iapplication_window.h"
 
 #include <memory>
 
@@ -22,6 +23,11 @@ namespace pbr::shared::apis::windowing {
         /// \returns The created console window
         [[nodiscard]]
         virtual std::shared_ptr<iconsole_window> create_console_window() noexcept = 0;
+
+        /// Creates an application window
+        /// \returns The created application window
+        [[nodiscard]]
+        virtual std::shared_ptr<iapplication_window> create_application_window() noexcept = 0;
 
         /// Updates the windowing system
         /// \returns `true` upon success, else `false`
