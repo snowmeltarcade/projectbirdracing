@@ -41,6 +41,13 @@ These classes are used by both the client and server.
 
 Holds instances of all main modules and manages the game loop.
 
+There are 4 ways to exit a game manager:
+
+* User input (for instance, the user pressing the `escape` key)
+* A window close event
+* A UI event (for instance, clicking an `exit` button)
+* An error
+
 ### Threading
 
 There will be four main threads - graphics, audio, network and logic.

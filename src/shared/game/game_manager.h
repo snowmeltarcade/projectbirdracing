@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <memory>
+#include <atomic>
 
 namespace pbr::shared::game {
     /// Provides the skeleton of the game. The managers to be used are first configured and then added
@@ -43,9 +44,17 @@ namespace pbr::shared::game {
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
 
+        /// Has an exit been requested?
+        std::atomic_bool _has_exit_been_requested {false};
+
         /// Shuts down the game
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool shutdown() noexcept;
+
+        /// Requests this game manager exits
+        void request_exit() noexcept {
+            this->_has_exit_been_requested = true;
+        }
     };
 }
