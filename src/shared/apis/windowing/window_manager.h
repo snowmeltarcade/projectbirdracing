@@ -33,6 +33,7 @@ namespace pbr::shared::apis::windowing {
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
 
         /// Shuts down the window manager
+        /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool shutdown() noexcept;
     };

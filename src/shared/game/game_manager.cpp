@@ -4,6 +4,11 @@ namespace pbr::shared::game {
     bool game_manager::initialize() noexcept {
         this->_log_manager->log_message("Initializing the game manager...", apis::logging::log_levels::info);
 
+        if (!this->_window_manager->initialize()) {
+            this->_log_manager->log_message("Failed to initialize window manager.", apis::logging::log_levels::error);
+            return false;
+        }
+
         this->_log_manager->log_message("Initialized the game manager.", apis::logging::log_levels::info);
 
         return true;
