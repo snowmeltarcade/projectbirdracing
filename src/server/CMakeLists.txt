@@ -13,6 +13,12 @@ target_sources(
         main.cpp
 )
 
+target_include_directories(
+	"${SERVER_PROJECT_NAME}"
+	SYSTEM PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 install(
 	TARGETS
 		"${SERVER_PROJECT_NAME}"
@@ -20,4 +26,5 @@ install(
 		"${INSTALL_DIRECTORY}"
 )
 
+add_subdirectory("scene")
 add_subdirectory("tests")

@@ -149,7 +149,11 @@ Loads and executes scripts. These scripts will be used by the UI system and ECS.
 
 ## Scene Manager
 
-Loads, destroys and runs the active scene. On the server, will hold all active scenes - the main world, villages, race tracks etc...
+Loads, destroys and runs the active scene. On the server, will hold all active scenes - the main world, villages, racetracks etc...
+
+The client and server will register the scenes they need with the scene manager, along with a loading scene. The loading scene will be the initial scene that is loaded, and also the scene that is loaded when a new scene load is requested.
+
+Scenes that are to be loaded are queued with the scene manager. Typically, the client will only queue one scene at a time. The server will queue all scenes that need running. When the needed scenes are queued, a request is made to load those scenes. Whilst those scenes are being loaded, the loading scene will first be loaded and then run. It will be unloaded when all of the queued scenes have been loaded. The queued scenes will then be run.
 
 ## Scene
 
