@@ -15,6 +15,11 @@ namespace pbr::shared::game {
             return false;
         }
 
+        if (!this->_scene_manager->initialize()) {
+            this->_log_manager->log_message("Failed to initialize scene manager.", apis::logging::log_levels::error);
+            return false;
+        }
+
         this->_log_manager->log_message("Initialized the game manager.", apis::logging::log_levels::info);
 
         return true;

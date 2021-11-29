@@ -8,5 +8,15 @@ namespace pbr::shared::scene {
     public:
         scene_base() = default;
         virtual ~scene_base() = default;
+
+        /// Loads the scene
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        virtual bool load() noexcept = 0;
+
+        /// Runs the scene
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        virtual bool run() noexcept = 0;
     };
 }
