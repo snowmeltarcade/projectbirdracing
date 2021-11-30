@@ -26,7 +26,7 @@ game::game_manager create_game_manager() {
 
     auto window_manager = std::make_shared<apis::windowing::window_manager>(log_manager);
 
-    auto scene_factory = std::make_shared<pbr::server::scene::scene_factory>();
+    auto scene_factory = std::make_shared<pbr::server::scene::scene_factory>(log_manager);
 
     auto scene_manager = std::make_shared<scene::scene_manager>(scene_factory,
                                                                 scene::scene_types::loading,

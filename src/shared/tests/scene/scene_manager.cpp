@@ -10,6 +10,10 @@ using namespace pbr::shared::scene;
 
 class test_scene : public scene::scene_base {
 public:
+    test_scene(std::shared_ptr<apis::logging::ilog_manager> log_manager)
+        : scene::scene_base(log_manager)
+    {}
+
     bool load_called {false};
     bool load_result {true};
     uint32_t load_call_count {0u};
@@ -60,8 +64,8 @@ scene_manager create_scene_manager(scene_types scene_type = scene_types::loading
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
     auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
 
-    g_test_scene_loading = std::make_shared<test_scene>();
-    g_test_scene_queued = std::make_shared<test_scene>();
+    g_test_scene_loading = std::make_shared<test_scene>(log_manager);
+    g_test_scene_queued = std::make_shared<test_scene>(log_manager);
     g_test_scene_factory = std::make_shared<test_scene_factory>();
 
     scene_manager sm(g_test_scene_factory,
@@ -277,3 +281,9 @@ TEST_CASE("queue_new_scenes - load queued scenes fails - returns false", "[share
     auto result = sm.queue_new_scenes(types);
     REQUIRE_FALSE(result);
 }
+
+// TODO: When a scene is loading after being queued, the loading scene should be run - possibly blocking the current thread?
+// don't reload the loading screen if it is already loaded though, as the first time `queue_new_scenes` is called, the
+// loading scene will already be loaded.
+//
+// After that - start implementing the loading scene, graphics, input, UI, world generation...

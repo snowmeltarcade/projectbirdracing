@@ -5,5 +5,8 @@ namespace pbr::shared::scene {
     enum class scene_types {
         /// The loading scene
         loading,
+
+        /// The world generation scene
+        world_generation,
     };
 }
