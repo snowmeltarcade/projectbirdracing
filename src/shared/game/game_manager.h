@@ -56,6 +56,11 @@ namespace pbr::shared::game {
         [[nodiscard]]
         bool run() noexcept;
 
+        /// Returns the scene manager
+        const std::shared_ptr<scene::iscene_manager>& get_scene_manager() const noexcept {
+            return this->_scene_manager;
+        }
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;

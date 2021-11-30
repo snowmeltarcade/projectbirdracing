@@ -47,6 +47,12 @@ void run() {
         return;
     }
 
+    std::vector<scene::scene_types> scenes { scene::scene_types::world_generation };
+    if (!gm.get_scene_manager()->queue_new_scenes(scenes)) {
+        std::cout << "Failed to queue world generation scene.\n";
+        return;
+    }
+
     if (!gm.run()) {
         std::cout << "Failed to run game manager.\n";
         return;
