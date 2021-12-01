@@ -18,6 +18,11 @@ namespace pbr::shared::scene {
         }
         virtual ~scene_base() = default;
 
+        /// Returns the type of this scene
+        /// \returns The type of this scene
+        [[nodiscard]]
+        virtual scene_types get_scene_type() const noexcept = 0;
+
         /// Loads the scene
         /// \returns `true` upon success, else `false`
         [[nodiscard]]

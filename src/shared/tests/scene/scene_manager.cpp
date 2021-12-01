@@ -8,11 +8,19 @@
 using namespace pbr::shared;
 using namespace pbr::shared::scene;
 
+scene_types test_scene_type_1 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 1);
+scene_types test_scene_type_2 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 2);
+scene_types test_scene_type_3 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 3);
+
 class test_scene : public scene::scene_base {
 public:
     test_scene(std::shared_ptr<apis::logging::ilog_manager> log_manager)
         : scene::scene_base(log_manager)
     {}
+
+    scene_types get_scene_type() const noexcept override {
+        return test_scene_type_1;
+    }
 
     bool load_called {false};
     bool load_result {true};
@@ -42,10 +50,6 @@ public:
 std::shared_ptr<test_scene> g_test_scene_loading;
 std::shared_ptr<test_scene> g_test_scene_queued;
 
-scene_types test_scene_type_1 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 1);
-scene_types test_scene_type_2 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 2);
-scene_types test_scene_type_3 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 3);
-
 class test_scene_factory : public scene::iscene_factory {
 public:
     std::shared_ptr<scene_base> create_scene(scene_types type) noexcept override {
@@ -58,6 +62,10 @@ public:
             return g_test_scene_queued;
         }
 
+        return {};
+    }
+
+    std::vector<scene_types> get_next_scenes(const std::vector<std::shared_ptr<scene_base>>&) noexcept override {
         return {};
     }
 };

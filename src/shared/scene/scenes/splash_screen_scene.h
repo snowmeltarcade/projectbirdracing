@@ -12,6 +12,13 @@ namespace pbr::shared::scene::scenes {
         }
         ~splash_screen_scene() override = default;
 
+        /// Returns the type of this scene
+        /// \returns The type of this scene
+        [[nodiscard]]
+        scene_types get_scene_type() const noexcept override {
+            return scene_types::splash_screen;
+        }
+
         /// Loads the scene
         /// \returns `true` upon success, else `false`
         [[nodiscard]]

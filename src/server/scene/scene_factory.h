@@ -23,6 +23,12 @@ namespace pbr::server::scene {
         [[nodiscard]]
         std::shared_ptr<shared::scene::scene_base> create_scene(shared::scene::scene_types type) noexcept override;
 
+        /// Get the next scenes to load based on the passed scenes
+        /// \param current_scenes The currently running scenes
+        /// \returns The next scene types to load (can contain duplicate scene types)
+        [[nodiscard]]
+        std::vector<shared::scene::scene_types> get_next_scenes(const std::vector<std::shared_ptr<shared::scene::scene_base>>& current_scenes) noexcept override;
+
     private:
         /// The log manager to use
         std::shared_ptr<shared::apis::logging::ilog_manager> _log_manager;
