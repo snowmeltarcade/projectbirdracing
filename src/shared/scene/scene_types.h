@@ -6,6 +6,9 @@ namespace pbr::shared::scene {
         /// The loading scene
         loading,
 
+        /// The splash screen
+        splash_screen,
+
         /// The world generation scene
         world_generation,
     };
