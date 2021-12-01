@@ -33,6 +33,10 @@ public:
         ++this->run_call_count;
         return this->run_result;
     }
+
+    bool should_quit() const noexcept override {
+        return false;
+    }
 };
 
 std::shared_ptr<test_scene> g_test_scene_loading;

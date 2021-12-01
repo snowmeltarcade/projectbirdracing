@@ -21,5 +21,12 @@ namespace pbr::shared::scene::scenes {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool run() noexcept override;
+
+        /// Returns `true` if this scene should quit, else `false`
+        /// \returns `true` if this scene should quit, else `false`
+        [[nodiscard]]
+        bool should_quit() const noexcept override {
+            return true;
+        }
     };
 }

@@ -28,6 +28,11 @@ namespace pbr::shared::scene {
         [[nodiscard]]
         virtual bool run() noexcept = 0;
 
+        /// Returns `true` if this scene should quit, else `false`
+        /// \returns `true` if this scene should quit, else `false`
+        [[nodiscard]]
+        virtual bool should_quit() const noexcept = 0;
+
     protected:
         /// The log manager to use
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;

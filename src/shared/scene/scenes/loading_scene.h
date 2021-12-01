@@ -21,5 +21,12 @@ namespace pbr::shared::scene::scenes {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool run() noexcept override;
+
+        /// This is ignored as this is the scene used when loading other scenes
+        /// \returns `true` if this scene should quit, else `false`
+        [[nodiscard]]
+        bool should_quit() const noexcept override {
+            return false;
+        }
     };
 }
