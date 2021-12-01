@@ -23,6 +23,20 @@ namespace pbr::shared::scene {
     }
 
     bool scene_manager::run() noexcept {
+        // if no loaded scenes || one of the current scenes should exit
+            // unload current scenes (.clear())
+            // get next scenes
+            // load loading scene
+            // start loading next scenes
+            // set is loading = true
+        // if is loading
+            // run loading scene
+            // have next scenes loaded?
+                // unload loading scene
+                // set next scenes to run
+        // else
+            // run next scenes
+
         for (auto& scene : this->_loaded_scenes) {
             if (!scene->run()) {
                 this->_log_manager->log_message("Failed to run scene.", apis::logging::log_levels::error);
