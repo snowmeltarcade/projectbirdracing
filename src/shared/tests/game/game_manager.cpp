@@ -57,14 +57,6 @@ public:
 
 class test_scene_manager : public scene::iscene_manager {
 public:
-    bool initialize_called {false};
-    bool initialize_result {true};
-
-    bool initialize() noexcept override {
-        this->initialize_called = true;
-        return this->initialize_result;
-    }
-
     bool run_called {false};
     bool run_result {true};
 
@@ -134,24 +126,6 @@ TEST_CASE("initialize - create application window fails - returns false", "[shar
     auto gm = create_game_manager();
 
     g_window_manager->create_application_window_result = {};
-
-    auto result = gm.initialize();
-    REQUIRE_FALSE(result);
-}
-
-TEST_CASE("initialize - initializes scene manager", "[shared/game]") {
-    auto gm = create_game_manager();
-
-    REQUIRE(gm.initialize());
-
-    auto result = g_scene_manager->initialize_called;
-    REQUIRE(result);
-}
-
-TEST_CASE("initialize - initialize scene manager fails - returns false", "[shared/game]") {
-    auto gm = create_game_manager();
-
-    g_scene_manager->initialize_result = false;
 
     auto result = gm.initialize();
     REQUIRE_FALSE(result);

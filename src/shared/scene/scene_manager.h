@@ -28,15 +28,10 @@ namespace pbr::shared::scene {
             assert((this->_log_manager));
         }
         ~scene_manager() override {
-            if (this->_new_scene_loading_thread->joinable()) {
+            if (this->_new_scene_loading_thread && this->_new_scene_loading_thread->joinable()) {
                 this->_new_scene_loading_thread->join();
             }
         }
-
-        /// Initializes the scene manager. This will also load the `loading` scene
-        /// \returns `true` upon success else `false`
-        [[nodiscard]]
-        bool initialize() noexcept override;
 
         /// Runs the scene manager
         /// \returns `true` upon success else `false`
@@ -53,6 +48,9 @@ namespace pbr::shared::scene {
         /// Are we loading new scenes?
         std::atomic_bool _are_loading_new_scenes {false};
 
+        /// Did the loading of new scenes fail?
+        std::atomic_bool _did_loading_new_scenes_fail {false};
+
         /// Handles loading the new scenes
         std::unique_ptr<std::thread> _new_scene_loading_thread;
 
@@ -67,10 +65,17 @@ namespace pbr::shared::scene {
         /// Make sure that `_are_loading_new_scenes` is false before accessing this for general use
         std::vector<std::shared_ptr<scene_base>> _loaded_scenes;
 
+        /// Sets up loading new scenes
+        /// \param have_scenes_quit If a currently loaded scene has indicated it wants to quit
+        /// \returns `true` upon success else `false`.
+        [[nodiscard]]
+        bool setup_loading_new_scenes(bool have_scenes_quit) noexcept;
+
         /// Queues new scene types to load. Any currently loaded scenes will be destroyed
+        /// This runs on the loading thread, so do not call this from any other thread
         /// \param types The scene types to load
         /// \returns `true` upon success else `false`. All queued scenes must successfully load to count as success.
-        /// An empty list will result in failure.
+        /// Passing an empty list of types will result in failure.
         [[nodiscard]]
         bool queue_new_scenes(const std::vector<scene_types>& types) noexcept;
     };

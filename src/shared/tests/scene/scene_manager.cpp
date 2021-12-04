@@ -130,46 +130,27 @@ std::shared_ptr<scene_manager> create_scene_manager(scene_types scene_type = sce
 }
 
 //////////
-/// initialize
-//////////
-
-TEST_CASE("initialize - returns true", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    auto result = sm->initialize();
-    REQUIRE(result);
-}
-
-TEST_CASE("initialize - unknown loading scene type - returns false", "[shared/scene]") {
-    auto sm = create_scene_manager((scene_types)99999);
-
-    auto result = sm->initialize();
-    REQUIRE_FALSE(result);
-}
-
-//////////
 /// run
 //////////
 
 TEST_CASE("run - returns true", "[shared/scene]") {
     auto sm = create_scene_manager();
 
-    REQUIRE(sm->initialize());
-
     auto result = sm->run();
     REQUIRE(result);
+}
+
+TEST_CASE("run - unknown loading scene type - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager((scene_types)99999);
+
+    auto result = sm->run();
+    REQUIRE_FALSE(result);
 }
 
 TEST_CASE("run - after initialization - runs all scenes from scene factory", "[shared/scene]") {
     auto sm = create_scene_manager();
 
-    REQUIRE(sm->initialize());
-
-    //auto start_time = std::chrono::system_clock::now();
-
     // we're expecting the loading scene, then test scenes 1, 2 then 3 to load and run
-    // each scene takes 1s to load
-    //while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start_time).count() < 5) {
     while (!g_have_all_scenes_loaded) {
         REQUIRE(sm->run());
     }
@@ -197,4 +178,152 @@ TEST_CASE("run - after initialization - runs all scenes from scene factory", "[s
 
     REQUIRE(g_test_scene_3->load_called);
     REQUIRE(g_test_scene_3->run_called);
+}
+
+TEST_CASE("run - load loading scenes fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_loading->load_result = false;
+
+    REQUIRE_FALSE(sm->run());
+}
+
+TEST_CASE("run - run loading scenes fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_loading->run_result = false;
+
+    // keep running until we return false
+    auto has_returned_false {false};
+
+    while (!g_have_all_scenes_loaded) {
+        if (!sm->run()) {
+            has_returned_false = true;
+            break;
+        }
+    }
+
+    // false must have been returned before all the scenes have loaded and run
+    REQUIRE_FALSE(g_have_all_scenes_loaded);
+    REQUIRE(has_returned_false);
+}
+
+TEST_CASE("run - load test scene 1 fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_1->load_result = false;
+
+    // keep running until we return false
+    auto has_returned_false {false};
+
+    while (!g_have_all_scenes_loaded) {
+        if (!sm->run()) {
+            has_returned_false = true;
+            break;
+        }
+    }
+
+    // false must have been returned before all the scenes have loaded and run
+    REQUIRE_FALSE(g_have_all_scenes_loaded);
+    REQUIRE(has_returned_false);
+}
+
+TEST_CASE("run - run test scene 1 fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_1->run_result = false;
+
+    // keep running until we return false
+    auto has_returned_false {false};
+
+    while (!g_have_all_scenes_loaded) {
+        if (!sm->run()) {
+            has_returned_false = true;
+            break;
+        }
+    }
+
+    // false must have been returned before all the scenes have loaded and run
+    REQUIRE_FALSE(g_have_all_scenes_loaded);
+    REQUIRE(has_returned_false);
+}
+
+TEST_CASE("run - load test scene 2 fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_2->load_result = false;
+
+    // keep running until we return false
+    auto has_returned_false {false};
+
+    while (!g_have_all_scenes_loaded) {
+        if (!sm->run()) {
+            has_returned_false = true;
+            break;
+        }
+    }
+
+    // false must have been returned before all the scenes have loaded and run
+    REQUIRE_FALSE(g_have_all_scenes_loaded);
+    REQUIRE(has_returned_false);
+}
+
+TEST_CASE("run - run test scene 2 fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_2->run_result = false;
+
+    // keep running until we return false
+    auto has_returned_false {false};
+
+    while (!g_have_all_scenes_loaded) {
+        if (!sm->run()) {
+            has_returned_false = true;
+            break;
+        }
+    }
+
+    // false must have been returned before all the scenes have loaded and run
+    REQUIRE_FALSE(g_have_all_scenes_loaded);
+    REQUIRE(has_returned_false);
+}
+
+TEST_CASE("run - load test scene 3 fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_3->load_result = false;
+
+    // keep running until we return false
+    auto has_returned_false {false};
+
+    while (!g_have_all_scenes_loaded) {
+        if (!sm->run()) {
+            has_returned_false = true;
+            break;
+        }
+    }
+
+    // false must have been returned before all the scenes have loaded and run
+    REQUIRE_FALSE(g_have_all_scenes_loaded);
+    REQUIRE(has_returned_false);
+}
+
+TEST_CASE("run - run test scene 3 fails - returns false", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    g_test_scene_3->run_result = false;
+
+    // keep running until we return false
+    auto has_returned_false {false};
+
+    while (!g_have_all_scenes_loaded) {
+        if (!sm->run()) {
+            has_returned_false = true;
+            break;
+        }
+    }
+
+    // false must have been returned before all the scenes have loaded and run
+    REQUIRE_FALSE(g_have_all_scenes_loaded);
+    REQUIRE(has_returned_false);
 }
