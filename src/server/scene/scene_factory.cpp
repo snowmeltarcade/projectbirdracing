@@ -20,7 +20,9 @@ namespace pbr::server::scene {
     }
 
     std::vector<shared::scene::scene_types> scene_factory::get_next_scenes(const std::vector<std::shared_ptr<shared::scene::scene_base>>& current_scenes) noexcept {
-        assert((!current_scenes.empty()));
+        if (current_scenes.empty()) {
+            return { shared::scene::scene_types::splash_screen };
+        }
 
         auto current_type = current_scenes[0]->get_scene_type();
 
@@ -29,6 +31,6 @@ namespace pbr::server::scene {
         }
 
         this->_log_manager->log_message("Invalid scene state machine state.", shared::apis::logging::log_levels::error);
-        return { shared::scene::scene_types::loading };
+        return {};
     }
 }
