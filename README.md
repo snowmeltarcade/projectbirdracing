@@ -6,6 +6,10 @@ An online world where you breed and race bird like creatures called avions.
 * [How to Build](documentation/building.md)
 * [Generated Code Documentation](https://snowmeltarcade.github.io/projectbirdracingdocumentation/)
 
+## Browse Code
+
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/snowmeltarcade/projectbirdracing)
+
 ## Build Status
 
 ### Nightly
