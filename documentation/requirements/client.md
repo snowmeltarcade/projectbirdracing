@@ -29,7 +29,41 @@ See [here](graphics.md) for more information.
 
 ## Window
 
-Ability to create game window required. Full screen and windowed mode in multiple resolutions should be supported.
+Ability to create game window required.
+
+### Resolutions
+
+Full screen and windowed mode in multiple resolutions should be supported.
+
+Available resolutions are:
+
+* 800x600
+* 1024x768
+* 1280x1024
+* 1920x1080
+* 3840x2160
+
+These resolutions will be saved in `data/window/sizes.json`.
+
+The file structure is as follows:
+
+```json
+{
+  "resolutions": [
+    {
+      "width": 800,
+      "height": 600,
+      "is_default": false
+    }
+  ]
+}
+```
+
+`width` is the window's width.
+
+`height` is the window's height.
+
+`is_default` specifies if the resolution is default or not. If more than one resolution is marked as default, the first entry in this list will be used.
 
 ## Audio
 
@@ -121,7 +155,7 @@ Any scripting on the client must not be able to affect game play data on the ser
 
 ## Data
 
-All external data should be stored in a folder called `data` that is in the same directory as the server's executable.
+All external data should be stored in a folder called `data` that is in the same directory as the client's executable.
 
 ## Component Architecture
 

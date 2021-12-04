@@ -37,9 +37,16 @@ As the major game components should be able to run in their own threads, communi
 
 These classes are used by both the client and server.
 
-## Game
+## Game Manager
 
 Holds instances of all main modules and manages the game loop.
+
+There are 4 ways to exit a game manager:
+
+* User input (for instance, the user pressing the `escape` key)
+* A window close event
+* A UI event (for instance, clicking an `exit` button)
+* An error
 
 ### Threading
 
@@ -65,7 +72,7 @@ Both packet sending and receiving will happen on this thread. Non-blocking APIs 
 
 The remaining managers, the scene and ECS will all run on this thread.
 
-For the server, all the scenes will run on this thread. If it becomes a bottleneck, as the scenes and worlds are designed to run on their own threads anyway, we can split the scenes up to run on other threads.
+For the server, all the scenes will run on this thread. If it becomes a bottleneck, as the scenes and worlds are designed to run on their own threads, we can split the scenes up to run on other threads.
 
 ## Log Manager
 
@@ -81,6 +88,16 @@ The following log levels are provided:
 | `fatal` | For unrecoverable errors that require a system halt. It is the responsibility of the caller to halt the system |
 
 This will be thread safe. Logs can pass in an ID identifying the thread the message is associated with.
+
+## Data Manager
+
+Loads data from the `data` folder. It will load the files in a format that it knows and will expose this data in a format agnostic way.
+
+The default data format is `JSON`.
+
+When loading a file from the `data` folder, the file extension is not required. The data manager will search for the file using file extensions of formats it knows about.
+
+Data can be set into the data manager, overwriting any data loaded from a file. New data can also be set.
 
 ## Graphics Manager
 
@@ -98,7 +115,13 @@ Keyboard, mouse, touch, joystick and game controller input will be managed here.
 
 ## Window Manager
 
-Application windows will be managed here. A separate console window will also be created to display any output from the standard streams.
+Application windows will be managed here.
+
+A separate console window will also be created to display any output from the standard streams.
+
+A window will have a title and a size. If the window is full screen, the resolution will be the window size. If the window is not full screen, the window position will start centered in the screen.
+
+The window loop will be handled by a `window` class. The window exit event will be passed to the game manager, which will then request the game manager to exit.
 
 ## Network Manager
 
@@ -126,7 +149,11 @@ Loads and executes scripts. These scripts will be used by the UI system and ECS.
 
 ## Scene Manager
 
-Loads, destroys and runs the active scene. On the server, will hold all active scenes - the main world, villages, race tracks etc...
+Loads, destroys and runs the active scene. On the server, will hold all active scenes - the main world, villages, racetracks etc...
+
+The client and server will register the scenes they need with the scene manager, along with a loading scene. The loading scene will be the initial scene that is loaded, and also the scene that is loaded when a new scene load is requested.
+
+Scenes that are to be loaded are queued with the scene manager. Typically, the client will only queue one scene at a time. The server will queue all scenes that need running. When the needed scenes are queued, a request is made to load those scenes. Whilst those scenes are being loaded, the loading scene will first be loaded and then run. It will be unloaded when all of the queued scenes have been loaded. The queued scenes will then be run.
 
 ## Scene
 

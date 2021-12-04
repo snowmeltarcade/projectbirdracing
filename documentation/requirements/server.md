@@ -42,6 +42,40 @@ See [here](graphics.md) for more information.
 
 Ability to create game window required. No need for full screen, but the window needs to be resizable.
 
+### Resolutions
+
+Windowed mode in multiple resolutions should be supported.
+
+Available resolutions are:
+
+* 800x600
+* 1024x768
+* 1280x1024
+* 1920x1080
+* 3840x2160
+
+These resolutions will be saved in `data/window/sizes.json`.
+
+The file structure is as follows:
+
+```json
+{
+  "resolutions": [
+    {
+      "width": 800,
+      "height": 600,
+      "is_default": false
+    }
+  ]
+}
+```
+
+`width` is the window's width.
+
+`height` is the window's height.
+
+`is_default` specifies if the resolution is default or not. If more than one resolution is marked as default, the first entry in this list will be used.
+
 ## Input
 
 Keyboard, mouse, and touch screen support is required. The input source should be abstracted into actions, which is what the game system will act on.

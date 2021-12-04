@@ -17,6 +17,22 @@
             "version": "0.9.9.8"
         },
         {
+            "name": "glew",
+            "version": "2.2.0"
+        },
+        {
+            "name": "sdl",
+            "version": "2.0.14"
+        },
+        {
+            "name": "sdl_image",
+            "version": "2.0.5"
+        },
+        {
+            "name": "sdl_net",
+            "version": "2.0.1"
+        },
+        {
             "name": "doxygen",
             "version": ""
         }
