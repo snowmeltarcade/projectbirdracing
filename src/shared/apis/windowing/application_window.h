@@ -6,6 +6,8 @@
 #include <cassert>
 #include <string>
 #include <SDL.h>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 namespace pbr::shared::apis::windowing {
     /// An application window can either be in windowed or full screen mode. This window will
@@ -58,5 +60,7 @@ namespace pbr::shared::apis::windowing {
 
         /// Shuts down this window
         void shutdown() noexcept;
+
+        VkInstance _vulkan_instance {nullptr};
     };
 }
