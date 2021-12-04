@@ -72,10 +72,6 @@ public:
         this->run_called = true;
         return this->run_result;
     }
-
-    bool queue_new_scenes(const std::vector<scene::scene_types>&) noexcept override {
-        return true;
-    }
 };
 
 std::shared_ptr<test_window_manager> g_window_manager;
@@ -228,16 +224,4 @@ TEST_CASE("run - running scene manager returns false - returns false", "[shared/
 
     auto result = gm.run();
     REQUIRE_FALSE(result);
-}
-
-//////////
-/// get_scene_manager
-//////////
-
-TEST_CASE("get_scene_manager - returns scene manager", "[shared/game]") {
-    auto gm = create_game_manager();
-
-    auto result = gm.get_scene_manager();
-
-    REQUIRE(result == g_scene_manager);
 }

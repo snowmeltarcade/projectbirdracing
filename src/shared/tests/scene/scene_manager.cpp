@@ -4,6 +4,9 @@
 #include "shared/apis/logging/log_manager.h"
 
 #include <memory>
+#include <thread>
+#include <chrono>
+#include <atomic>
 
 using namespace pbr::shared;
 using namespace pbr::shared::scene;
@@ -12,14 +15,23 @@ scene_types test_scene_type_1 = static_cast<scene_types>(static_cast<int>(scene_
 scene_types test_scene_type_2 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 2);
 scene_types test_scene_type_3 = static_cast<scene_types>(static_cast<int>(scene_types::loading) + 3);
 
+/// Records the order that the scenes loaded
+std::vector<scene_types> g_scene_load_order;
+
+std::atomic_bool g_have_all_scenes_loaded {false};
+
 class test_scene : public scene::scene_base {
 public:
-    test_scene(std::shared_ptr<apis::logging::ilog_manager> log_manager)
-        : scene::scene_base(log_manager)
+    test_scene(std::shared_ptr<apis::logging::ilog_manager> log_manager, scene_types scene_type)
+        : scene::scene_base(log_manager),
+          _scene_type(scene_type)
     {}
 
+    // setting up a test will set this specifically from the constructor
+    scene_types _scene_type;
+
     scene_types get_scene_type() const noexcept override {
-        return test_scene_type_1;
+        return _scene_type;
     }
 
     bool load_called {false};
@@ -29,6 +41,14 @@ public:
     bool load() noexcept override {
         this->load_called = true;
         ++this->load_call_count;
+
+        if (this->_scene_type != scene_types::loading) {
+            // loading often takes time...
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        g_scene_load_order.push_back(this->_scene_type);
+
         return this->load_result;
     }
 
@@ -43,46 +63,69 @@ public:
     }
 
     bool should_quit() const noexcept override {
-        return false;
+        // to speed up the tests, just quit as soon as we can
+        return true;
     }
 };
 
 std::shared_ptr<test_scene> g_test_scene_loading;
-std::shared_ptr<test_scene> g_test_scene_queued;
+std::shared_ptr<test_scene> g_test_scene_1;
+std::shared_ptr<test_scene> g_test_scene_2;
+std::shared_ptr<test_scene> g_test_scene_3;
 
 class test_scene_factory : public scene::iscene_factory {
 public:
     std::shared_ptr<scene_base> create_scene(scene_types type) noexcept override {
         if (type == scene_types::loading) {
             return g_test_scene_loading;
-        }
-        else if (type == test_scene_type_1 ||
-                 type == test_scene_type_2 ||
-                 type == test_scene_type_3) {
-            return g_test_scene_queued;
+        } else if (type == test_scene_type_1) {
+            return g_test_scene_1;
+        } else if (type == test_scene_type_2) {
+            return g_test_scene_2;
+        } else if (type == test_scene_type_3) {
+            return g_test_scene_3;
         }
 
         return {};
     }
 
-    std::vector<scene_types> get_next_scenes(const std::vector<std::shared_ptr<scene_base>>&) noexcept override {
+    std::vector<scene_types> get_next_scenes(const std::vector<std::shared_ptr<scene_base>>& scenes) noexcept override {
+        if (scenes.empty()) {
+            return { test_scene_type_1 };
+        }
+
+        auto type = scenes[0]->get_scene_type();
+
+        if (type == test_scene_type_1) {
+            return { test_scene_type_2 };
+        }
+        else if (type == test_scene_type_2) {
+            return { test_scene_type_3 };
+        }
+
+        g_have_all_scenes_loaded = true;
         return {};
     }
 };
 
 std::shared_ptr<test_scene_factory> g_test_scene_factory;
 
-scene_manager create_scene_manager(scene_types scene_type = scene_types::loading) {
+std::shared_ptr<scene_manager> create_scene_manager(scene_types scene_type = scene_types::loading) {
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
     auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
 
-    g_test_scene_loading = std::make_shared<test_scene>(log_manager);
-    g_test_scene_queued = std::make_shared<test_scene>(log_manager);
+    g_test_scene_loading = std::make_shared<test_scene>(log_manager, scene_types::loading);
+    g_test_scene_1 = std::make_shared<test_scene>(log_manager, test_scene_type_1);
+    g_test_scene_2 = std::make_shared<test_scene>(log_manager, test_scene_type_2);
+    g_test_scene_3 = std::make_shared<test_scene>(log_manager, test_scene_type_3);
     g_test_scene_factory = std::make_shared<test_scene_factory>();
 
-    scene_manager sm(g_test_scene_factory,
-                     scene_type,
-                     log_manager);
+    g_scene_load_order.clear();
+    g_have_all_scenes_loaded = false;
+
+    auto sm = std::make_shared<scene_manager>(g_test_scene_factory,
+                                                            scene_type,
+                                                            log_manager);
     return sm;
 }
 
@@ -93,32 +136,14 @@ scene_manager create_scene_manager(scene_types scene_type = scene_types::loading
 TEST_CASE("initialize - returns true", "[shared/scene]") {
     auto sm = create_scene_manager();
 
-    auto result = sm.initialize();
+    auto result = sm->initialize();
     REQUIRE(result);
 }
 
 TEST_CASE("initialize - unknown loading scene type - returns false", "[shared/scene]") {
     auto sm = create_scene_manager((scene_types)99999);
 
-    auto result = sm.initialize();
-    REQUIRE_FALSE(result);
-}
-
-TEST_CASE("initialize - loads loading scene", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    auto result = g_test_scene_loading->load_called;
-    REQUIRE(result);
-}
-
-TEST_CASE("initialize - loads loading scene fails - returns false", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    g_test_scene_loading->load_result = false;
-
-    auto result = sm.initialize();
+    auto result = sm->initialize();
     REQUIRE_FALSE(result);
 }
 
@@ -129,173 +154,47 @@ TEST_CASE("initialize - loads loading scene fails - returns false", "[shared/sce
 TEST_CASE("run - returns true", "[shared/scene]") {
     auto sm = create_scene_manager();
 
-    REQUIRE(sm.initialize());
+    REQUIRE(sm->initialize());
 
-    auto result = sm.run();
+    auto result = sm->run();
     REQUIRE(result);
 }
 
-TEST_CASE("run - after initialization - runs loading scene", "[shared/scene]") {
+TEST_CASE("run - after initialization - runs all scenes from scene factory", "[shared/scene]") {
     auto sm = create_scene_manager();
 
-    REQUIRE(sm.initialize());
+    REQUIRE(sm->initialize());
 
-    REQUIRE(sm.run());
+    //auto start_time = std::chrono::system_clock::now();
 
-    auto result = g_test_scene_loading->run_called;
-    REQUIRE(result);
-}
+    // we're expecting the loading scene, then test scenes 1, 2 then 3 to load and run
+    // each scene takes 1s to load
+    //while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start_time).count() < 5) {
+    while (!g_have_all_scenes_loaded) {
+        REQUIRE(sm->run());
+    }
 
-TEST_CASE("run - running loading scene fails - returns false", "[shared/scene]") {
-    auto sm = create_scene_manager();
+    // the 3 test scenes plus the 4 times the loading scene will have loaded
+    auto expected_number_of_scenes {7u};
 
-    REQUIRE(sm.initialize());
+    REQUIRE(g_scene_load_order.size() == expected_number_of_scenes);
+    REQUIRE(g_scene_load_order[0] == scene_types::loading);
+    REQUIRE(g_scene_load_order[1] == test_scene_type_1);
+    REQUIRE(g_scene_load_order[2] == scene_types::loading);
+    REQUIRE(g_scene_load_order[3] == test_scene_type_2);
+    REQUIRE(g_scene_load_order[4] == scene_types::loading);
+    REQUIRE(g_scene_load_order[5] == test_scene_type_3);
+    REQUIRE(g_scene_load_order[6] == scene_types::loading);
 
-    g_test_scene_loading->run_result = false;
-
-    auto result = sm.run();
-    REQUIRE_FALSE(result);
-}
-
-TEST_CASE("run - queue scenes - runs queued scenes", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types {
-        test_scene_type_1,
-        test_scene_type_2,
-        test_scene_type_3,
-    };
-
-    REQUIRE(sm.queue_new_scenes(types));
-
-    REQUIRE(sm.run());
-
-    auto result = g_test_scene_queued->run_call_count;
-    REQUIRE(result == types.size());
-}
-
-TEST_CASE("run - run queued scenes fails - returns false", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types {
-        test_scene_type_1,
-        test_scene_type_2,
-        test_scene_type_3,
-    };
-
-    REQUIRE(sm.queue_new_scenes(types));
-
-    g_test_scene_queued->run_result = false;
-
-    auto result = sm.run();
-    REQUIRE_FALSE(result);
-}
-
-//////////
-/// queue_new_scenes
-//////////
-
-TEST_CASE("queue_new_scenes - empty types list - returns false", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types;
-
-    auto result = sm.queue_new_scenes(types);
-    REQUIRE_FALSE(result);
-}
-
-TEST_CASE("queue_new_scenes - invalid scene type - returns false", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types {
-        (scene_types)99999,
-    };
-
-    auto result = sm.queue_new_scenes(types);
-    REQUIRE_FALSE(result);
-}
-
-TEST_CASE("queue_new_scenes - valid types list - returns true", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types {
-        test_scene_type_1,
-        test_scene_type_2,
-        test_scene_type_3,
-    };
-
-    REQUIRE(sm.run());
+    REQUIRE(g_test_scene_loading->load_called);
     REQUIRE(g_test_scene_loading->run_called);
 
-    REQUIRE(sm.queue_new_scenes(types));
+    REQUIRE(g_test_scene_1->load_called);
+    REQUIRE(g_test_scene_1->run_called);
 
-    // the test loading scene should no longer be loaded at this point
-    g_test_scene_loading->run_called = false;
-    REQUIRE(sm.run());
-    REQUIRE_FALSE(g_test_scene_loading->run_called);
+    REQUIRE(g_test_scene_2->load_called);
+    REQUIRE(g_test_scene_2->run_called);
+
+    REQUIRE(g_test_scene_3->load_called);
+    REQUIRE(g_test_scene_3->run_called);
 }
-
-TEST_CASE("queue_new_scenes - valid types list - unloads previously loaded scenes", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types {
-        test_scene_type_1,
-        test_scene_type_2,
-        test_scene_type_3,
-    };
-
-    auto result = sm.queue_new_scenes(types);
-    REQUIRE(result);
-}
-
-TEST_CASE("queue_new_scenes - valid types list - loads queued scenes", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types {
-        test_scene_type_1,
-        test_scene_type_2,
-        test_scene_type_3,
-    };
-
-    REQUIRE(sm.queue_new_scenes(types));
-
-    auto result = g_test_scene_queued->load_call_count;
-    REQUIRE(result == types.size());
-}
-
-TEST_CASE("queue_new_scenes - load queued scenes fails - returns false", "[shared/scene]") {
-    auto sm = create_scene_manager();
-
-    REQUIRE(sm.initialize());
-
-    std::vector<scene_types> types {
-        test_scene_type_1,
-        test_scene_type_2,
-        test_scene_type_3,
-    };
-
-    g_test_scene_queued->load_result = false;
-
-    auto result = sm.queue_new_scenes(types);
-    REQUIRE_FALSE(result);
-}
-
-// TODO: When a scene is loading after being queued, the loading scene should be run - possibly blocking the current thread?
-// don't reload the loading screen if it is already loaded though, as the first time `queue_new_scenes` is called, the
-// loading scene will already be loaded.
-//
-// After that - start implementing the loading scene, graphics, input, UI, world generation...

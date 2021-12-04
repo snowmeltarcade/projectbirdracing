@@ -21,12 +21,5 @@ namespace pbr::shared::scene {
         /// \returns `true` upon success else `false`
         [[nodiscard]]
         virtual bool run() noexcept = 0;
-
-        /// Queues new scene types to load. Any currently loaded scenes will be destroyed
-        /// \param types The scene types to load
-        /// \returns `true` upon success else `false`. All queued scenes must successfully load to count as success.
-        /// An empty list will result in failure.
-        [[nodiscard]]
-        virtual bool queue_new_scenes(const std::vector<scene_types>& types) noexcept = 0;
     };
 }
