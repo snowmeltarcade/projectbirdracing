@@ -158,6 +158,7 @@ namespace pbr::shared::apis::windowing {
         features.enabledValidationFeatureCount = 1;
         features.pEnabledValidationFeatures = enables;
 
+        // create the Vulkan instance
         VkInstanceCreateInfo ii;
         memset(&ii, 0, sizeof(ii));
         ii.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -177,6 +178,7 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        // setup the debug callback
         VkDebugUtilsMessengerCreateInfoEXT create_info;
         memset(&create_info, 0, sizeof(create_info));
         create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -190,6 +192,7 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        // select the physical device to use
         auto physical_device_count {0u};
         vkEnumeratePhysicalDevices(this->_vulkan_instance, &physical_device_count, nullptr);
         if (physical_device_count == 0) {
@@ -213,11 +216,51 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        // set up the logical device
+        auto qfi = find_queue_families(this->_physical_device);
+
+        VkDeviceQueueCreateInfo queue_create_info;
+        memset(&queue_create_info, 0, sizeof(queue_create_info));
+        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_create_info.queueFamilyIndex = *qfi.graphics_family_index;
+        queue_create_info.queueCount = 1;
+
+        auto queue_priority = 1.0f;
+        queue_create_info.pQueuePriorities = &queue_priority;
+
+        VkPhysicalDeviceFeatures device_features;
+        memset(&device_features, 0, sizeof(device_features));
+
+        VkDeviceCreateInfo device_create_info;
+        memset(&device_create_info, 0, sizeof(device_create_info));
+        device_create_info.pQueueCreateInfos = &queue_create_info;
+        device_create_info.queueCreateInfoCount = 1;
+        device_create_info.pEnabledFeatures = &device_features;
+        device_create_info.enabledExtensionCount = 0;
+#ifdef RELEASE
+        device_create_info.enabledLayerCount = 0u;
+#else
+        device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
+        device_create_info.ppEnabledLayerNames = validation_layers.data();
+#endif
+
+        if (vkCreateDevice(this->_physical_device, &device_create_info, nullptr, &this->_device) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create logical device.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
+
         return true;
     }
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
+            if (this->_device) {
+                vkDestroyDevice(this->_device, nullptr);
+                this->_device = nullptr;
+            }
+
             if (this->_debug_messenger) {
                 DestroyDebugUtilsMessengerEXT(this->_vulkan_instance, this->_debug_messenger, nullptr);
                 this->_debug_messenger = nullptr;
