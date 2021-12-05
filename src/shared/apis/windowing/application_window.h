@@ -63,5 +63,6 @@ namespace pbr::shared::apis::windowing {
 
         VkInstance _vulkan_instance {nullptr};
         VkDebugUtilsMessengerEXT _debug_messenger {nullptr};
+        VkPhysicalDevice _physical_device {VK_NULL_HANDLE};
     };
 }

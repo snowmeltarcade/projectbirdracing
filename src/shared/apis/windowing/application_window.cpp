@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <SDL_vulkan.h>
 #include <iostream>
+#include <optional>
 
 namespace pbr::shared::apis::windowing {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -16,7 +17,7 @@ namespace pbr::shared::apis::windowing {
 
         auto logger = *static_cast<std::shared_ptr<apis::logging::ilog_manager>*>(pUserData);
         logger->log_message(pCallbackData->pMessage, apis::logging::log_levels::error);
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+        //std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
         return VK_FALSE;
     }
@@ -35,6 +36,45 @@ namespace pbr::shared::apis::windowing {
         if (func != nullptr) {
             func(instance, debugMessenger, pAllocator);
         }
+    }
+
+    struct queue_family_indexes {
+        std::optional<int> graphics_family_index;
+    };
+
+    queue_family_indexes find_queue_families(const VkPhysicalDevice device) {
+        queue_family_indexes indexes;
+
+        auto queue_family_count {0u};
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
+
+        std::vector<VkQueueFamilyProperties> queue_families;
+        queue_families.resize(queue_family_count);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
+
+        for (auto i {0u}; i < queue_families.size(); ++i) {
+            if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                indexes.graphics_family_index = i;
+                break;
+            }
+        }
+
+        return indexes;
+    }
+
+    bool is_physical_device_compatible(const VkPhysicalDevice device) {
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(device, &properties);
+
+        VkPhysicalDeviceFeatures features;
+        vkGetPhysicalDeviceFeatures(device, &features);
+
+        auto qfi = find_queue_families(device);
+        if (!qfi.graphics_family_index) {
+            return false;
+        }
+
+        return true;
     }
 
     bool application_window::create(std::string_view title,
@@ -150,13 +190,36 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        auto physical_device_count {0u};
+        vkEnumeratePhysicalDevices(this->_vulkan_instance, &physical_device_count, nullptr);
+        if (physical_device_count == 0) {
+            this->_log_manager->log_message("Failed to find GPUs with Vulkan support.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        std::vector<VkPhysicalDevice> physical_devices;
+        physical_devices.resize(physical_device_count);
+        vkEnumeratePhysicalDevices(this->_vulkan_instance, &physical_device_count, physical_devices.data());
+
+        for (const auto& device : physical_devices) {
+            if (is_physical_device_compatible(device)) {
+                this->_physical_device = device;
+                break;
+            }
+        }
+
+        if (this->_physical_device == VK_NULL_HANDLE) {
+            this->_log_manager->log_message("Failed to find compatible device.", apis::logging::log_levels::error);
+            return false;
+        }
+
         return true;
     }
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
             if (this->_debug_messenger) {
-                //DestroyDebugUtilsMessengerEXT(this->_vulkan_instance, this->_debug_messenger, nullptr);
+                DestroyDebugUtilsMessengerEXT(this->_vulkan_instance, this->_debug_messenger, nullptr);
                 this->_debug_messenger = nullptr;
             }
 
