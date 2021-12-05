@@ -62,5 +62,6 @@ namespace pbr::shared::apis::windowing {
         void shutdown() noexcept;
 
         VkInstance _vulkan_instance {nullptr};
+        VkDebugUtilsMessengerEXT _debug_messenger {nullptr};
     };
 }
