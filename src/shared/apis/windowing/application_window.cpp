@@ -4,6 +4,7 @@
 #include <SDL_vulkan.h>
 #include <iostream>
 #include <optional>
+#include <set>
 
 namespace pbr::shared::apis::windowing {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -40,9 +41,10 @@ namespace pbr::shared::apis::windowing {
 
     struct queue_family_indexes {
         std::optional<int> graphics_family_index;
+        std::optional<int> present_family_index;
     };
 
-    queue_family_indexes find_queue_families(const VkPhysicalDevice device) {
+    queue_family_indexes find_queue_families(const VkPhysicalDevice device, VkSurfaceKHR surface) {
         queue_family_indexes indexes;
 
         auto queue_family_count {0u};
@@ -53,24 +55,30 @@ namespace pbr::shared::apis::windowing {
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
 
         for (auto i {0u}; i < queue_families.size(); ++i) {
+            VkBool32 surface_supported {false};
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &surface_supported);
+
             if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 indexes.graphics_family_index = i;
-                break;
+            }
+
+            if (surface_supported) {
+                indexes.present_family_index = i;
             }
         }
 
         return indexes;
     }
 
-    bool is_physical_device_compatible(const VkPhysicalDevice device) {
+    bool is_physical_device_compatible(const VkPhysicalDevice device, VkSurfaceKHR surface) {
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(device, &properties);
 
         VkPhysicalDeviceFeatures features;
         vkGetPhysicalDeviceFeatures(device, &features);
 
-        auto qfi = find_queue_families(device);
-        if (!qfi.graphics_family_index) {
+        auto qfi = find_queue_families(device, surface);
+        if (!qfi.graphics_family_index || !qfi.present_family_index) {
             return false;
         }
 
@@ -101,7 +109,7 @@ namespace pbr::shared::apis::windowing {
         ai.applicationVersion = VK_MAKE_API_VERSION(0, 0, 4, 0);
         ai.pEngineName = "PBR";
         ai.engineVersion = VK_MAKE_API_VERSION(0, 0, 4, 0);
-        ai.apiVersion = VK_API_VERSION_1_2;
+        ai.apiVersion = VK_API_VERSION_1_1;
 
         // extensions
         auto extensions_count {0u};
@@ -192,6 +200,12 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        // create window surface
+        if (!SDL_Vulkan_CreateSurface(this->_window, this->_vulkan_instance, &this->_surface)) {
+            this->_log_manager->log_message("Failed to create surface.", apis::logging::log_levels::error);
+            return false;
+        }
+
         // select the physical device to use
         auto physical_device_count {0u};
         vkEnumeratePhysicalDevices(this->_vulkan_instance, &physical_device_count, nullptr);
@@ -205,7 +219,7 @@ namespace pbr::shared::apis::windowing {
         vkEnumeratePhysicalDevices(this->_vulkan_instance, &physical_device_count, physical_devices.data());
 
         for (const auto& device : physical_devices) {
-            if (is_physical_device_compatible(device)) {
+            if (is_physical_device_compatible(device, this->_surface)) {
                 this->_physical_device = device;
                 break;
             }
@@ -217,26 +231,43 @@ namespace pbr::shared::apis::windowing {
         }
 
         // set up the logical device
-        auto qfi = find_queue_families(this->_physical_device);
+        auto qfi = find_queue_families(this->_physical_device, this->_surface);
 
-        VkDeviceQueueCreateInfo queue_create_info;
-        memset(&queue_create_info, 0, sizeof(queue_create_info));
-        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queue_create_info.queueFamilyIndex = *qfi.graphics_family_index;
-        queue_create_info.queueCount = 1;
+        std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
 
-        auto queue_priority = 1.0f;
-        queue_create_info.pQueuePriorities = &queue_priority;
+        std::set<int> unique_queue_ids {
+            *qfi.graphics_family_index,
+            *qfi.present_family_index
+        };
+
+        for (const auto& queue_id : unique_queue_ids) {
+            VkDeviceQueueCreateInfo queue_create_info;
+            memset(&queue_create_info, 0, sizeof(queue_create_info));
+            queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queue_create_info.queueFamilyIndex = queue_id;
+            queue_create_info.queueCount = 1;
+
+            auto queue_priority = 1.0f;
+            queue_create_info.pQueuePriorities = &queue_priority;
+
+            queue_create_infos.push_back(queue_create_info);
+        }
 
         VkPhysicalDeviceFeatures device_features;
         memset(&device_features, 0, sizeof(device_features));
 
         VkDeviceCreateInfo device_create_info;
         memset(&device_create_info, 0, sizeof(device_create_info));
-        device_create_info.pQueueCreateInfos = &queue_create_info;
-        device_create_info.queueCreateInfoCount = 1;
+        device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        device_create_info.pQueueCreateInfos = queue_create_infos.data();
+        device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
         device_create_info.pEnabledFeatures = &device_features;
-        device_create_info.enabledExtensionCount = 0;
+
+        // do this check in real life:
+        // vkCreateDevice: VK_KHR_portability_subset must be enabled because physical device VkPhysicalDevice 0x7fdc1b5ff9a0[] supports it The Vulkan spec states: If the VK_KHR_portability_subset extension is included in pProperties of vkEnumerateDeviceExtensionProperties, ppEnabledExtensions must include "VK_KHR_portability_subset" (https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451)
+        const char* device_extension = "VK_KHR_portability_subset";
+        device_create_info.enabledExtensionCount = 1;
+        device_create_info.ppEnabledExtensionNames = &device_extension;
 #ifdef RELEASE
         device_create_info.enabledLayerCount = 0u;
 #else
@@ -250,6 +281,7 @@ namespace pbr::shared::apis::windowing {
         }
 
         vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
+        vkGetDeviceQueue(this->_device, *qfi.present_family_index, 0, &this->_present_queue);
 
         return true;
     }
@@ -264,6 +296,11 @@ namespace pbr::shared::apis::windowing {
             if (this->_debug_messenger) {
                 DestroyDebugUtilsMessengerEXT(this->_vulkan_instance, this->_debug_messenger, nullptr);
                 this->_debug_messenger = nullptr;
+            }
+
+            if (this->_surface) {
+                vkDestroySurfaceKHR(this->_vulkan_instance, this->_surface, nullptr);
+                this->_surface = nullptr;
             }
 
             vkDestroyInstance(this->_vulkan_instance, nullptr);
