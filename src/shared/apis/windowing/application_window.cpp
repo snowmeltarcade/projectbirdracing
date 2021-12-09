@@ -77,6 +77,27 @@ namespace pbr::shared::apis::windowing {
         VkPhysicalDeviceFeatures features;
         vkGetPhysicalDeviceFeatures(device, &features);
 
+        auto extensions_count {0u};
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensions_count, nullptr);
+
+        // make sure the device supports the extensions we require
+        std::vector<VkExtensionProperties> extensions;
+        extensions.resize(extensions_count);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensions_count, extensions.data());
+
+        std::set<std::string> required_extensions {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        };
+
+        // any extensions that are left in this set are not supported
+        for (const auto& extension : extensions) {
+            required_extensions.erase(std::string(extension.extensionName));
+        }
+
+        if (!required_extensions.empty()) {
+            return false;
+        }
+
         auto qfi = find_queue_families(device, surface);
         if (!qfi.graphics_family_index || !qfi.present_family_index) {
             return false;
@@ -101,7 +122,7 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        // application infomation
+        // application information
         VkApplicationInfo ai;
         memset(&ai, 0, sizeof(ai));
         ai.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -186,7 +207,7 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        // setup the debug callback
+        // set up the debug callback
         VkDebugUtilsMessengerCreateInfoEXT create_info;
         memset(&create_info, 0, sizeof(create_info));
         create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -265,9 +286,12 @@ namespace pbr::shared::apis::windowing {
 
         // do this check in real life:
         // vkCreateDevice: VK_KHR_portability_subset must be enabled because physical device VkPhysicalDevice 0x7fdc1b5ff9a0[] supports it The Vulkan spec states: If the VK_KHR_portability_subset extension is included in pProperties of vkEnumerateDeviceExtensionProperties, ppEnabledExtensions must include "VK_KHR_portability_subset" (https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451)
-        const char* device_extension = "VK_KHR_portability_subset";
-        device_create_info.enabledExtensionCount = 1;
-        device_create_info.ppEnabledExtensionNames = &device_extension;
+        std::vector<const char*> device_extensions {
+            "VK_KHR_portability_subset",
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        };
+        device_create_info.enabledExtensionCount = static_cast<uint32_t>(device_extensions.size());
+        device_create_info.ppEnabledExtensionNames = device_extensions.data();
 #ifdef RELEASE
         device_create_info.enabledLayerCount = 0u;
 #else
