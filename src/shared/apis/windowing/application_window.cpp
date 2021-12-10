@@ -440,11 +440,41 @@ namespace pbr::shared::apis::windowing {
         this->_swap_chain_format = swap_chain_create_info.imageFormat;
         this->_swap_chain_extent = swap_chain_create_info.imageExtent;
 
+        this->_swap_chain_image_views.resize(this->_swap_chain_images.size());
+
+        for (auto i {0u}; i < this->_swap_chain_images.size(); ++i)  {
+            VkImageViewCreateInfo image_view_create_info;
+            memset(&image_view_create_info, 0, sizeof(image_view_create_info));
+            image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            image_view_create_info.image = _swap_chain_images[i];
+            image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            image_view_create_info.format = this->_swap_chain_format;
+            image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            image_view_create_info.subresourceRange.baseMipLevel = 0;
+            image_view_create_info.subresourceRange.levelCount = 1;
+            image_view_create_info.subresourceRange.baseArrayLayer = 0;
+            image_view_create_info.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(this->_device, &image_view_create_info, nullptr, &_swap_chain_image_views[i]) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to create image view: " + std::to_string(i), apis::logging::log_levels::error);
+                return false;
+            }
+        }
+
         return true;
     }
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
+            for (auto& view : this->_swap_chain_image_views) {
+                vkDestroyImageView(this->_device, view, nullptr);
+            }
+            this->_swap_chain_image_views.clear();
+
             if (this->_swap_chain) {
                 vkDestroySwapchainKHR(this->_device, this->_swap_chain, nullptr);
                 this->_swap_chain = nullptr;

@@ -70,6 +70,7 @@ namespace pbr::shared::apis::windowing {
         VkQueue _present_queue {VK_NULL_HANDLE};
         VkSwapchainKHR _swap_chain {VK_NULL_HANDLE};
         std::vector<VkImage> _swap_chain_images;
+        std::vector<VkImageView> _swap_chain_image_views;
         VkFormat _swap_chain_format {VkFormat::VK_FORMAT_UNDEFINED};
         VkExtent2D _swap_chain_extent;
     };
