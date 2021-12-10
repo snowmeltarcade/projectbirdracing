@@ -68,5 +68,9 @@ namespace pbr::shared::apis::windowing {
         VkDevice _device {VK_NULL_HANDLE};
         VkQueue _graphics_queue {VK_NULL_HANDLE};
         VkQueue _present_queue {VK_NULL_HANDLE};
+        VkSwapchainKHR _swap_chain {VK_NULL_HANDLE};
+        std::vector<VkImage> _swap_chain_images;
+        VkFormat _swap_chain_format {VkFormat::VK_FORMAT_UNDEFINED};
+        VkExtent2D _swap_chain_extent;
     };
 }

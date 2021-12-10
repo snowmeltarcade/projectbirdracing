@@ -70,6 +70,77 @@ namespace pbr::shared::apis::windowing {
         return indexes;
     }
 
+    struct swap_chain_support_details {
+        VkSurfaceCapabilitiesKHR capabilities;
+        std::vector<VkSurfaceFormatKHR> surface_formats;
+        std::vector<VkPresentModeKHR> present_modes;
+    };
+
+    swap_chain_support_details query_swap_chain_support(VkPhysicalDevice device, VkSurfaceKHR surface) {
+        swap_chain_support_details details;
+
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+        auto format_count {0u};
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
+
+        details.surface_formats.resize(format_count);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, details.surface_formats.data());
+
+        auto present_modes_count {0u};
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_modes_count, nullptr);
+
+        details.present_modes.resize(present_modes_count);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_modes_count, details.present_modes.data());
+
+        return details;
+    }
+
+    VkSurfaceFormatKHR choose_surface_format(const std::vector<VkSurfaceFormatKHR>& formats) {
+        for (const auto& format : formats) {
+            if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                return format;
+            }
+        }
+
+        return formats[0];
+    }
+
+    VkPresentModeKHR choose_present_mode(const std::vector<VkPresentModeKHR>& modes) {
+        for (const auto& mode : modes) {
+            // triple buffering
+            if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                return mode;
+            }
+        }
+
+        // this will always be available
+        // is better for mobile devices (its basically vsync mode)
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
+
+    VkExtent2D select_swap_chain_extent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window) {
+        // use the size Vulkan tells us to use
+        if (capabilities.currentExtent.width != UINT32_MAX) {
+            return capabilities.currentExtent;
+        } else {
+            // looks like we can choose
+            int width;
+            int height;
+            SDL_Vulkan_GetDrawableSize(window, &width, &height);
+
+            VkExtent2D actualExtent = {
+                static_cast<uint32_t>(width),
+                static_cast<uint32_t>(height)
+            };
+
+            actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+            actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+            return actualExtent;
+        }
+    }
+
     bool is_physical_device_compatible(const VkPhysicalDevice device, VkSurfaceKHR surface) {
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(device, &properties);
@@ -100,6 +171,11 @@ namespace pbr::shared::apis::windowing {
 
         auto qfi = find_queue_families(device, surface);
         if (!qfi.graphics_family_index || !qfi.present_family_index) {
+            return false;
+        }
+
+        auto swap_chain_details = query_swap_chain_support(device, surface);
+        if (swap_chain_details.surface_formats.empty() || swap_chain_details.present_modes.empty()) {
             return false;
         }
 
@@ -307,11 +383,73 @@ namespace pbr::shared::apis::windowing {
         vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
         vkGetDeviceQueue(this->_device, *qfi.present_family_index, 0, &this->_present_queue);
 
+        // create the swap chain
+        auto swap_chain_details = query_swap_chain_support(this->_physical_device, this->_surface);
+        auto surface_format = choose_surface_format(swap_chain_details.surface_formats);
+        auto present_mode = choose_present_mode(swap_chain_details.present_modes);
+        auto extent = select_swap_chain_extent(swap_chain_details.capabilities, this->_window);
+
+        auto image_count = swap_chain_details.capabilities.minImageCount + 1;
+        if (swap_chain_details.capabilities.maxImageCount > 0 && image_count > swap_chain_details.capabilities.maxImageCount) {
+            image_count = swap_chain_details.capabilities.maxImageCount;
+        }
+
+        VkSwapchainCreateInfoKHR swap_chain_create_info;
+        memset(&swap_chain_create_info, 0, sizeof(swap_chain_create_info));
+        swap_chain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swap_chain_create_info.surface = this->_surface;
+        swap_chain_create_info.minImageCount = image_count;
+        swap_chain_create_info.imageFormat = surface_format.format;
+        swap_chain_create_info.imageColorSpace = surface_format.colorSpace;
+        swap_chain_create_info.imageExtent = extent;
+        swap_chain_create_info.imageArrayLayers = 1;
+        swap_chain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        uint32_t queue_family_indexes[] = { static_cast<uint32_t>(*qfi.graphics_family_index),
+                                            static_cast<uint32_t>(*qfi.present_family_index) };
+
+        if (qfi.graphics_family_index == qfi.present_family_index) {
+            swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            swap_chain_create_info.queueFamilyIndexCount = 0;
+            swap_chain_create_info.pQueueFamilyIndices = nullptr;
+        } else {
+            swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            swap_chain_create_info.queueFamilyIndexCount = 2;
+            swap_chain_create_info.pQueueFamilyIndices = queue_family_indexes;
+        }
+
+        // maybe useful for when a mobile device changes orientation?
+        swap_chain_create_info.preTransform = swap_chain_details.capabilities.currentTransform;
+
+        swap_chain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        swap_chain_create_info.presentMode = present_mode;
+        swap_chain_create_info.clipped = VK_TRUE;
+        swap_chain_create_info.oldSwapchain = VK_NULL_HANDLE;
+
+        if (vkCreateSwapchainKHR(this->_device, &swap_chain_create_info, nullptr, &this->_swap_chain) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create swap chain.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        auto swap_chain_image_count {0u};
+        vkGetSwapchainImagesKHR(this->_device, this->_swap_chain, &swap_chain_image_count, nullptr);
+
+        this->_swap_chain_images.resize(swap_chain_image_count);
+        vkGetSwapchainImagesKHR(this->_device, this->_swap_chain, &swap_chain_image_count, this->_swap_chain_images.data());
+
+        this->_swap_chain_format = swap_chain_create_info.imageFormat;
+        this->_swap_chain_extent = swap_chain_create_info.imageExtent;
+
         return true;
     }
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
+            if (this->_swap_chain) {
+                vkDestroySwapchainKHR(this->_device, this->_swap_chain, nullptr);
+                this->_swap_chain = nullptr;
+            }
+
             if (this->_device) {
                 vkDestroyDevice(this->_device, nullptr);
                 this->_device = nullptr;
