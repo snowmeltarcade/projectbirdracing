@@ -412,6 +412,36 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
+    bool create_swap_chain_framebuffers(std::vector<VkFramebuffer>& swap_chain_framebuffers,
+                                        const std::vector<VkImageView>& swap_chain_image_views,
+                                        VkRenderPass render_pass, VkExtent2D swap_chain_extent,
+                                        VkDevice device) {
+        swap_chain_framebuffers.resize(swap_chain_image_views.size());
+
+        for (auto i = 0u; i < swap_chain_image_views.size(); ++i) {
+            VkImageView attachments[] = {
+                swap_chain_image_views[i],
+            };
+
+            VkFramebufferCreateInfo frame_buffer_info;
+            memset(&frame_buffer_info, 0, sizeof(frame_buffer_info));
+            frame_buffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            frame_buffer_info.renderPass = render_pass;
+            frame_buffer_info.attachmentCount = 1;
+            frame_buffer_info.pAttachments = attachments;
+            frame_buffer_info.width = swap_chain_extent.width;
+            frame_buffer_info.height = swap_chain_extent.height;
+            frame_buffer_info.layers = 1;
+
+            if (vkCreateFramebuffer(device, &frame_buffer_info, nullptr, &swap_chain_framebuffers[i]) != VK_SUCCESS) {
+                std::cerr << "Failed to create frame buffer: " << i << ".\n";
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     bool application_window::create(std::string_view title,
                                     uint32_t x, uint32_t y,
                                     uint32_t w, uint32_t h) noexcept {
@@ -705,11 +735,21 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        if (!create_swap_chain_framebuffers(this->_swap_chain_framebuffers, this->_swap_chain_image_views, this->_render_pass, extent, this->_device)) {
+            this->_log_manager->log_message("Failed to create swap chain framebuffers.", apis::logging::log_levels::error);
+            return false;
+        }
+
         return true;
     }
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
+            for (auto framebuffer : this->_swap_chain_framebuffers) {
+                vkDestroyFramebuffer(this->_device, framebuffer, nullptr);
+            }
+            this->_swap_chain_framebuffers.clear();
+
             if (this->_graphics_pipeline) {
                 vkDestroyPipeline(this->_device, this->_graphics_pipeline, nullptr);
                 this->_graphics_pipeline = nullptr;
