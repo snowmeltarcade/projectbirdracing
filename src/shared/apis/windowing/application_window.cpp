@@ -5,6 +5,7 @@
 #include <iostream>
 #include <optional>
 #include <set>
+#include <fstream>
 
 namespace pbr::shared::apis::windowing {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -178,6 +179,76 @@ namespace pbr::shared::apis::windowing {
         if (swap_chain_details.surface_formats.empty() || swap_chain_details.present_modes.empty()) {
             return false;
         }
+
+        return true;
+    }
+
+    std::vector<char> read_all_bytes(const std::filesystem::path& path) {
+        std::vector<char> bytes;
+
+        std::ifstream fs(path, std::ios::ate | std::ios::binary);
+        if (!fs.is_open()) {
+            std::cerr << "Failed to open file: " << path << '\n';
+            return {};
+        }
+
+        auto file_size = fs.tellg();
+        bytes.resize(file_size);
+
+        fs.seekg(0);
+        fs.read(bytes.data(), file_size);
+
+        fs.close();
+
+        return bytes;
+    }
+
+    VkShaderModule create_shader_module(VkDevice device, const std::vector<char>& bytes) {
+        VkShaderModuleCreateInfo create_info;
+        memset(&create_info, 0, sizeof(create_info));
+        create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        create_info.codeSize = bytes.size();
+        create_info.pCode = reinterpret_cast<const uint32_t*>(bytes.data());
+
+        VkShaderModule shader_module;
+        if (vkCreateShaderModule(device, &create_info, nullptr, &shader_module) != VK_SUCCESS) {
+            std::cerr << "Failed to create shader module.\n";
+            return VK_NULL_HANDLE;
+        }
+
+        return shader_module;
+    }
+
+    bool create_graphics_pipeline(VkDevice device) {
+        auto vertex_shader_bytes = read_all_bytes("../../../data/vertex.vert.spv");
+        auto fragment_shader_bytes = read_all_bytes("../../../data/fragment.frag.spv");
+
+        auto vertex_shader = create_shader_module(device, vertex_shader_bytes);
+        auto fragment_shader = create_shader_module(device, fragment_shader_bytes);
+
+        VkPipelineShaderStageCreateInfo vertex_shader_stage_info;
+        memset(&vertex_shader_stage_info, 0, sizeof(vertex_shader_stage_info));
+        vertex_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertex_shader_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertex_shader_stage_info.module = vertex_shader;
+        vertex_shader_stage_info.pName = "main";
+        vertex_shader_stage_info.pSpecializationInfo = nullptr;
+
+        VkPipelineShaderStageCreateInfo fragment_shader_stage_info;
+        memset(&fragment_shader_stage_info, 0, sizeof(fragment_shader_stage_info));
+        fragment_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragment_shader_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragment_shader_stage_info.module = fragment_shader;
+        fragment_shader_stage_info.pName = "main";
+        fragment_shader_stage_info.pSpecializationInfo = nullptr;
+
+//        VkPipelineShaderStageCreateInfo shader_stages[] = {
+//            vertex_shader_stage_info,
+//            fragment_shader_stage_info,
+//        };
+
+        vkDestroyShaderModule(device, vertex_shader, nullptr);
+        vkDestroyShaderModule(device, fragment_shader, nullptr);
 
         return true;
     }
@@ -463,6 +534,11 @@ namespace pbr::shared::apis::windowing {
                 this->_log_manager->log_message("Failed to create image view: " + std::to_string(i), apis::logging::log_levels::error);
                 return false;
             }
+        }
+
+        if (!create_graphics_pipeline(this->_device)) {
+            this->_log_manager->log_message("Failed to create graphics pipeline.", apis::logging::log_levels::error);
+            return false;
         }
 
         return true;
