@@ -219,7 +219,7 @@ namespace pbr::shared::apis::windowing {
         return shader_module;
     }
 
-    bool create_graphics_pipeline(VkDevice device, VkExtent2D swap_chain_extent, VkPipelineLayout* pipeline_layout) {
+    bool create_graphics_pipeline(VkDevice device, VkExtent2D swap_chain_extent, VkPipelineLayout* pipeline_layout, VkRenderPass render_pass, VkPipeline* graphics_pipeline) {
         auto vertex_shader_bytes = read_all_bytes("../../../data/vertex.vert.spv");
         auto fragment_shader_bytes = read_all_bytes("../../../data/fragment.frag.spv");
 
@@ -242,10 +242,10 @@ namespace pbr::shared::apis::windowing {
         fragment_shader_stage_info.pName = "main";
         fragment_shader_stage_info.pSpecializationInfo = nullptr;
 
-//        VkPipelineShaderStageCreateInfo shader_stages[] = {
-//            vertex_shader_stage_info,
-//            fragment_shader_stage_info,
-//        };
+        VkPipelineShaderStageCreateInfo shader_stages[] = {
+            vertex_shader_stage_info,
+            fragment_shader_stage_info,
+        };
 
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info;
         memset(&vertex_input_state_create_info, 0, sizeof(vertex_input_state_create_info));
@@ -321,8 +321,8 @@ namespace pbr::shared::apis::windowing {
         VkPipelineColorBlendStateCreateInfo color_blending;
         memset(&color_blending, 0, sizeof(color_blending));
         color_blending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        color_blending.logicOpEnable = VK_TRUE;
-        color_blending.logicOp = VK_LOGIC_OP_AND;
+        color_blending.logicOpEnable = VK_FALSE;
+        color_blending.logicOp = VK_LOGIC_OP_COPY;
         color_blending.attachmentCount = 1;
         color_blending.pAttachments = &color_blend_attachment;
         color_blending.blendConstants[0] = 0.0f;
@@ -343,8 +343,71 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        VkGraphicsPipelineCreateInfo pipeline_create_info;
+        memset(&pipeline_create_info, 0, sizeof(pipeline_create_info));
+        pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipeline_create_info.stageCount = 2;
+        pipeline_create_info.pStages = shader_stages;
+        pipeline_create_info.pVertexInputState = &vertex_input_state_create_info;
+        pipeline_create_info.pInputAssemblyState = &input_assembly_state_create_info;
+        pipeline_create_info.pViewportState = &viewport_state;
+        pipeline_create_info.pRasterizationState = &rasterizer;
+        pipeline_create_info.pMultisampleState = &multisampling;
+        pipeline_create_info.pDepthStencilState = nullptr;
+        pipeline_create_info.pColorBlendState = &color_blending;
+        pipeline_create_info.pDynamicState = nullptr;
+        pipeline_create_info.layout = *pipeline_layout;
+        pipeline_create_info.renderPass = render_pass;
+        pipeline_create_info.subpass = 0;
+        pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
+        pipeline_create_info.basePipelineIndex = -1;
+
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_create_info, nullptr, graphics_pipeline) != VK_SUCCESS) {
+            std::cerr << "Failed to create graphics pipeline.\n";
+            return false;
+        }
+
         vkDestroyShaderModule(device, vertex_shader, nullptr);
         vkDestroyShaderModule(device, fragment_shader, nullptr);
+
+        return true;
+    }
+
+    bool create_render_pass(VkFormat swap_chain_image_format, VkDevice device, VkRenderPass* render_pass) {
+        VkAttachmentDescription color_attachment;
+        memset(&color_attachment, 0, sizeof(color_attachment));
+        color_attachment.format = swap_chain_image_format;
+        color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference color_attachment_ref;
+        memset(&color_attachment_ref, 0, sizeof(color_attachment_ref));
+        color_attachment_ref.attachment = 0;
+        color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass;
+        memset(&subpass, 0, sizeof(subpass));
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &color_attachment_ref;
+
+        VkRenderPassCreateInfo render_pass_create_info;
+        memset(&render_pass_create_info, 0, sizeof(render_pass_create_info));
+        render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        render_pass_create_info.attachmentCount = 1;
+        render_pass_create_info.pAttachments = &color_attachment;
+        render_pass_create_info.subpassCount = 1;
+        render_pass_create_info.pSubpasses = &subpass;
+
+        if (vkCreateRenderPass(device, &render_pass_create_info, nullptr, render_pass) != VK_SUCCESS) {
+            std::cerr << "Failed to create render pass.\n";
+            return false;
+        }
 
         return true;
     }
@@ -632,7 +695,12 @@ namespace pbr::shared::apis::windowing {
             }
         }
 
-        if (!create_graphics_pipeline(this->_device, extent, &this->_pipeline_layout)) {
+        if (!create_render_pass(this->_swap_chain_format, this->_device, &this->_render_pass)) {
+            this->_log_manager->log_message("Failed to create render pass.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!create_graphics_pipeline(this->_device, extent, &this->_pipeline_layout, this->_render_pass, &this->_graphics_pipeline)) {
             this->_log_manager->log_message("Failed to create graphics pipeline.", apis::logging::log_levels::error);
             return false;
         }
@@ -642,9 +710,19 @@ namespace pbr::shared::apis::windowing {
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
+            if (this->_graphics_pipeline) {
+                vkDestroyPipeline(this->_device, this->_graphics_pipeline, nullptr);
+                this->_graphics_pipeline = nullptr;
+            }
+
             if (this->_pipeline_layout) {
                 vkDestroyPipelineLayout(this->_device, this->_pipeline_layout, nullptr);
                 this->_pipeline_layout = nullptr;
+            }
+
+            if (this->_render_pass) {
+                vkDestroyRenderPass(this->_device, this->_render_pass, nullptr);
+                this->_render_pass = nullptr;
             }
 
             for (auto& view : this->_swap_chain_image_views) {

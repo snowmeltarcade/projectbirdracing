@@ -73,6 +73,8 @@ namespace pbr::shared::apis::windowing {
         std::vector<VkImageView> _swap_chain_image_views;
         VkFormat _swap_chain_format {VkFormat::VK_FORMAT_UNDEFINED};
         VkExtent2D _swap_chain_extent;
+        VkRenderPass _render_pass {VK_NULL_HANDLE};
         VkPipelineLayout _pipeline_layout {VK_NULL_HANDLE};
+        VkPipeline _graphics_pipeline {VK_NULL_HANDLE};
     };
 }
