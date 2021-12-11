@@ -219,7 +219,7 @@ namespace pbr::shared::apis::windowing {
         return shader_module;
     }
 
-    bool create_graphics_pipeline(VkDevice device) {
+    bool create_graphics_pipeline(VkDevice device, VkExtent2D swap_chain_extent, VkPipelineLayout* pipeline_layout) {
         auto vertex_shader_bytes = read_all_bytes("../../../data/vertex.vert.spv");
         auto fragment_shader_bytes = read_all_bytes("../../../data/fragment.frag.spv");
 
@@ -246,6 +246,102 @@ namespace pbr::shared::apis::windowing {
 //            vertex_shader_stage_info,
 //            fragment_shader_stage_info,
 //        };
+
+        VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info;
+        memset(&vertex_input_state_create_info, 0, sizeof(vertex_input_state_create_info));
+        vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertex_input_state_create_info.vertexBindingDescriptionCount = 0;
+        vertex_input_state_create_info.pVertexBindingDescriptions = nullptr;
+        vertex_input_state_create_info.vertexAttributeDescriptionCount = 0;
+        vertex_input_state_create_info.pVertexAttributeDescriptions = nullptr;
+
+        VkPipelineInputAssemblyStateCreateInfo input_assembly_state_create_info;
+        memset(&input_assembly_state_create_info, 0, sizeof(input_assembly_state_create_info));
+        input_assembly_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        input_assembly_state_create_info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        input_assembly_state_create_info.primitiveRestartEnable = VK_FALSE;
+
+        VkViewport viewport;
+        memset(&viewport, 0, sizeof(viewport));
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float)swap_chain_extent.width;
+        viewport.height = (float)swap_chain_extent.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+
+        VkRect2D scissor;
+        memset(&scissor, 0, sizeof(scissor));
+        scissor.offset = {0, 0};
+        scissor.extent = swap_chain_extent;
+
+        VkPipelineViewportStateCreateInfo viewport_state;
+        memset(&viewport_state, 0, sizeof(viewport_state));
+        viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewport_state.viewportCount = 1;
+        viewport_state.pViewports = &viewport;
+        viewport_state.scissorCount = 1;
+        viewport_state.pScissors = &scissor;
+
+        VkPipelineRasterizationStateCreateInfo rasterizer;
+        memset(&rasterizer, 0, sizeof(rasterizer));
+        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterizer.depthClampEnable = VK_FALSE;
+        rasterizer.rasterizerDiscardEnable = VK_FALSE;
+        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizer.lineWidth = 1.0f;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizer.depthBiasEnable = VK_FALSE;
+        rasterizer.depthBiasConstantFactor = 0.0f;
+        rasterizer.depthBiasClamp = 0.0f;
+        rasterizer.depthBiasSlopeFactor = 0.0f;
+
+        VkPipelineMultisampleStateCreateInfo multisampling;
+        memset(&multisampling, 0, sizeof(multisampling));
+        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampling.sampleShadingEnable = VK_FALSE;
+        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampling.minSampleShading = 1.0f;
+        multisampling.pSampleMask = nullptr;
+        multisampling.alphaToCoverageEnable = VK_FALSE;
+        multisampling.alphaToOneEnable = VK_FALSE;
+
+        VkPipelineColorBlendAttachmentState color_blend_attachment;
+        memset(&color_blend_attachment, 0, sizeof(color_blend_attachment));
+        color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        color_blend_attachment.blendEnable = VK_TRUE;
+        color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        color_blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD;
+        color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
+        VkPipelineColorBlendStateCreateInfo color_blending;
+        memset(&color_blending, 0, sizeof(color_blending));
+        color_blending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        color_blending.logicOpEnable = VK_TRUE;
+        color_blending.logicOp = VK_LOGIC_OP_AND;
+        color_blending.attachmentCount = 1;
+        color_blending.pAttachments = &color_blend_attachment;
+        color_blending.blendConstants[0] = 0.0f;
+        color_blending.blendConstants[1] = 0.0f;
+        color_blending.blendConstants[2] = 0.0f;
+        color_blending.blendConstants[3] = 0.0f;
+
+        VkPipelineLayoutCreateInfo pipeline_layout_info;
+        memset(&pipeline_layout_info, 0, sizeof(pipeline_layout_info));
+        pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipeline_layout_info.setLayoutCount = 0;
+        pipeline_layout_info.pSetLayouts = nullptr;
+        pipeline_layout_info.pushConstantRangeCount = 0;
+        pipeline_layout_info.pPushConstantRanges = nullptr;
+
+        if (vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, pipeline_layout) != VK_SUCCESS) {
+            std::cerr << "Failed to create pipeline layout.\n";
+            return false;
+        }
 
         vkDestroyShaderModule(device, vertex_shader, nullptr);
         vkDestroyShaderModule(device, fragment_shader, nullptr);
@@ -536,7 +632,7 @@ namespace pbr::shared::apis::windowing {
             }
         }
 
-        if (!create_graphics_pipeline(this->_device)) {
+        if (!create_graphics_pipeline(this->_device, extent, &this->_pipeline_layout)) {
             this->_log_manager->log_message("Failed to create graphics pipeline.", apis::logging::log_levels::error);
             return false;
         }
@@ -546,6 +642,11 @@ namespace pbr::shared::apis::windowing {
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
+            if (this->_pipeline_layout) {
+                vkDestroyPipelineLayout(this->_device, this->_pipeline_layout, nullptr);
+                this->_pipeline_layout = nullptr;
+            }
+
             for (auto& view : this->_swap_chain_image_views) {
                 vkDestroyImageView(this->_device, view, nullptr);
             }
