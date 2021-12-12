@@ -49,6 +49,19 @@ namespace pbr::shared::apis::windowing {
                     this->_should_quit = true;
                     break;
                 }
+                case SDL_WINDOWEVENT: {
+                    switch (e.window.event) {
+                        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+                            this->_application_windows[0]->size_changed();
+                        }
+                        case SDL_WINDOWEVENT_MAXIMIZED: {
+                            this->_application_windows[0]->size_changed();
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+                }
                 default:
                 {
                     break;

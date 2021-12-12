@@ -41,6 +41,10 @@ namespace pbr::shared::apis::windowing {
 
         void update() override;
 
+        void size_changed() override {
+            this->_signal_swap_chain_out_of_date = true;
+        }
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
@@ -62,6 +66,9 @@ namespace pbr::shared::apis::windowing {
 
         /// Shuts down this window
         void shutdown() noexcept;
+
+        void cleanup_swap_chain();
+        bool create_swap_chain();
 
         VkInstance _vulkan_instance {nullptr};
         VkDebugUtilsMessengerEXT _debug_messenger {nullptr};
@@ -86,5 +93,6 @@ namespace pbr::shared::apis::windowing {
         std::vector<VkFence> _in_flight_fences;
         std::vector<VkFence> _images_in_flight;
         uint32_t _current_frame {0u};
+        bool _signal_swap_chain_out_of_date {false};
     };
 }

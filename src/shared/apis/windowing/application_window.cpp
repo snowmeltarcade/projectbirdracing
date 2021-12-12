@@ -455,6 +455,211 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
+    void application_window::cleanup_swap_chain() {
+        for (auto framebuffer : this->_swap_chain_framebuffers) {
+            vkDestroyFramebuffer(this->_device, framebuffer, nullptr);
+        }
+        this->_swap_chain_framebuffers.clear();
+
+        if (this->_command_pool && !this->_command_buffers.empty()) {
+            vkFreeCommandBuffers(this->_device, this->_command_pool,
+                                 static_cast<uint32_t>(this->_command_buffers.size()), this->_command_buffers.data());
+        }
+
+        if (this->_graphics_pipeline) {
+            vkDestroyPipeline(this->_device, this->_graphics_pipeline, nullptr);
+            this->_graphics_pipeline = nullptr;
+        }
+
+        if (this->_pipeline_layout) {
+            vkDestroyPipelineLayout(this->_device, this->_pipeline_layout, nullptr);
+            this->_pipeline_layout = nullptr;
+        }
+
+        if (this->_render_pass) {
+            vkDestroyRenderPass(this->_device, this->_render_pass, nullptr);
+            this->_render_pass = nullptr;
+        }
+
+        for (auto& view : this->_swap_chain_image_views) {
+            vkDestroyImageView(this->_device, view, nullptr);
+        }
+        this->_swap_chain_image_views.clear();
+
+        if (this->_swap_chain) {
+            vkDestroySwapchainKHR(this->_device, this->_swap_chain, nullptr);
+            this->_swap_chain = nullptr;
+        }
+    }
+
+    bool application_window::create_swap_chain() {
+        vkDeviceWaitIdle(this->_device);
+
+        this->_signal_swap_chain_out_of_date = false;
+
+        this->cleanup_swap_chain();
+
+        // create the swap chain
+        auto swap_chain_details = query_swap_chain_support(this->_physical_device, this->_surface);
+        auto surface_format = choose_surface_format(swap_chain_details.surface_formats);
+        auto present_mode = choose_present_mode(swap_chain_details.present_modes);
+        auto extent = select_swap_chain_extent(swap_chain_details.capabilities, this->_window);
+
+        auto image_count = swap_chain_details.capabilities.minImageCount + 1;
+        if (swap_chain_details.capabilities.maxImageCount > 0 && image_count > swap_chain_details.capabilities.maxImageCount) {
+            image_count = swap_chain_details.capabilities.maxImageCount;
+        }
+
+        VkSwapchainCreateInfoKHR swap_chain_create_info;
+        memset(&swap_chain_create_info, 0, sizeof(swap_chain_create_info));
+        swap_chain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swap_chain_create_info.surface = this->_surface;
+        swap_chain_create_info.minImageCount = image_count;
+        swap_chain_create_info.imageFormat = surface_format.format;
+        swap_chain_create_info.imageColorSpace = surface_format.colorSpace;
+        swap_chain_create_info.imageExtent = extent;
+        swap_chain_create_info.imageArrayLayers = 1;
+        swap_chain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        // if we are recreating the swap chain, let the old swap chain continue until the new one is created
+        if (this->_swap_chain) {
+            swap_chain_create_info.oldSwapchain = this->_swap_chain;
+        }
+
+        // this call is duplicated...
+        auto qfi = find_queue_families(this->_physical_device, this->_surface);
+
+        uint32_t queue_family_indexes[] = { static_cast<uint32_t>(*qfi.graphics_family_index),
+                                            static_cast<uint32_t>(*qfi.present_family_index) };
+
+        if (qfi.graphics_family_index == qfi.present_family_index) {
+            swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            swap_chain_create_info.queueFamilyIndexCount = 0;
+            swap_chain_create_info.pQueueFamilyIndices = nullptr;
+        } else {
+            swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            swap_chain_create_info.queueFamilyIndexCount = 2;
+            swap_chain_create_info.pQueueFamilyIndices = queue_family_indexes;
+        }
+
+        // maybe useful for when a mobile device changes orientation?
+        swap_chain_create_info.preTransform = swap_chain_details.capabilities.currentTransform;
+
+        swap_chain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        swap_chain_create_info.presentMode = present_mode;
+        swap_chain_create_info.clipped = VK_TRUE;
+        swap_chain_create_info.oldSwapchain = VK_NULL_HANDLE;
+
+        if (vkCreateSwapchainKHR(this->_device, &swap_chain_create_info, nullptr, &this->_swap_chain) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create swap chain.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        auto swap_chain_image_count {0u};
+        vkGetSwapchainImagesKHR(this->_device, this->_swap_chain, &swap_chain_image_count, nullptr);
+
+        this->_swap_chain_images.resize(swap_chain_image_count);
+        vkGetSwapchainImagesKHR(this->_device, this->_swap_chain, &swap_chain_image_count, this->_swap_chain_images.data());
+
+        this->_swap_chain_format = swap_chain_create_info.imageFormat;
+        this->_swap_chain_extent = swap_chain_create_info.imageExtent;
+
+        this->_swap_chain_image_views.resize(this->_swap_chain_images.size());
+
+        for (auto i {0u}; i < this->_swap_chain_images.size(); ++i)  {
+            VkImageViewCreateInfo image_view_create_info;
+            memset(&image_view_create_info, 0, sizeof(image_view_create_info));
+            image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            image_view_create_info.image = _swap_chain_images[i];
+            image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            image_view_create_info.format = this->_swap_chain_format;
+            image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            image_view_create_info.subresourceRange.baseMipLevel = 0;
+            image_view_create_info.subresourceRange.levelCount = 1;
+            image_view_create_info.subresourceRange.baseArrayLayer = 0;
+            image_view_create_info.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(this->_device, &image_view_create_info, nullptr, &_swap_chain_image_views[i]) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to create image view: " + std::to_string(i), apis::logging::log_levels::error);
+                return false;
+            }
+        }
+
+        if (!create_render_pass(this->_swap_chain_format, this->_device, &this->_render_pass)) {
+            this->_log_manager->log_message("Failed to create render pass.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!create_graphics_pipeline(this->_device, extent, &this->_pipeline_layout, this->_render_pass, &this->_graphics_pipeline)) {
+            this->_log_manager->log_message("Failed to create graphics pipeline.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!create_swap_chain_framebuffers(this->_swap_chain_framebuffers, this->_swap_chain_image_views, this->_render_pass, extent, this->_device)) {
+            this->_log_manager->log_message("Failed to create swap chain framebuffers.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        // create the command buffers
+        this->_command_buffers.resize(this->_swap_chain_framebuffers.size());
+
+        VkCommandBufferAllocateInfo command_buffer_allocate_info;
+        memset(&command_buffer_allocate_info, 0, sizeof(command_buffer_allocate_info));
+        command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        command_buffer_allocate_info.commandPool = this->_command_pool;
+        command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        command_buffer_allocate_info.commandBufferCount = static_cast<uint32_t>(this->_command_buffers.size());
+
+        if (vkAllocateCommandBuffers(this->_device, &command_buffer_allocate_info, this->_command_buffers.data()) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create command buffers.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        for (auto i {0u}; i < this->_command_buffers.size(); ++i) {
+            VkCommandBufferBeginInfo begin_info;
+            memset(&begin_info, 0, sizeof(begin_info));
+            begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            begin_info.flags = 0;
+            begin_info.pInheritanceInfo = nullptr;
+
+            if (vkBeginCommandBuffer(this->_command_buffers[i], &begin_info) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to begin command buffer: " + std::to_string(i), apis::logging::log_levels::error);
+                return false;
+            }
+
+            VkRenderPassBeginInfo render_pass_info;
+            memset(&render_pass_info, 0, sizeof(render_pass_info));
+            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            render_pass_info.renderPass = this->_render_pass;
+            render_pass_info.framebuffer = this->_swap_chain_framebuffers[i];
+            render_pass_info.renderArea.offset = {0, 0};
+            render_pass_info.renderArea.extent = this->_swap_chain_extent;
+
+            VkClearValue clear_color {{{0.0f, 0.0f, 0.8f, 1.0f}}};
+            render_pass_info.clearValueCount = 1;
+            render_pass_info.pClearValues = &clear_color;
+
+            vkCmdBeginRenderPass(this->_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+
+            vkCmdBindPipeline(this->_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, this->_graphics_pipeline);
+
+            vkCmdDraw(this->_command_buffers[i], 3, 1, 0, 0);
+
+            vkCmdEndRenderPass(this->_command_buffers[i]);
+
+            if (vkEndCommandBuffer(this->_command_buffers[i]) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to end command buffer: " + std::to_string(i), apis::logging::log_levels::error);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     bool application_window::create(std::string_view title,
                                     uint32_t x, uint32_t y,
                                     uint32_t w, uint32_t h) noexcept {
@@ -656,103 +861,6 @@ namespace pbr::shared::apis::windowing {
         vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
         vkGetDeviceQueue(this->_device, *qfi.present_family_index, 0, &this->_present_queue);
 
-        // create the swap chain
-        auto swap_chain_details = query_swap_chain_support(this->_physical_device, this->_surface);
-        auto surface_format = choose_surface_format(swap_chain_details.surface_formats);
-        auto present_mode = choose_present_mode(swap_chain_details.present_modes);
-        auto extent = select_swap_chain_extent(swap_chain_details.capabilities, this->_window);
-
-        auto image_count = swap_chain_details.capabilities.minImageCount + 1;
-        if (swap_chain_details.capabilities.maxImageCount > 0 && image_count > swap_chain_details.capabilities.maxImageCount) {
-            image_count = swap_chain_details.capabilities.maxImageCount;
-        }
-
-        VkSwapchainCreateInfoKHR swap_chain_create_info;
-        memset(&swap_chain_create_info, 0, sizeof(swap_chain_create_info));
-        swap_chain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swap_chain_create_info.surface = this->_surface;
-        swap_chain_create_info.minImageCount = image_count;
-        swap_chain_create_info.imageFormat = surface_format.format;
-        swap_chain_create_info.imageColorSpace = surface_format.colorSpace;
-        swap_chain_create_info.imageExtent = extent;
-        swap_chain_create_info.imageArrayLayers = 1;
-        swap_chain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-        uint32_t queue_family_indexes[] = { static_cast<uint32_t>(*qfi.graphics_family_index),
-                                            static_cast<uint32_t>(*qfi.present_family_index) };
-
-        if (qfi.graphics_family_index == qfi.present_family_index) {
-            swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            swap_chain_create_info.queueFamilyIndexCount = 0;
-            swap_chain_create_info.pQueueFamilyIndices = nullptr;
-        } else {
-            swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            swap_chain_create_info.queueFamilyIndexCount = 2;
-            swap_chain_create_info.pQueueFamilyIndices = queue_family_indexes;
-        }
-
-        // maybe useful for when a mobile device changes orientation?
-        swap_chain_create_info.preTransform = swap_chain_details.capabilities.currentTransform;
-
-        swap_chain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        swap_chain_create_info.presentMode = present_mode;
-        swap_chain_create_info.clipped = VK_TRUE;
-        swap_chain_create_info.oldSwapchain = VK_NULL_HANDLE;
-
-        if (vkCreateSwapchainKHR(this->_device, &swap_chain_create_info, nullptr, &this->_swap_chain) != VK_SUCCESS) {
-            this->_log_manager->log_message("Failed to create swap chain.", apis::logging::log_levels::error);
-            return false;
-        }
-
-        auto swap_chain_image_count {0u};
-        vkGetSwapchainImagesKHR(this->_device, this->_swap_chain, &swap_chain_image_count, nullptr);
-
-        this->_swap_chain_images.resize(swap_chain_image_count);
-        vkGetSwapchainImagesKHR(this->_device, this->_swap_chain, &swap_chain_image_count, this->_swap_chain_images.data());
-
-        this->_swap_chain_format = swap_chain_create_info.imageFormat;
-        this->_swap_chain_extent = swap_chain_create_info.imageExtent;
-
-        this->_swap_chain_image_views.resize(this->_swap_chain_images.size());
-
-        for (auto i {0u}; i < this->_swap_chain_images.size(); ++i)  {
-            VkImageViewCreateInfo image_view_create_info;
-            memset(&image_view_create_info, 0, sizeof(image_view_create_info));
-            image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            image_view_create_info.image = _swap_chain_images[i];
-            image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            image_view_create_info.format = this->_swap_chain_format;
-            image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            image_view_create_info.subresourceRange.baseMipLevel = 0;
-            image_view_create_info.subresourceRange.levelCount = 1;
-            image_view_create_info.subresourceRange.baseArrayLayer = 0;
-            image_view_create_info.subresourceRange.layerCount = 1;
-
-            if (vkCreateImageView(this->_device, &image_view_create_info, nullptr, &_swap_chain_image_views[i]) != VK_SUCCESS) {
-                this->_log_manager->log_message("Failed to create image view: " + std::to_string(i), apis::logging::log_levels::error);
-                return false;
-            }
-        }
-
-        if (!create_render_pass(this->_swap_chain_format, this->_device, &this->_render_pass)) {
-            this->_log_manager->log_message("Failed to create render pass.", apis::logging::log_levels::error);
-            return false;
-        }
-
-        if (!create_graphics_pipeline(this->_device, extent, &this->_pipeline_layout, this->_render_pass, &this->_graphics_pipeline)) {
-            this->_log_manager->log_message("Failed to create graphics pipeline.", apis::logging::log_levels::error);
-            return false;
-        }
-
-        if (!create_swap_chain_framebuffers(this->_swap_chain_framebuffers, this->_swap_chain_image_views, this->_render_pass, extent, this->_device)) {
-            this->_log_manager->log_message("Failed to create swap chain framebuffers.", apis::logging::log_levels::error);
-            return false;
-        }
-
         // create the command pool
         VkCommandPoolCreateInfo pool_info;
         memset(&pool_info, 0, sizeof(pool_info));
@@ -765,57 +873,9 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        // create the command buffers
-        this->_command_buffers.resize(this->_swap_chain_framebuffers.size());
-
-        VkCommandBufferAllocateInfo command_buffer_allocate_info;
-        memset(&command_buffer_allocate_info, 0, sizeof(command_buffer_allocate_info));
-        command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        command_buffer_allocate_info.commandPool = this->_command_pool;
-        command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        command_buffer_allocate_info.commandBufferCount = static_cast<uint32_t>(this->_command_buffers.size());
-
-        if (vkAllocateCommandBuffers(this->_device, &command_buffer_allocate_info, this->_command_buffers.data()) != VK_SUCCESS) {
-            this->_log_manager->log_message("Failed to create command buffers.", apis::logging::log_levels::error);
+        if (!this->create_swap_chain()) {
+            this->_log_manager->log_message("Failed to create swap chain.", apis::logging::log_levels::error);
             return false;
-        }
-
-        for (auto i {0u}; i < this->_command_buffers.size(); ++i) {
-            VkCommandBufferBeginInfo begin_info;
-            memset(&begin_info, 0, sizeof(begin_info));
-            begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            begin_info.flags = 0;
-            begin_info.pInheritanceInfo = nullptr;
-
-            if (vkBeginCommandBuffer(this->_command_buffers[i], &begin_info) != VK_SUCCESS) {
-                this->_log_manager->log_message("Failed to begin command buffer: " + std::to_string(i), apis::logging::log_levels::error);
-                return false;
-            }
-
-            VkRenderPassBeginInfo render_pass_info;
-            memset(&render_pass_info, 0, sizeof(render_pass_info));
-            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            render_pass_info.renderPass = this->_render_pass;
-            render_pass_info.framebuffer = this->_swap_chain_framebuffers[i];
-            render_pass_info.renderArea.offset = {0, 0};
-            render_pass_info.renderArea.extent = this->_swap_chain_extent;
-
-            VkClearValue clear_color {{{0.0f, 0.0f, 0.8f, 1.0f}}};
-            render_pass_info.clearValueCount = 1;
-            render_pass_info.pClearValues = &clear_color;
-
-            vkCmdBeginRenderPass(this->_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-
-            vkCmdBindPipeline(this->_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, this->_graphics_pipeline);
-
-            vkCmdDraw(this->_command_buffers[i], 3, 1, 0, 0);
-
-            vkCmdEndRenderPass(this->_command_buffers[i]);
-
-            if (vkEndCommandBuffer(this->_command_buffers[i]) != VK_SUCCESS) {
-                this->_log_manager->log_message("Failed to end command buffer: " + std::to_string(i), apis::logging::log_levels::error);
-                return false;
-            }
         }
 
         // create sync objects
@@ -850,6 +910,8 @@ namespace pbr::shared::apis::windowing {
             // wait for any remaining async operations to complete before we tear everything down
             vkDeviceWaitIdle(this->_device);
 
+            this->cleanup_swap_chain();
+
             for (auto i {0u}; i < MAX_FRAMES_IN_FLIGHT; ++i) {
                 if (this->_image_available_semaphores[i]) {
                     vkDestroySemaphore(this->_device, this->_image_available_semaphores[i], nullptr);
@@ -870,36 +932,6 @@ namespace pbr::shared::apis::windowing {
             if (this->_command_pool) {
                 vkDestroyCommandPool(this->_device, this->_command_pool, nullptr);
                 this->_command_pool = nullptr;
-            }
-
-            for (auto framebuffer : this->_swap_chain_framebuffers) {
-                vkDestroyFramebuffer(this->_device, framebuffer, nullptr);
-            }
-            this->_swap_chain_framebuffers.clear();
-
-            if (this->_graphics_pipeline) {
-                vkDestroyPipeline(this->_device, this->_graphics_pipeline, nullptr);
-                this->_graphics_pipeline = nullptr;
-            }
-
-            if (this->_pipeline_layout) {
-                vkDestroyPipelineLayout(this->_device, this->_pipeline_layout, nullptr);
-                this->_pipeline_layout = nullptr;
-            }
-
-            if (this->_render_pass) {
-                vkDestroyRenderPass(this->_device, this->_render_pass, nullptr);
-                this->_render_pass = nullptr;
-            }
-
-            for (auto& view : this->_swap_chain_image_views) {
-                vkDestroyImageView(this->_device, view, nullptr);
-            }
-            this->_swap_chain_image_views.clear();
-
-            if (this->_swap_chain) {
-                vkDestroySwapchainKHR(this->_device, this->_swap_chain, nullptr);
-                this->_swap_chain = nullptr;
             }
 
             if (this->_device) {
@@ -931,7 +963,14 @@ namespace pbr::shared::apis::windowing {
         vkWaitForFences(this->_device, 1, &this->_in_flight_fences[this->_current_frame], VK_TRUE, UINT64_MAX);
 
         auto image_index {0u};
-        vkAcquireNextImageKHR(this->_device, this->_swap_chain, UINT64_MAX, this->_image_available_semaphores[this->_current_frame], VK_NULL_HANDLE, &image_index);
+        auto result = vkAcquireNextImageKHR(this->_device, this->_swap_chain, UINT64_MAX, this->_image_available_semaphores[this->_current_frame], VK_NULL_HANDLE, &image_index);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            this->create_swap_chain();
+        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            this->_log_manager->log_message("Failed to acquire next image.", apis::logging::log_levels::error);
+            return;
+        }
 
         // Check if a previous frame is using this image (i.e. there is its fence to wait on)
         if (this->_images_in_flight[image_index] != VK_NULL_HANDLE) {
@@ -975,7 +1014,14 @@ namespace pbr::shared::apis::windowing {
         present_info.pImageIndices = &image_index;
         present_info.pResults = nullptr;
 
-        vkQueuePresentKHR(this->_present_queue, &present_info);
+        result = vkQueuePresentKHR(this->_present_queue, &present_info);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || this->_signal_swap_chain_out_of_date) {
+            this->create_swap_chain();
+        } else if (result != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to acquire next image.", apis::logging::log_levels::error);
+            return;
+        }
 
         this->_current_frame = (this->_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
     }

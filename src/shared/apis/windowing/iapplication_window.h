@@ -10,5 +10,6 @@ namespace pbr::shared::apis::windowing {
         virtual ~iapplication_window() = default;
 
         virtual void update() = 0;
+        virtual void size_changed() = 0;
     };
 }
