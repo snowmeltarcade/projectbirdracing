@@ -8,5 +8,7 @@ namespace pbr::shared::apis::windowing {
     public:
         iapplication_window() = default;
         virtual ~iapplication_window() = default;
+
+        virtual void update() = 0;
     };
 }

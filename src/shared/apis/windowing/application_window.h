@@ -39,6 +39,8 @@ namespace pbr::shared::apis::windowing {
             this->shutdown();
         }
 
+        void update() override;
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
@@ -79,5 +81,10 @@ namespace pbr::shared::apis::windowing {
         std::vector<VkFramebuffer> _swap_chain_framebuffers;
         VkCommandPool _command_pool {VK_NULL_HANDLE};
         std::vector<VkCommandBuffer> _command_buffers;
+        std::vector<VkSemaphore> _image_available_semaphores;
+        std::vector<VkSemaphore> _render_finished_semaphores;
+        std::vector<VkFence> _in_flight_fences;
+        std::vector<VkFence> _images_in_flight;
+        uint32_t _current_frame {0u};
     };
 }

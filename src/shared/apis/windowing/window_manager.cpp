@@ -56,6 +56,8 @@ namespace pbr::shared::apis::windowing {
             }
         }
 
+        this->_application_windows[0]->update();
+
         return true;
     }
 
