@@ -77,5 +77,7 @@ namespace pbr::shared::apis::windowing {
         VkPipelineLayout _pipeline_layout {VK_NULL_HANDLE};
         VkPipeline _graphics_pipeline {VK_NULL_HANDLE};
         std::vector<VkFramebuffer> _swap_chain_framebuffers;
+        VkCommandPool _command_pool {VK_NULL_HANDLE};
+        std::vector<VkCommandBuffer> _command_buffers;
     };
 }

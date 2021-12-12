@@ -740,11 +740,81 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        // create the command pool
+        VkCommandPoolCreateInfo pool_info;
+        memset(&pool_info, 0, sizeof(pool_info));
+        pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        pool_info.queueFamilyIndex = *qfi.graphics_family_index;
+        pool_info.flags = 0;
+
+        if (vkCreateCommandPool(this->_device, &pool_info, nullptr, &this->_command_pool) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create command pool.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        // create the command buffers
+        this->_command_buffers.resize(this->_swap_chain_framebuffers.size());
+
+        VkCommandBufferAllocateInfo command_buffer_allocate_info;
+        memset(&command_buffer_allocate_info, 0, sizeof(command_buffer_allocate_info));
+        command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        command_buffer_allocate_info.commandPool = this->_command_pool;
+        command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        command_buffer_allocate_info.commandBufferCount = static_cast<uint32_t>(this->_command_buffers.size());
+
+        if (vkAllocateCommandBuffers(this->_device, &command_buffer_allocate_info, this->_command_buffers.data()) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create command buffers.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        for (auto i {0u}; i < this->_command_buffers.size(); ++i) {
+            VkCommandBufferBeginInfo begin_info;
+            memset(&begin_info, 0, sizeof(begin_info));
+            begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            begin_info.flags = 0;
+            begin_info.pInheritanceInfo = nullptr;
+
+            if (vkBeginCommandBuffer(this->_command_buffers[i], &begin_info) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to begin command buffer: " + std::to_string(i), apis::logging::log_levels::error);
+                return false;
+            }
+
+            VkRenderPassBeginInfo render_pass_info;
+            memset(&render_pass_info, 0, sizeof(render_pass_info));
+            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            render_pass_info.renderPass = this->_render_pass;
+            render_pass_info.framebuffer = this->_swap_chain_framebuffers[i];
+            render_pass_info.renderArea.offset = {0, 0};
+            render_pass_info.renderArea.extent = this->_swap_chain_extent;
+
+            VkClearValue clear_color {{{0.0f, 0.0f, 0.8f, 1.0f}}};
+            render_pass_info.clearValueCount = 1;
+            render_pass_info.pClearValues = &clear_color;
+
+            vkCmdBeginRenderPass(this->_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+
+            vkCmdBindPipeline(this->_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, this->_graphics_pipeline);
+
+            vkCmdDraw(this->_command_buffers[i], 3, 1, 0, 0);
+
+            vkCmdEndRenderPass(this->_command_buffers[i]);
+
+            if (vkEndCommandBuffer(this->_command_buffers[i]) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to end command buffer: " + std::to_string(i), apis::logging::log_levels::error);
+                return false;
+            }
+        }
+
         return true;
     }
 
     void application_window::shutdown() noexcept {
         if (this->_vulkan_instance) {
+            if (this->_command_pool) {
+                vkDestroyCommandPool(this->_device, this->_command_pool, nullptr);
+                this->_command_pool = nullptr;
+            }
+
             for (auto framebuffer : this->_swap_chain_framebuffers) {
                 vkDestroyFramebuffer(this->_device, framebuffer, nullptr);
             }
