@@ -6,9 +6,47 @@
 #include <optional>
 #include <set>
 #include <fstream>
+#include <array>
+#include <glm/glm.hpp>
 
 namespace pbr::shared::apis::windowing {
     const int MAX_FRAMES_IN_FLIGHT = 2;
+
+    struct Vertex {
+        glm::vec2 pos;
+        glm::vec3 color;
+
+        static VkVertexInputBindingDescription getBindingDescription() {
+            VkVertexInputBindingDescription binding_description{};
+            binding_description.binding = 0;
+            binding_description.stride = sizeof(Vertex);
+            binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+            return binding_description;
+        }
+
+        static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+            std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions{};
+
+            attribute_descriptions[0].binding = 0;
+            attribute_descriptions[0].location = 0;
+            attribute_descriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_descriptions[0].offset = offsetof(Vertex, pos);
+
+            attribute_descriptions[1].binding = 0;
+            attribute_descriptions[1].location = 1;
+            attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            attribute_descriptions[1].offset = offsetof(Vertex, color);
+
+            return attribute_descriptions;
+        }
+    };
+
+    const std::vector<Vertex> g_vertices = {
+        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
@@ -252,10 +290,14 @@ namespace pbr::shared::apis::windowing {
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info;
         memset(&vertex_input_state_create_info, 0, sizeof(vertex_input_state_create_info));
         vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertex_input_state_create_info.vertexBindingDescriptionCount = 0;
-        vertex_input_state_create_info.pVertexBindingDescriptions = nullptr;
-        vertex_input_state_create_info.vertexAttributeDescriptionCount = 0;
-        vertex_input_state_create_info.pVertexAttributeDescriptions = nullptr;
+
+        auto binding_description = Vertex::getBindingDescription();
+        auto attribute_descriptions = Vertex::getAttributeDescriptions();
+
+        vertex_input_state_create_info.vertexBindingDescriptionCount = 1;
+        vertex_input_state_create_info.pVertexBindingDescriptions = &binding_description;
+        vertex_input_state_create_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+        vertex_input_state_create_info.pVertexAttributeDescriptions = attribute_descriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly_state_create_info;
         memset(&input_assembly_state_create_info, 0, sizeof(input_assembly_state_create_info));
@@ -455,6 +497,56 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
+    uint32_t find_memory_type(VkPhysicalDevice physical_device, uint32_t type_filter, VkMemoryPropertyFlags properties) {
+        VkPhysicalDeviceMemoryProperties memory_properties{};
+        vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);
+
+        for (auto i = 0u; i < memory_properties.memoryTypeCount; ++i) {
+            if ((type_filter & (1 << i)) && (memory_properties.memoryTypes[i].propertyFlags & properties) == properties) {
+                return i;
+            }
+        }
+
+        std::cerr << "Failed to find suitable memory type.\n";
+        return 0;
+    }
+
+    bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory) {
+        VkBufferCreateInfo buffer_info{};
+        buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        buffer_info.size = sizeof(g_vertices[0]) * g_vertices.size();
+        buffer_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        buffer_info.flags = 0;
+
+        if (vkCreateBuffer(device, &buffer_info, nullptr, vertex_buffer) != VK_SUCCESS) {
+            std::cerr << "Failed to create vertex buffer.\n";
+            return false;
+        }
+
+        VkMemoryRequirements memory_requirements{};
+        vkGetBufferMemoryRequirements(device, *vertex_buffer, &memory_requirements);
+
+        VkMemoryAllocateInfo allocate_info{};
+        allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocate_info.allocationSize = memory_requirements.size;
+        allocate_info.memoryTypeIndex = find_memory_type(physical_device, memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        if (vkAllocateMemory(device, &allocate_info, nullptr, vertex_buffer_memory) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate vertex buffer memory!");
+        }
+
+        vkBindBufferMemory(device, *vertex_buffer, *vertex_buffer_memory, 0);
+
+        void* data {nullptr};
+        vkMapMemory(device, *vertex_buffer_memory, 0, buffer_info.size, 0, &data);
+        memcpy(data, g_vertices.data(), static_cast<size_t>(buffer_info.size));
+        vkUnmapMemory(device, *vertex_buffer_memory);
+        data = nullptr;
+
+        return true;
+    }
+
     void application_window::cleanup_swap_chain() {
         for (auto framebuffer : this->_swap_chain_framebuffers) {
             vkDestroyFramebuffer(this->_device, framebuffer, nullptr);
@@ -604,6 +696,11 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        if (!create_vertex_buffer(this->_device, this->_physical_device, &this->_vertex_buffer, &this->_vertex_buffer_memory)) {
+            this->_log_manager->log_message("Failed to create vertex buffer.", apis::logging::log_levels::error);
+            return false;
+        }
+
         // create the command buffers
         this->_command_buffers.resize(this->_swap_chain_framebuffers.size());
 
@@ -647,7 +744,11 @@ namespace pbr::shared::apis::windowing {
 
             vkCmdBindPipeline(this->_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, this->_graphics_pipeline);
 
-            vkCmdDraw(this->_command_buffers[i], 3, 1, 0, 0);
+            VkBuffer vertex_buffers[] = {this->_vertex_buffer};
+            VkDeviceSize offsets[] = {0};
+            vkCmdBindVertexBuffers(this->_command_buffers[i], 0, 1, vertex_buffers, offsets);
+
+            vkCmdDraw(this->_command_buffers[i], g_vertices.size(), 1, 0, 0);
 
             vkCmdEndRenderPass(this->_command_buffers[i]);
 
@@ -928,6 +1029,16 @@ namespace pbr::shared::apis::windowing {
             this->_image_available_semaphores.clear();
             this->_render_finished_semaphores.clear();
             this->_in_flight_fences.clear();
+
+            if (this->_vertex_buffer) {
+                vkDestroyBuffer(this->_device, this->_vertex_buffer, nullptr);
+                this->_vertex_buffer = nullptr;
+            }
+
+            if (this->_vertex_buffer_memory) {
+                vkFreeMemory(this->_device, this->_vertex_buffer_memory, nullptr);
+                this->_vertex_buffer_memory = nullptr;
+            }
 
             if (this->_command_pool) {
                 vkDestroyCommandPool(this->_device, this->_command_pool, nullptr);

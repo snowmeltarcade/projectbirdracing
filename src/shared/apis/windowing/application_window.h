@@ -94,5 +94,7 @@ namespace pbr::shared::apis::windowing {
         std::vector<VkFence> _images_in_flight;
         uint32_t _current_frame {0u};
         bool _signal_swap_chain_out_of_date {false};
+        VkBuffer _vertex_buffer {VK_NULL_HANDLE};
+        VkDeviceMemory _vertex_buffer_memory {VK_NULL_HANDLE};
     };
 }

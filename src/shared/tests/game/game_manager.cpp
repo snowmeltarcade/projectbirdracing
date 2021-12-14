@@ -13,7 +13,8 @@ using namespace pbr::shared;
 using namespace pbr::shared::game;
 
 class test_application_window : public apis::windowing::iapplication_window {
-
+    void update() override {}
+    void size_changed() override {}
 };
 
 class test_window_manager : public apis::windowing::iwindow_manager {
