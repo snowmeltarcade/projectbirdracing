@@ -13,10 +13,10 @@ namespace pbr::shared::apis::windowing {
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
     struct Vertex {
-        glm::vec2 pos;
+        glm::vec3 pos;
         glm::vec3 color;
 
-        static VkVertexInputBindingDescription getBindingDescription() {
+        static VkVertexInputBindingDescription get_binding_description() {
             VkVertexInputBindingDescription binding_description{};
             binding_description.binding = 0;
             binding_description.stride = sizeof(Vertex);
@@ -25,12 +25,12 @@ namespace pbr::shared::apis::windowing {
             return binding_description;
         }
 
-        static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+        static std::array<VkVertexInputAttributeDescription, 2> get_attribute_descriptions() {
             std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions{};
 
             attribute_descriptions[0].binding = 0;
             attribute_descriptions[0].location = 0;
-            attribute_descriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_descriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
             attribute_descriptions[0].offset = offsetof(Vertex, pos);
 
             attribute_descriptions[1].binding = 0;
@@ -43,9 +43,19 @@ namespace pbr::shared::apis::windowing {
     };
 
     const std::vector<Vertex> g_vertices = {
-        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+
+        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
     };
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -291,8 +301,8 @@ namespace pbr::shared::apis::windowing {
         memset(&vertex_input_state_create_info, 0, sizeof(vertex_input_state_create_info));
         vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        auto binding_description = Vertex::getBindingDescription();
-        auto attribute_descriptions = Vertex::getAttributeDescriptions();
+        auto binding_description = Vertex::get_binding_description();
+        auto attribute_descriptions = Vertex::get_attribute_descriptions();
 
         vertex_input_state_create_info.vertexBindingDescriptionCount = 1;
         vertex_input_state_create_info.pVertexBindingDescriptions = &binding_description;
@@ -511,38 +521,87 @@ namespace pbr::shared::apis::windowing {
         return 0;
     }
 
-    bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory) {
-        VkBufferCreateInfo buffer_info{};
-        buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        buffer_info.size = sizeof(g_vertices[0]) * g_vertices.size();
-        buffer_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        buffer_info.flags = 0;
+    void create_buffer(VkDevice device, VkPhysicalDevice physical_device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory) {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = size;
+        bufferInfo.usage = usage;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        if (vkCreateBuffer(device, &buffer_info, nullptr, vertex_buffer) != VK_SUCCESS) {
-            std::cerr << "Failed to create vertex buffer.\n";
-            return false;
+        if (vkCreateBuffer(device, &bufferInfo, nullptr, buffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create buffer!");
         }
 
-        VkMemoryRequirements memory_requirements{};
-        vkGetBufferMemoryRequirements(device, *vertex_buffer, &memory_requirements);
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(device, *buffer, &memRequirements);
 
-        VkMemoryAllocateInfo allocate_info{};
-        allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocate_info.allocationSize = memory_requirements.size;
-        allocate_info.memoryTypeIndex = find_memory_type(physical_device, memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = find_memory_type(physical_device, memRequirements.memoryTypeBits, properties);
 
-        if (vkAllocateMemory(device, &allocate_info, nullptr, vertex_buffer_memory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate vertex buffer memory!");
+        if (vkAllocateMemory(device, &allocInfo, nullptr, bufferMemory) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate buffer memory!");
         }
 
-        vkBindBufferMemory(device, *vertex_buffer, *vertex_buffer_memory, 0);
+        vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
+    }
 
-        void* data {nullptr};
-        vkMapMemory(device, *vertex_buffer_memory, 0, buffer_info.size, 0, &data);
-        memcpy(data, g_vertices.data(), static_cast<size_t>(buffer_info.size));
-        vkUnmapMemory(device, *vertex_buffer_memory);
-        data = nullptr;
+    void copy_buffer(VkDevice device, VkCommandPool command_pool, VkQueue graphics_queue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = command_pool;
+        allocInfo.commandBufferCount = 1;
+
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+        VkBufferCopy copyRegion{};
+        copyRegion.srcOffset = 0;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = size;
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(graphics_queue);
+
+        vkFreeCommandBuffers(device, command_pool, 1, &commandBuffer);
+    }
+
+    bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory) {
+        VkDeviceSize buffer_size = sizeof(g_vertices[0]) * g_vertices.size();
+
+        // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
+        // the shared buffer is technically fine to use, but not as performant
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(device, stagingBufferMemory, 0, buffer_size, 0, &data);
+        memcpy(data, g_vertices.data(), (size_t) buffer_size);
+        vkUnmapMemory(device, stagingBufferMemory);
+
+        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertex_buffer, vertex_buffer_memory);
+
+        copy_buffer(device, command_pool, graphics_queue, stagingBuffer, *vertex_buffer, buffer_size);
+
+        vkDestroyBuffer(device, stagingBuffer, nullptr);
+        vkFreeMemory(device, stagingBufferMemory, nullptr);
 
         return true;
     }
@@ -696,7 +755,7 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        if (!create_vertex_buffer(this->_device, this->_physical_device, &this->_vertex_buffer, &this->_vertex_buffer_memory)) {
+        if (!create_vertex_buffer(this->_device, this->_physical_device, this->_command_pool, this->_graphics_queue, &this->_vertex_buffer, &this->_vertex_buffer_memory)) {
             this->_log_manager->log_message("Failed to create vertex buffer.", apis::logging::log_levels::error);
             return false;
         }
