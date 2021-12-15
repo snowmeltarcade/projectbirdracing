@@ -96,5 +96,7 @@ namespace pbr::shared::apis::windowing {
         bool _signal_swap_chain_out_of_date {false};
         VkBuffer _vertex_buffer {VK_NULL_HANDLE};
         VkDeviceMemory _vertex_buffer_memory {VK_NULL_HANDLE};
+        VkBuffer _index_buffer {VK_NULL_HANDLE};
+        VkDeviceMemory _index_buffer_memory {VK_NULL_HANDLE};
     };
 }

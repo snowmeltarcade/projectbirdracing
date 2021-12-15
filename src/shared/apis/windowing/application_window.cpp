@@ -13,7 +13,7 @@ namespace pbr::shared::apis::windowing {
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
     struct Vertex {
-        glm::vec3 pos;
+        glm::vec2 pos;
         glm::vec3 color;
 
         static VkVertexInputBindingDescription get_binding_description() {
@@ -30,7 +30,7 @@ namespace pbr::shared::apis::windowing {
 
             attribute_descriptions[0].binding = 0;
             attribute_descriptions[0].location = 0;
-            attribute_descriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            attribute_descriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
             attribute_descriptions[0].offset = offsetof(Vertex, pos);
 
             attribute_descriptions[1].binding = 0;
@@ -42,20 +42,15 @@ namespace pbr::shared::apis::windowing {
         }
     };
 
-    const std::vector<Vertex> g_vertices = {
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+    const std::vector<Vertex> g_vertices {
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    };
 
-        {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
+    const std::vector<uint32_t> g_indices {
+        0, 1, 2, 2, 3, 0,
     };
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -606,6 +601,30 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
+    bool create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory) {
+        VkDeviceSize buffer_size = sizeof(g_indices[0]) * g_indices.size();
+
+        // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
+        // the shared buffer is technically fine to use, but not as performant
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(device, stagingBufferMemory, 0, buffer_size, 0, &data);
+        memcpy(data, g_indices.data(), (size_t) buffer_size);
+        vkUnmapMemory(device, stagingBufferMemory);
+
+        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, index_buffer, index_buffer_memory);
+
+        copy_buffer(device, command_pool, graphics_queue, stagingBuffer, *index_buffer, buffer_size);
+
+        vkDestroyBuffer(device, stagingBuffer, nullptr);
+        vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+        return true;
+    }
+
     void application_window::cleanup_swap_chain() {
         for (auto framebuffer : this->_swap_chain_framebuffers) {
             vkDestroyFramebuffer(this->_device, framebuffer, nullptr);
@@ -760,6 +779,11 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        if (!create_index_buffer(this->_device, this->_physical_device, this->_command_pool, this->_graphics_queue, &this->_index_buffer, &this->_index_buffer_memory)) {
+            this->_log_manager->log_message("Failed to create index buffer.", apis::logging::log_levels::error);
+            return false;
+        }
+
         // create the command buffers
         this->_command_buffers.resize(this->_swap_chain_framebuffers.size());
 
@@ -807,7 +831,9 @@ namespace pbr::shared::apis::windowing {
             VkDeviceSize offsets[] = {0};
             vkCmdBindVertexBuffers(this->_command_buffers[i], 0, 1, vertex_buffers, offsets);
 
-            vkCmdDraw(this->_command_buffers[i], g_vertices.size(), 1, 0, 0);
+            vkCmdBindIndexBuffer(this->_command_buffers[i], this->_index_buffer, 0, VK_INDEX_TYPE_UINT32);
+
+            vkCmdDrawIndexed(this->_command_buffers[i], static_cast<uint32_t>(g_indices.size()), 1, 0, 0, 0);
 
             vkCmdEndRenderPass(this->_command_buffers[i]);
 
@@ -1097,6 +1123,16 @@ namespace pbr::shared::apis::windowing {
             if (this->_vertex_buffer_memory) {
                 vkFreeMemory(this->_device, this->_vertex_buffer_memory, nullptr);
                 this->_vertex_buffer_memory = nullptr;
+            }
+
+            if (this->_index_buffer) {
+                vkDestroyBuffer(this->_device, this->_index_buffer, nullptr);
+                this->_index_buffer = nullptr;
+            }
+
+            if (this->_index_buffer_memory) {
+                vkFreeMemory(this->_device, this->_index_buffer_memory, nullptr);
+                this->_index_buffer_memory = nullptr;
             }
 
             if (this->_command_pool) {
