@@ -7,7 +7,12 @@
 #include <set>
 #include <fstream>
 #include <array>
+
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <chrono>
 
 namespace pbr::shared::apis::windowing {
     const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -51,6 +56,12 @@ namespace pbr::shared::apis::windowing {
 
     const std::vector<uint32_t> g_indices {
         0, 1, 2, 2, 3, 0,
+    };
+
+    struct uniform_buffer_object {
+        glm::mat4 model;
+        glm::mat4 view;
+        glm::mat4 proj;
     };
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -264,7 +275,28 @@ namespace pbr::shared::apis::windowing {
         return shader_module;
     }
 
-    bool create_graphics_pipeline(VkDevice device, VkExtent2D swap_chain_extent, VkPipelineLayout* pipeline_layout, VkRenderPass render_pass, VkPipeline* graphics_pipeline) {
+    bool create_descriptor_set_layout(VkDevice device, VkDescriptorSetLayout* descriptor_set_layout) {
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &uboLayoutBinding;
+
+        if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, descriptor_set_layout) != VK_SUCCESS) {
+            std::cerr << "Failed to create descriptor set layout.\n";
+            return false;
+        }
+
+        return true;
+    }
+
+    bool create_graphics_pipeline(VkDevice device, VkExtent2D swap_chain_extent, VkPipelineLayout* pipeline_layout, VkRenderPass render_pass, VkPipeline* graphics_pipeline, VkDescriptorSetLayout* descriptor_set_layout) {
         auto vertex_shader_bytes = read_all_bytes("../../../data/vertex.vert.spv");
         auto fragment_shader_bytes = read_all_bytes("../../../data/fragment.frag.spv");
 
@@ -340,7 +372,7 @@ namespace pbr::shared::apis::windowing {
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
         rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
         rasterizer.depthBiasConstantFactor = 0.0f;
         rasterizer.depthBiasClamp = 0.0f;
@@ -382,8 +414,8 @@ namespace pbr::shared::apis::windowing {
         VkPipelineLayoutCreateInfo pipeline_layout_info;
         memset(&pipeline_layout_info, 0, sizeof(pipeline_layout_info));
         pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipeline_layout_info.setLayoutCount = 0;
-        pipeline_layout_info.pSetLayouts = nullptr;
+        pipeline_layout_info.setLayoutCount = 1;
+        pipeline_layout_info.pSetLayouts = descriptor_set_layout;
         pipeline_layout_info.pushConstantRangeCount = 0;
         pipeline_layout_info.pPushConstantRanges = nullptr;
 
@@ -625,6 +657,109 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
+    void application_window::create_uniform_buffers() {
+        VkDeviceSize bufferSize = sizeof(uniform_buffer_object);
+
+        this->_uniform_buffers.resize(this->_swap_chain_images.size());
+        this->_uniform_buffers_memory.resize(this->_swap_chain_images.size());
+
+        for (size_t i = 0; i < this->_swap_chain_images.size(); i++) {
+            create_buffer(this->_device,
+                          this->_physical_device,
+                          bufferSize,
+                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                          &this->_uniform_buffers[i],
+                          &this->_uniform_buffers_memory[i]);
+        }
+    }
+
+    bool application_window::create_descriptor_pool() {
+        VkDescriptorPoolSize poolSize{};
+        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize.descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size());
+
+        VkDescriptorPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = 1;
+        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.maxSets = static_cast<uint32_t>(this->_swap_chain_images.size());
+
+        if (vkCreateDescriptorPool(this->_device, &poolInfo, nullptr, &this->_descriptor_pool) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create descriptor pool.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool application_window::create_descriptor_sets() {
+        std::vector<VkDescriptorSetLayout> layouts(this->_swap_chain_images.size(), this->_descriptor_set_layout);
+
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = this->_descriptor_pool;
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(this->_swap_chain_images.size());
+        allocInfo.pSetLayouts = layouts.data();
+
+        this->_descriptor_sets.resize(this->_swap_chain_images.size());
+        if (vkAllocateDescriptorSets(this->_device, &allocInfo, this->_descriptor_sets.data()) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to allocate descriptor sets.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        for (size_t i = 0; i < this->_swap_chain_images.size(); i++) {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = this->_uniform_buffers[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(uniform_buffer_object);
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = this->_descriptor_sets[i];
+            descriptorWrite.dstBinding = 0; // the binding in the shader
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+            descriptorWrite.pImageInfo = nullptr;
+            descriptorWrite.pTexelBufferView = nullptr;
+
+            vkUpdateDescriptorSets(this->_device, 1, &descriptorWrite, 0, nullptr);
+        }
+
+        return true;
+    }
+
+    void application_window::update_uniform_buffer(uint32_t current_image_index) {
+        static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        uniform_buffer_object ubo{};
+        ubo.model = glm::rotate(glm::mat4(1.0f),
+                                time * glm::radians(90.0f),
+                                glm::vec3(0.0f, 0.0f, 1.0f));
+
+        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
+                               glm::vec3(0.0f, 0.0f, 0.0f),
+                               glm::vec3(0.0f, 0.0f, 1.0f));
+
+        ubo.proj = glm::perspective(glm::radians(45.0f),
+                                    this->_swap_chain_extent.width / static_cast<float>(this->_swap_chain_extent.height),
+                                    0.1f,
+                                    10.0f);
+
+        // in Vulkan, -y is up - so flip the Y-scale factor in the projection matrix
+        ubo.proj[1][1] *= -1;
+
+        void* data;
+        vkMapMemory(this->_device, this->_uniform_buffers_memory[current_image_index], 0, sizeof(ubo), 0, &data);
+        memcpy(data, &ubo, sizeof(ubo));
+        vkUnmapMemory(this->_device, this->_uniform_buffers_memory[current_image_index]);
+    }
+
     void application_window::cleanup_swap_chain() {
         for (auto framebuffer : this->_swap_chain_framebuffers) {
             vkDestroyFramebuffer(this->_device, framebuffer, nullptr);
@@ -634,6 +769,16 @@ namespace pbr::shared::apis::windowing {
         if (this->_command_pool && !this->_command_buffers.empty()) {
             vkFreeCommandBuffers(this->_device, this->_command_pool,
                                  static_cast<uint32_t>(this->_command_buffers.size()), this->_command_buffers.data());
+        }
+
+        for (auto i {0u}; i < this->_swap_chain_images.size(); ++i) {
+            vkDestroyBuffer(this->_device, this->_uniform_buffers[i], nullptr);
+            vkFreeMemory(this->_device, this->_uniform_buffers_memory[i], nullptr);
+        }
+
+        if (this->_descriptor_pool) {
+            vkDestroyDescriptorPool(this->_device, this->_descriptor_pool, nullptr);
+            this->_descriptor_pool = nullptr;
         }
 
         if (this->_graphics_pipeline) {
@@ -764,7 +909,12 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        if (!create_graphics_pipeline(this->_device, extent, &this->_pipeline_layout, this->_render_pass, &this->_graphics_pipeline)) {
+        if (!create_descriptor_set_layout(this->_device, &this->_descriptor_set_layout)) {
+            this->_log_manager->log_message("Failed to create descriptor set layout.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!create_graphics_pipeline(this->_device, extent, &this->_pipeline_layout, this->_render_pass, &this->_graphics_pipeline, &this->_descriptor_set_layout)) {
             this->_log_manager->log_message("Failed to create graphics pipeline.", apis::logging::log_levels::error);
             return false;
         }
@@ -781,6 +931,18 @@ namespace pbr::shared::apis::windowing {
 
         if (!create_index_buffer(this->_device, this->_physical_device, this->_command_pool, this->_graphics_queue, &this->_index_buffer, &this->_index_buffer_memory)) {
             this->_log_manager->log_message("Failed to create index buffer.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        this->create_uniform_buffers();
+
+        if (!this->create_descriptor_pool()) {
+            this->_log_manager->log_message("Failed to create descriptor pool.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!this->create_descriptor_sets()) {
+            this->_log_manager->log_message("Failed to create descriptor sets.", apis::logging::log_levels::error);
             return false;
         }
 
@@ -832,6 +994,8 @@ namespace pbr::shared::apis::windowing {
             vkCmdBindVertexBuffers(this->_command_buffers[i], 0, 1, vertex_buffers, offsets);
 
             vkCmdBindIndexBuffer(this->_command_buffers[i], this->_index_buffer, 0, VK_INDEX_TYPE_UINT32);
+
+            vkCmdBindDescriptorSets(this->_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, this->_pipeline_layout, 0, 1, &this->_descriptor_sets[i], 0, nullptr);
 
             vkCmdDrawIndexed(this->_command_buffers[i], static_cast<uint32_t>(g_indices.size()), 1, 0, 0, 0);
 
@@ -1140,6 +1304,11 @@ namespace pbr::shared::apis::windowing {
                 this->_command_pool = nullptr;
             }
 
+            if (this->_descriptor_set_layout) {
+                vkDestroyDescriptorSetLayout(this->_device, this->_descriptor_set_layout, nullptr);
+                this->_descriptor_set_layout = nullptr;
+            }
+
             if (this->_device) {
                 vkDestroyDevice(this->_device, nullptr);
                 this->_device = nullptr;
@@ -1184,6 +1353,8 @@ namespace pbr::shared::apis::windowing {
         }
         // Mark the image as now being in use by this frame
         this->_images_in_flight[image_index] = this->_in_flight_fences[this->_current_frame];
+
+        this->update_uniform_buffer(image_index);
 
         VkSubmitInfo submit_info;
         memset(&submit_info, 0, sizeof(submit_info));

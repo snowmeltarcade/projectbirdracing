@@ -70,6 +70,12 @@ namespace pbr::shared::apis::windowing {
         void cleanup_swap_chain();
         bool create_swap_chain();
 
+        void create_uniform_buffers();
+        bool create_descriptor_pool();
+        bool create_descriptor_sets();
+
+        void update_uniform_buffer(uint32_t current_image_index);
+
         VkInstance _vulkan_instance {nullptr};
         VkDebugUtilsMessengerEXT _debug_messenger {nullptr};
         VkSurfaceKHR _surface {VK_NULL_HANDLE};
@@ -83,6 +89,7 @@ namespace pbr::shared::apis::windowing {
         VkFormat _swap_chain_format {VkFormat::VK_FORMAT_UNDEFINED};
         VkExtent2D _swap_chain_extent;
         VkRenderPass _render_pass {VK_NULL_HANDLE};
+        VkDescriptorSetLayout _descriptor_set_layout {VK_NULL_HANDLE};
         VkPipelineLayout _pipeline_layout {VK_NULL_HANDLE};
         VkPipeline _graphics_pipeline {VK_NULL_HANDLE};
         std::vector<VkFramebuffer> _swap_chain_framebuffers;
@@ -98,5 +105,9 @@ namespace pbr::shared::apis::windowing {
         VkDeviceMemory _vertex_buffer_memory {VK_NULL_HANDLE};
         VkBuffer _index_buffer {VK_NULL_HANDLE};
         VkDeviceMemory _index_buffer_memory {VK_NULL_HANDLE};
+        std::vector<VkBuffer> _uniform_buffers;
+        std::vector<VkDeviceMemory> _uniform_buffers_memory;
+        VkDescriptorPool _descriptor_pool {VK_NULL_HANDLE};
+        std::vector<VkDescriptorSet> _descriptor_sets;
     };
 }
