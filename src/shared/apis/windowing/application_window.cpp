@@ -21,6 +21,7 @@ namespace pbr::shared::apis::windowing {
     struct Vertex {
         glm::vec2 pos;
         glm::vec3 color;
+        glm::vec2 texCoord;
 
         static VkVertexInputBindingDescription get_binding_description() {
             VkVertexInputBindingDescription binding_description{};
@@ -31,8 +32,8 @@ namespace pbr::shared::apis::windowing {
             return binding_description;
         }
 
-        static std::array<VkVertexInputAttributeDescription, 2> get_attribute_descriptions() {
-            std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions{};
+        static std::array<VkVertexInputAttributeDescription, 3> get_attribute_descriptions() {
+            std::array<VkVertexInputAttributeDescription, 3> attribute_descriptions{};
 
             attribute_descriptions[0].binding = 0;
             attribute_descriptions[0].location = 0;
@@ -44,15 +45,20 @@ namespace pbr::shared::apis::windowing {
             attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
             attribute_descriptions[1].offset = offsetof(Vertex, color);
 
+            attribute_descriptions[2].binding = 0;
+            attribute_descriptions[2].location = 2;
+            attribute_descriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_descriptions[2].offset = offsetof(Vertex, texCoord);
+
             return attribute_descriptions;
         }
     };
 
-    const std::vector<Vertex> g_vertices {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    const std::vector<Vertex> g_vertices = {
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
     };
 
     const std::vector<uint32_t> g_indices {
@@ -237,6 +243,10 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        if (!features.samplerAnisotropy) {
+            return false;
+        }
+
         return true;
     }
 
@@ -284,10 +294,19 @@ namespace pbr::shared::apis::windowing {
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         uboLayoutBinding.pImmutableSamplers = nullptr;
 
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings = &uboLayoutBinding;
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
 
         if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, descriptor_set_layout) != VK_SUCCESS) {
             std::cerr << "Failed to create descriptor set layout.\n";
@@ -726,6 +745,58 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
+    VkImageView application_window::createImageView(VkImage image, VkFormat format) {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = image;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = format;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        VkImageView imageView;
+        if (vkCreateImageView(this->_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+
+        return imageView;
+    }
+
+    bool application_window::createTextureImageView() {
+        this->_texture_image_view = createImageView(this->_texture_image, VK_FORMAT_R8G8B8A8_SRGB);
+        return true;
+    }
+
+    void application_window::createTextureSampler() {
+        VkPhysicalDeviceProperties properties{};
+        vkGetPhysicalDeviceProperties(this->_physical_device, &properties);
+
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE; // use [0, 1) coords, not [0, widthWidth/Height)
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+
+        if (vkCreateSampler(this->_device, &samplerInfo, nullptr, &this->_texture_sampler) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture sampler!");
+        }
+    }
+
     void application_window::create_uniform_buffers() {
         VkDeviceSize bufferSize = sizeof(uniform_buffer_object);
 
@@ -744,16 +815,19 @@ namespace pbr::shared::apis::windowing {
     }
 
     bool application_window::create_descriptor_pool() {
-        // this is to create specific descriptor types (buffers, images etc...)
-        VkDescriptorPoolSize uniform_buffer_descriptor_pool{};
-        uniform_buffer_descriptor_pool.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uniform_buffer_descriptor_pool.descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size()); // the number of actual buffer descriptors (pointers to a buffer resource) that need to be allocated at any one time
+        std::array<VkDescriptorPoolSize, 2> poolSizes{};
+
+        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes[0].descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size());
+
+        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size());
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = 1;
-        poolInfo.pPoolSizes = &uniform_buffer_descriptor_pool;
-        poolInfo.maxSets = static_cast<uint32_t>(this->_swap_chain_images.size()); // the maximum number of sets that will need to exist at any one time. a descriptor set is made up of multiple descriptors (pointers to a type of thing - an image, a buffer etc...)
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
+        poolInfo.maxSets = static_cast<uint32_t>(this->_swap_chain_images.size());
 
         if (vkCreateDescriptorPool(this->_device, &poolInfo, nullptr, &this->_descriptor_pool) != VK_SUCCESS) {
             this->_log_manager->log_message("Failed to create descriptor pool.", apis::logging::log_levels::error);
@@ -784,6 +858,11 @@ namespace pbr::shared::apis::windowing {
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(uniform_buffer_object);
 
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = this->_texture_image_view;
+            imageInfo.sampler = this->_texture_sampler;
+
             VkWriteDescriptorSet descriptorWrite{};
             descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrite.dstSet = this->_descriptor_sets[i];
@@ -795,7 +874,29 @@ namespace pbr::shared::apis::windowing {
             descriptorWrite.pImageInfo = nullptr;
             descriptorWrite.pTexelBufferView = nullptr;
 
-            vkUpdateDescriptorSets(this->_device, 1, &descriptorWrite, 0, nullptr);
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = this->_descriptor_sets[i];
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = this->_descriptor_sets[i];
+            descriptorWrites[1].dstBinding = 1;
+            descriptorWrites[1].dstArrayElement = 0;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(this->_device,
+                                   static_cast<uint32_t>(descriptorWrites.size()),
+                                   descriptorWrites.data(),
+                                   0,
+                                   nullptr);
         }
 
         return true;
@@ -1086,26 +1187,8 @@ namespace pbr::shared::apis::windowing {
         this->_swap_chain_image_views.resize(this->_swap_chain_images.size());
 
         for (auto i {0u}; i < this->_swap_chain_images.size(); ++i)  {
-            VkImageViewCreateInfo image_view_create_info;
-            memset(&image_view_create_info, 0, sizeof(image_view_create_info));
-            image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            image_view_create_info.image = _swap_chain_images[i];
-            image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            image_view_create_info.format = this->_swap_chain_format;
-            image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            image_view_create_info.subresourceRange.baseMipLevel = 0;
-            image_view_create_info.subresourceRange.levelCount = 1;
-            image_view_create_info.subresourceRange.baseArrayLayer = 0;
-            image_view_create_info.subresourceRange.layerCount = 1;
-
-            if (vkCreateImageView(this->_device, &image_view_create_info, nullptr, &_swap_chain_image_views[i]) != VK_SUCCESS) {
-                this->_log_manager->log_message("Failed to create image view: " + std::to_string(i), apis::logging::log_levels::error);
-                return false;
-            }
+            this->_swap_chain_image_views[i] = this->createImageView(this->_swap_chain_images[i],
+                                                                     this->_swap_chain_format);
         }
 
         if (!create_render_pass(this->_swap_chain_format, this->_device, &this->_render_pass)) {
@@ -1384,6 +1467,7 @@ namespace pbr::shared::apis::windowing {
 
         VkPhysicalDeviceFeatures device_features;
         memset(&device_features, 0, sizeof(device_features));
+        device_features.samplerAnisotropy = VK_TRUE;
 
         VkDeviceCreateInfo device_create_info;
         memset(&device_create_info, 0, sizeof(device_create_info));
@@ -1431,6 +1515,13 @@ namespace pbr::shared::apis::windowing {
             this->_log_manager->log_message("Failed to create texture image.", apis::logging::log_levels::error);
             return false;
         }
+
+        if (!this->createTextureImageView()) {
+            this->_log_manager->log_message("Failed to create texture image view.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        this->createTextureSampler();
 
         if (!this->create_swap_chain()) {
             this->_log_manager->log_message("Failed to create swap chain.", apis::logging::log_levels::error);
@@ -1491,6 +1582,16 @@ namespace pbr::shared::apis::windowing {
             if (this->_vertex_buffer) {
                 vkDestroyBuffer(this->_device, this->_vertex_buffer, nullptr);
                 this->_vertex_buffer = nullptr;
+            }
+
+            if (this->_texture_sampler) {
+                vkDestroySampler(this->_device, this->_texture_sampler, nullptr);
+                this->_texture_sampler = nullptr;
+            }
+
+            if (this->_texture_image_view) {
+                vkDestroyImageView(this->_device, this->_texture_image_view, nullptr);
+                this->_texture_image_view = nullptr;
             }
 
             if (this->_texture_image) {

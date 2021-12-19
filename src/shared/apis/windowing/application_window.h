@@ -91,6 +91,9 @@ namespace pbr::shared::apis::windowing {
         bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory);
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
         bool create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory);
+        VkImageView createImageView(VkImage image, VkFormat format);
+        bool createTextureImageView();
+        void createTextureSampler();
 
         void update_uniform_buffer(uint32_t current_image_index);
 
@@ -129,5 +132,7 @@ namespace pbr::shared::apis::windowing {
         std::vector<VkDescriptorSet> _descriptor_sets;
         VkImage _texture_image {VK_NULL_HANDLE};
         VkDeviceMemory _texture_image_memory {VK_NULL_HANDLE};
+        VkImageView _texture_image_view {VK_NULL_HANDLE};
+        VkSampler _texture_sampler {VK_NULL_HANDLE};
     };
 }
