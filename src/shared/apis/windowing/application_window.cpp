@@ -602,12 +602,29 @@ namespace pbr::shared::apis::windowing {
         barrier.subresourceRange.levelCount = 1;
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = 1;
-        barrier.srcAccessMask = 0; // TODO
-        barrier.dstAccessMask = 0; // TODO
+
+        VkPipelineStageFlags sourceStage;
+        VkPipelineStageFlags destinationStage;
+
+        if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } else {
+            throw std::invalid_argument("unsupported layout transition!");
+        }
 
         vkCmdPipelineBarrier(
             commandBuffer,
-            0 /* TODO */, 0 /* TODO */,
+            sourceStage, destinationStage,
             0,
             0, nullptr,
             0, nullptr,
@@ -656,14 +673,26 @@ namespace pbr::shared::apis::windowing {
         // the shared buffer is technically fine to use, but not as performant
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
-        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+        create_buffer(device,
+                      physical_device,
+                      buffer_size,
+                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      &stagingBuffer,
+                      &stagingBufferMemory);
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, buffer_size, 0, &data);
         memcpy(data, g_vertices.data(), (size_t) buffer_size);
         vkUnmapMemory(device, stagingBufferMemory);
 
-        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertex_buffer, vertex_buffer_memory);
+        create_buffer(device,
+                      physical_device,
+                      buffer_size,
+                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                      vertex_buffer,
+                      vertex_buffer_memory);
 
         this->copy_buffer(stagingBuffer, *vertex_buffer, buffer_size);
 
@@ -848,7 +877,14 @@ namespace pbr::shared::apis::windowing {
         }
     }
 
-    void application_window::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* image, VkDeviceMemory* imageMemory) {
+    void application_window::createImage(uint32_t width,
+                                         uint32_t height,
+                                         VkFormat format,
+                                         VkImageTiling tiling,
+                                         VkImageUsageFlags usage,
+                                         VkMemoryPropertyFlags properties,
+                                         VkImage* image,
+                                         VkDeviceMemory* imageMemory) {
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -935,6 +971,9 @@ namespace pbr::shared::apis::windowing {
                                     VK_FORMAT_R8G8B8A8_SRGB,
                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); // the best format for a shader to read from
+
+        vkDestroyBuffer(this->_device, stagingBuffer, nullptr);
+        vkFreeMemory(this->_device, stagingBufferMemory, nullptr);
 
         return true;
     }
@@ -1452,6 +1491,16 @@ namespace pbr::shared::apis::windowing {
             if (this->_vertex_buffer) {
                 vkDestroyBuffer(this->_device, this->_vertex_buffer, nullptr);
                 this->_vertex_buffer = nullptr;
+            }
+
+            if (this->_texture_image) {
+                vkDestroyImage(this->_device, this->_texture_image, nullptr);
+                this->_texture_image = nullptr;
+            }
+
+            if (this->_texture_image_memory) {
+                vkFreeMemory(this->_device, this->_texture_image_memory, nullptr);
+                this->_texture_image_memory = nullptr;
             }
 
             if (this->_vertex_buffer_memory) {
