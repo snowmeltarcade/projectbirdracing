@@ -10,6 +10,7 @@
 #include <array>
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -19,7 +20,7 @@ namespace pbr::shared::apis::windowing {
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
     struct Vertex {
-        glm::vec2 pos;
+        glm::vec3 pos;
         glm::vec3 color;
         glm::vec2 texCoord;
         glm::vec2 texCoord2;
@@ -38,7 +39,7 @@ namespace pbr::shared::apis::windowing {
 
             attribute_descriptions[0].binding = 0;
             attribute_descriptions[0].location = 0;
-            attribute_descriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_descriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
             attribute_descriptions[0].offset = offsetof(Vertex, pos);
 
             attribute_descriptions[1].binding = 0;
@@ -61,14 +62,20 @@ namespace pbr::shared::apis::windowing {
     };
 
     const std::vector<Vertex> g_vertices = {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 1.0f}}
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 1.0f}},
+
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f}},
+        {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 1.0f}},
     };
 
     const std::vector<uint32_t> g_indices {
         0, 1, 2, 2, 3, 0,
+        4, 5, 6, 6, 7, 4,
     };
 
     struct uniform_buffer_object {
@@ -457,6 +464,18 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.minDepthBounds = 0.0f;
+        depthStencil.maxDepthBounds = 1.0f;
+        depthStencil.stencilTestEnable = VK_FALSE;
+        depthStencil.front = {};
+        depthStencil.back = {};
+
         VkGraphicsPipelineCreateInfo pipeline_create_info;
         memset(&pipeline_create_info, 0, sizeof(pipeline_create_info));
         pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -467,7 +486,7 @@ namespace pbr::shared::apis::windowing {
         pipeline_create_info.pViewportState = &viewport_state;
         pipeline_create_info.pRasterizationState = &rasterizer;
         pipeline_create_info.pMultisampleState = &multisampling;
-        pipeline_create_info.pDepthStencilState = nullptr;
+        pipeline_create_info.pDepthStencilState = &depthStencil;
         pipeline_create_info.pColorBlendState = &color_blending;
         pipeline_create_info.pDynamicState = nullptr;
         pipeline_create_info.layout = *pipeline_layout;
@@ -487,7 +506,7 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    bool create_render_pass(VkFormat swap_chain_image_format, VkDevice device, VkRenderPass* render_pass) {
+    bool application_window::create_render_pass(VkFormat swap_chain_image_format, VkDevice device, VkRenderPass* render_pass) {
         VkAttachmentDescription color_attachment;
         memset(&color_attachment, 0, sizeof(color_attachment));
         color_attachment.format = swap_chain_image_format;
@@ -504,26 +523,43 @@ namespace pbr::shared::apis::windowing {
         color_attachment_ref.attachment = 0;
         color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+        VkAttachmentDescription depthAttachment{};
+        depthAttachment.format = this->findDepthFormat();
+        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference depthAttachmentRef{};
+        depthAttachmentRef.attachment = 1;
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
         VkSubpassDescription subpass;
         memset(&subpass, 0, sizeof(subpass));
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &color_attachment_ref;
+        subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
         VkSubpassDependency dependency;
         memset(&dependency, 0, sizeof(dependency));
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = 0;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        std::array<VkAttachmentDescription, 2> attachments {color_attachment, depthAttachment};
 
         VkRenderPassCreateInfo render_pass_create_info;
         memset(&render_pass_create_info, 0, sizeof(render_pass_create_info));
         render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        render_pass_create_info.attachmentCount = 1;
-        render_pass_create_info.pAttachments = &color_attachment;
+        render_pass_create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+        render_pass_create_info.pAttachments = attachments.data();
         render_pass_create_info.subpassCount = 1;
         render_pass_create_info.pSubpasses = &subpass;
         render_pass_create_info.dependencyCount = 1;
@@ -537,23 +573,24 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    bool create_swap_chain_framebuffers(std::vector<VkFramebuffer>& swap_chain_framebuffers,
+    bool application_window::create_swap_chain_framebuffers(std::vector<VkFramebuffer>& swap_chain_framebuffers,
                                         const std::vector<VkImageView>& swap_chain_image_views,
                                         VkRenderPass render_pass, VkExtent2D swap_chain_extent,
                                         VkDevice device) {
         swap_chain_framebuffers.resize(swap_chain_image_views.size());
 
         for (auto i = 0u; i < swap_chain_image_views.size(); ++i) {
-            VkImageView attachments[] = {
+            std::array<VkImageView, 2> attachments {
                 swap_chain_image_views[i],
+                this->_depth_image_view,
             };
 
             VkFramebufferCreateInfo frame_buffer_info;
             memset(&frame_buffer_info, 0, sizeof(frame_buffer_info));
             frame_buffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             frame_buffer_info.renderPass = render_pass;
-            frame_buffer_info.attachmentCount = 1;
-            frame_buffer_info.pAttachments = attachments;
+            frame_buffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+            frame_buffer_info.pAttachments = attachments.data();
             frame_buffer_info.width = swap_chain_extent.width;
             frame_buffer_info.height = swap_chain_extent.height;
             frame_buffer_info.layers = 1;
@@ -619,7 +656,11 @@ namespace pbr::shared::apis::windowing {
         this->endSingleTimeCommands(commandBuffer);
     }
 
-    void application_window::transitionImageLayout(VkImage image, VkFormat /*format*/, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    bool hasStencilComponent(VkFormat format) {
+        return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+    }
+
+    void application_window::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
@@ -638,6 +679,16 @@ namespace pbr::shared::apis::windowing {
         VkPipelineStageFlags sourceStage;
         VkPipelineStageFlags destinationStage;
 
+        if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+            if (hasStencilComponent(format)) {
+                barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+            }
+        } else {
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+
         if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
             barrier.srcAccessMask = 0;
             barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -650,6 +701,12 @@ namespace pbr::shared::apis::windowing {
 
             sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         } else {
             throw std::invalid_argument("unsupported layout transition!");
         }
@@ -758,7 +815,7 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    VkImageView application_window::createImageView(VkImage image, VkFormat format) {
+    VkImageView application_window::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags) {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = image;
@@ -769,6 +826,7 @@ namespace pbr::shared::apis::windowing {
         viewInfo.subresourceRange.levelCount = 1;
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
+        viewInfo.subresourceRange.aspectMask = aspect_flags;
 
         VkImageView imageView;
         if (vkCreateImageView(this->_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
@@ -779,8 +837,8 @@ namespace pbr::shared::apis::windowing {
     }
 
     bool application_window::createTextureImageView() {
-        this->_texture_image_view = createImageView(this->_texture_image, VK_FORMAT_R8G8B8A8_SRGB);
-        this->_texture_image_view2 = createImageView(this->_texture_image2, VK_FORMAT_R8G8B8A8_SRGB);
+        this->_texture_image_view = createImageView(this->_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        this->_texture_image_view2 = createImageView(this->_texture_image2, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
         return true;
     }
 
@@ -809,6 +867,46 @@ namespace pbr::shared::apis::windowing {
         if (vkCreateSampler(this->_device, &samplerInfo, nullptr, &this->_texture_sampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
         }
+    }
+
+    void application_window::createDepthResources() {
+        VkFormat depthFormat = this->findDepthFormat();
+
+        createImage(this->_swap_chain_extent.width,
+                    this->_swap_chain_extent.height,
+                    depthFormat,
+                    VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    &this->_depth_image,
+                    &this->_depth_image_memory);
+
+        this->_depth_image_view = createImageView(this->_depth_image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+        transitionImageLayout(this->_depth_image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    }
+
+    VkFormat application_window::findDepthFormat() {
+        return this->findSupportedFormat(
+            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+        );
+    }
+
+    VkFormat application_window::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+        for (VkFormat format : candidates) {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(this->_physical_device, format, &props);
+
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+                return format;
+            } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+                return format;
+            }
+        }
+
+        throw std::runtime_error("failed to find supported format!");
     }
 
     void application_window::create_uniform_buffers() {
@@ -1217,7 +1315,8 @@ namespace pbr::shared::apis::windowing {
 
         for (auto i {0u}; i < this->_swap_chain_images.size(); ++i)  {
             this->_swap_chain_image_views[i] = this->createImageView(this->_swap_chain_images[i],
-                                                                     this->_swap_chain_format);
+                                                                     this->_swap_chain_format,
+                                                                     VK_IMAGE_ASPECT_COLOR_BIT);
         }
 
         if (!create_render_pass(this->_swap_chain_format, this->_device, &this->_render_pass)) {
@@ -1234,6 +1333,8 @@ namespace pbr::shared::apis::windowing {
             this->_log_manager->log_message("Failed to create graphics pipeline.", apis::logging::log_levels::error);
             return false;
         }
+
+        this->createDepthResources();
 
         if (!create_swap_chain_framebuffers(this->_swap_chain_framebuffers, this->_swap_chain_image_views, this->_render_pass, extent, this->_device)) {
             this->_log_manager->log_message("Failed to create swap chain framebuffers.", apis::logging::log_levels::error);
@@ -1297,9 +1398,13 @@ namespace pbr::shared::apis::windowing {
             render_pass_info.renderArea.offset = {0, 0};
             render_pass_info.renderArea.extent = this->_swap_chain_extent;
 
-            VkClearValue clear_color {{{0.0f, 0.0f, 0.8f, 1.0f}}};
-            render_pass_info.clearValueCount = 1;
-            render_pass_info.pClearValues = &clear_color;
+            std::array<VkClearValue, 2> clearValues{};
+            // this must be in the same order as the attachments in the framebuffer & render pass
+            clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+            clearValues[1].depthStencil = {1.0f, 0};
+
+            render_pass_info.clearValueCount = 2;
+            render_pass_info.pClearValues = clearValues.data();
 
             vkCmdBeginRenderPass(this->_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -1646,6 +1751,21 @@ namespace pbr::shared::apis::windowing {
             if (this->_texture_image_memory2) {
                 vkFreeMemory(this->_device, this->_texture_image_memory2, nullptr);
                 this->_texture_image_memory2 = nullptr;
+            }
+
+            if (this->_depth_image_view) {
+                vkDestroyImageView(this->_device, this->_depth_image_view, nullptr);
+                this->_depth_image_view = nullptr;
+            }
+
+            if (this->_depth_image) {
+                vkDestroyImage(this->_device, this->_depth_image, nullptr);
+                this->_depth_image = nullptr;
+            }
+
+            if (this->_depth_image_memory) {
+                vkFreeMemory(this->_device, this->_depth_image_memory, nullptr);
+                this->_depth_image_memory = nullptr;
             }
 
             if (this->_vertex_buffer_memory) {

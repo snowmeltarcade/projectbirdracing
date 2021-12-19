@@ -91,9 +91,17 @@ namespace pbr::shared::apis::windowing {
         bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory);
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
         bool create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory);
-        VkImageView createImageView(VkImage image, VkFormat format);
+        VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags);
         bool createTextureImageView();
         void createTextureSampler();
+        void createDepthResources();
+        VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+        VkFormat findDepthFormat();
+        bool create_render_pass(VkFormat swap_chain_image_format, VkDevice device, VkRenderPass* render_pass);
+        bool create_swap_chain_framebuffers(std::vector<VkFramebuffer>& swap_chain_framebuffers,
+                                            const std::vector<VkImageView>& swap_chain_image_views,
+                                            VkRenderPass render_pass, VkExtent2D swap_chain_extent,
+                                            VkDevice device);
 
         void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory);
 
@@ -139,5 +147,8 @@ namespace pbr::shared::apis::windowing {
         VkDeviceMemory _texture_image_memory2 {VK_NULL_HANDLE};
         VkImageView _texture_image_view2 {VK_NULL_HANDLE};
         VkSampler _texture_sampler {VK_NULL_HANDLE};
+        VkImage _depth_image {VK_NULL_HANDLE};
+        VkDeviceMemory _depth_image_memory {VK_NULL_HANDLE};
+        VkImageView _depth_image_view {VK_NULL_HANDLE};
     };
 }
