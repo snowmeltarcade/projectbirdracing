@@ -74,6 +74,24 @@ namespace pbr::shared::apis::windowing {
         bool create_descriptor_pool();
         bool create_descriptor_sets();
 
+        bool create_texture_image();
+        void createImage(uint32_t width,
+                         uint32_t height,
+                         VkFormat format,
+                         VkImageTiling tiling,
+                         VkImageUsageFlags usage,
+                         VkMemoryPropertyFlags properties,
+                         VkImage* image,
+                         VkDeviceMemory* imageMemory);
+
+        VkCommandBuffer beginSingleTimeCommands();
+        void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+        void copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+        void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+        bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory);
+        void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+        bool create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory);
+
         void update_uniform_buffer(uint32_t current_image_index);
 
         VkInstance _vulkan_instance {nullptr};
@@ -109,5 +127,7 @@ namespace pbr::shared::apis::windowing {
         std::vector<VkDeviceMemory> _uniform_buffers_memory;
         VkDescriptorPool _descriptor_pool {VK_NULL_HANDLE};
         std::vector<VkDescriptorSet> _descriptor_sets;
+        VkImage _texture_image {VK_NULL_HANDLE};
+        VkDeviceMemory _texture_image_memory {VK_NULL_HANDLE};
     };
 }

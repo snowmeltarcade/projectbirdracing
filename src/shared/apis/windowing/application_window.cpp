@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <SDL_vulkan.h>
+#include <SDL_image.h>
 #include <iostream>
 #include <optional>
 #include <set>
@@ -59,9 +60,9 @@ namespace pbr::shared::apis::windowing {
     };
 
     struct uniform_buffer_object {
-        glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 proj;
+        alignas(16) glm::mat4 model;
+        alignas(16) glm::mat4 view;
+        alignas(16) glm::mat4 proj;
     };
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -574,21 +575,8 @@ namespace pbr::shared::apis::windowing {
         vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
     }
 
-    void copy_buffer(VkDevice device, VkCommandPool command_pool, VkQueue graphics_queue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = command_pool;
-        allocInfo.commandBufferCount = 1;
-
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    void application_window::copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+        auto commandBuffer = this->beginSingleTimeCommands();
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0;
@@ -596,20 +584,72 @@ namespace pbr::shared::apis::windowing {
         copyRegion.size = size;
         vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-        vkEndCommandBuffer(commandBuffer);
-
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-
-        vkQueueSubmit(graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(graphics_queue);
-
-        vkFreeCommandBuffers(device, command_pool, 1, &commandBuffer);
+        this->endSingleTimeCommands(commandBuffer);
     }
 
-    bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory) {
+    void application_window::transitionImageLayout(VkImage image, VkFormat /*format*/, VkImageLayout oldLayout, VkImageLayout newLayout) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.oldLayout = oldLayout;
+        barrier.newLayout = newLayout;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = image;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        barrier.srcAccessMask = 0; // TODO
+        barrier.dstAccessMask = 0; // TODO
+
+        vkCmdPipelineBarrier(
+            commandBuffer,
+            0 /* TODO */, 0 /* TODO */,
+            0,
+            0, nullptr,
+            0, nullptr,
+            1, &barrier
+        );
+
+        endSingleTimeCommands(commandBuffer);
+    }
+
+    void application_window::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+        VkBufferImageCopy region{};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+
+        region.imageOffset = {0, 0, 0};
+        region.imageExtent = {
+            width,
+            height,
+            1
+        };
+
+        vkCmdCopyBufferToImage(
+            commandBuffer,
+            buffer,
+            image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region
+        );
+
+        endSingleTimeCommands(commandBuffer);
+    }
+
+    bool application_window::create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory) {
         VkDeviceSize buffer_size = sizeof(g_vertices[0]) * g_vertices.size();
 
         // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
@@ -625,7 +665,7 @@ namespace pbr::shared::apis::windowing {
 
         create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertex_buffer, vertex_buffer_memory);
 
-        copy_buffer(device, command_pool, graphics_queue, stagingBuffer, *vertex_buffer, buffer_size);
+        this->copy_buffer(stagingBuffer, *vertex_buffer, buffer_size);
 
         vkDestroyBuffer(device, stagingBuffer, nullptr);
         vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -633,7 +673,7 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    bool create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory) {
+    bool application_window::create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory) {
         VkDeviceSize buffer_size = sizeof(g_indices[0]) * g_indices.size();
 
         // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
@@ -649,7 +689,7 @@ namespace pbr::shared::apis::windowing {
 
         create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, index_buffer, index_buffer_memory);
 
-        copy_buffer(device, command_pool, graphics_queue, stagingBuffer, *index_buffer, buffer_size);
+        this->copy_buffer(stagingBuffer, *index_buffer, buffer_size);
 
         vkDestroyBuffer(device, stagingBuffer, nullptr);
         vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -675,15 +715,16 @@ namespace pbr::shared::apis::windowing {
     }
 
     bool application_window::create_descriptor_pool() {
-        VkDescriptorPoolSize poolSize{};
-        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize.descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size());
+        // this is to create specific descriptor types (buffers, images etc...)
+        VkDescriptorPoolSize uniform_buffer_descriptor_pool{};
+        uniform_buffer_descriptor_pool.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uniform_buffer_descriptor_pool.descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size()); // the number of actual buffer descriptors (pointers to a buffer resource) that need to be allocated at any one time
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = 1;
-        poolInfo.pPoolSizes = &poolSize;
-        poolInfo.maxSets = static_cast<uint32_t>(this->_swap_chain_images.size());
+        poolInfo.pPoolSizes = &uniform_buffer_descriptor_pool;
+        poolInfo.maxSets = static_cast<uint32_t>(this->_swap_chain_images.size()); // the maximum number of sets that will need to exist at any one time. a descriptor set is made up of multiple descriptors (pointers to a type of thing - an image, a buffer etc...)
 
         if (vkCreateDescriptorPool(this->_device, &poolInfo, nullptr, &this->_descriptor_pool) != VK_SUCCESS) {
             this->_log_manager->log_message("Failed to create descriptor pool.", apis::logging::log_levels::error);
@@ -807,6 +848,130 @@ namespace pbr::shared::apis::windowing {
         }
     }
 
+    void application_window::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* image, VkDeviceMemory* imageMemory) {
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.extent.width = width;
+        imageInfo.extent.height = height;
+        imageInfo.extent.depth = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.format = format;
+        imageInfo.tiling = tiling;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.usage = usage;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if (vkCreateImage(this->_device, &imageInfo, nullptr, image) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create image!");
+        }
+
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(this->_device, *image, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = find_memory_type(this->_physical_device, memRequirements.memoryTypeBits, properties);
+
+        if (vkAllocateMemory(this->_device, &allocInfo, nullptr, imageMemory) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate image memory!");
+        }
+
+        vkBindImageMemory(this->_device, *image, *imageMemory, 0);
+    }
+
+    bool application_window::create_texture_image() {
+        IMG_Init(IMG_INIT_PNG);
+
+        auto surface = IMG_Load("../../../data/image.png");
+
+        auto image_width = surface->w;
+        auto image_height = surface->h;
+
+        VkDeviceSize image_size = image_width * image_height * surface->format->BytesPerPixel;
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+
+        create_buffer(this->_device,
+                      this->_physical_device,
+                      image_size,
+                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      &stagingBuffer,
+                      &stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(this->_device, stagingBufferMemory, 0, image_size, 0, &data);
+        memcpy(data, surface->pixels, static_cast<size_t>(image_size));
+        vkUnmapMemory(this->_device, stagingBufferMemory);
+
+        SDL_FreeSurface(surface);
+        surface = nullptr;
+
+        this->createImage(image_width,
+                          image_height,
+                          VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_IMAGE_TILING_OPTIMAL,
+                          VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          &this->_texture_image,
+                          &this->_texture_image_memory);
+
+        this->transitionImageLayout(this->_texture_image,
+                                    VK_FORMAT_R8G8B8A8_SRGB,
+                                    VK_IMAGE_LAYOUT_UNDEFINED, // this was set in `createImage` above
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL); // the best format to copy to
+
+        this->copyBufferToImage(stagingBuffer,
+                                this->_texture_image,
+                                static_cast<uint32_t>(image_width),
+                                static_cast<uint32_t>(image_height));
+
+        this->transitionImageLayout(this->_texture_image,
+                                    VK_FORMAT_R8G8B8A8_SRGB,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); // the best format for a shader to read from
+
+        return true;
+    }
+
+    VkCommandBuffer application_window::beginSingleTimeCommands() {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = this->_command_pool;
+        allocInfo.commandBufferCount = 1;
+
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(this->_device, &allocInfo, &commandBuffer);
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+        return commandBuffer;
+    }
+
+    void application_window::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(this->_graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(this->_graphics_queue);
+
+        vkFreeCommandBuffers(this->_device, this->_command_pool, 1, &commandBuffer);
+    }
+
     bool application_window::create_swap_chain() {
         vkDeviceWaitIdle(this->_device);
 
@@ -924,12 +1089,12 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        if (!create_vertex_buffer(this->_device, this->_physical_device, this->_command_pool, this->_graphics_queue, &this->_vertex_buffer, &this->_vertex_buffer_memory)) {
+        if (!create_vertex_buffer(this->_device, this->_physical_device, &this->_vertex_buffer, &this->_vertex_buffer_memory)) {
             this->_log_manager->log_message("Failed to create vertex buffer.", apis::logging::log_levels::error);
             return false;
         }
 
-        if (!create_index_buffer(this->_device, this->_physical_device, this->_command_pool, this->_graphics_queue, &this->_index_buffer, &this->_index_buffer_memory)) {
+        if (!create_index_buffer(this->_device, this->_physical_device, &this->_index_buffer, &this->_index_buffer_memory)) {
             this->_log_manager->log_message("Failed to create index buffer.", apis::logging::log_levels::error);
             return false;
         }
@@ -1220,6 +1385,11 @@ namespace pbr::shared::apis::windowing {
 
         if (vkCreateCommandPool(this->_device, &pool_info, nullptr, &this->_command_pool) != VK_SUCCESS) {
             this->_log_manager->log_message("Failed to create command pool.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!this->create_texture_image()) {
+            this->_log_manager->log_message("Failed to create texture image.", apis::logging::log_levels::error);
             return false;
         }
 
