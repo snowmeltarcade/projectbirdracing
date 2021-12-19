@@ -9,7 +9,60 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
 namespace pbr::shared::apis::windowing {
+    struct Vertex {
+        glm::vec3 pos;
+        glm::vec3 color;
+        glm::vec2 texCoord;
+        glm::vec2 texCoord2;
+
+        bool operator==(const Vertex& other) const {
+            return pos == other.pos && color == other.color && texCoord == other.texCoord;
+        }
+
+        static VkVertexInputBindingDescription get_binding_description() {
+            VkVertexInputBindingDescription binding_description{};
+            binding_description.binding = 0;
+            binding_description.stride = sizeof(Vertex);
+            binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+            return binding_description;
+        }
+
+        static std::array<VkVertexInputAttributeDescription, 4> get_attribute_descriptions() {
+            std::array<VkVertexInputAttributeDescription, 4> attribute_descriptions{};
+
+            attribute_descriptions[0].binding = 0;
+            attribute_descriptions[0].location = 0;
+            attribute_descriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            attribute_descriptions[0].offset = offsetof(Vertex, pos);
+
+            attribute_descriptions[1].binding = 0;
+            attribute_descriptions[1].location = 1;
+            attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            attribute_descriptions[1].offset = offsetof(Vertex, color);
+
+            attribute_descriptions[2].binding = 0;
+            attribute_descriptions[2].location = 2;
+            attribute_descriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_descriptions[2].offset = offsetof(Vertex, texCoord);
+
+            attribute_descriptions[3].binding = 0;
+            attribute_descriptions[3].location = 3;
+            attribute_descriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_descriptions[3].offset = offsetof(Vertex, texCoord2);
+
+            return attribute_descriptions;
+        }
+    };
+
     /// An application window can either be in windowed or full screen mode. This window will
     /// contain the render surface
     class application_window : public iapplication_window {
@@ -88,9 +141,17 @@ namespace pbr::shared::apis::windowing {
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
         void copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
         void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-        bool create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory);
+        bool create_vertex_buffer(VkDevice device,
+                                  VkPhysicalDevice physical_device,
+                                  VkBuffer* vertex_buffer,
+                                  VkDeviceMemory* vertex_buffer_memory,
+                                  const std::vector<Vertex>& vertices);
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-        bool create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory);
+        bool create_index_buffer(VkDevice device,
+                                 VkPhysicalDevice physical_device,
+                                 VkBuffer* index_buffer,
+                                 VkDeviceMemory* index_buffer_memory,
+                                 const std::vector<uint32_t>& indices);
         VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags);
         bool createTextureImageView();
         void createTextureSampler();
@@ -104,6 +165,8 @@ namespace pbr::shared::apis::windowing {
                                             VkDevice device);
 
         void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory);
+
+        void load_model();
 
         void update_uniform_buffer(uint32_t current_image_index);
 
@@ -150,5 +213,25 @@ namespace pbr::shared::apis::windowing {
         VkImage _depth_image {VK_NULL_HANDLE};
         VkDeviceMemory _depth_image_memory {VK_NULL_HANDLE};
         VkImageView _depth_image_view {VK_NULL_HANDLE};
+        VkImage _texture_image3 {VK_NULL_HANDLE};
+        VkDeviceMemory _texture_image_memory3 {VK_NULL_HANDLE};
+        VkImageView _texture_image_view3 {VK_NULL_HANDLE};
+
+        std::vector<Vertex> _model_verticies;
+        std::vector<uint32_t> _model_indices;
+        VkBuffer _model_vertex_buffer {VK_NULL_HANDLE};
+        VkDeviceMemory _model_vertex_buffer_memory  {VK_NULL_HANDLE};
+        VkBuffer _model_index_buffer {VK_NULL_HANDLE};
+        VkDeviceMemory _model_index_buffer_memory {VK_NULL_HANDLE};
+    };
+}
+
+namespace std {
+    template<> struct hash<pbr::shared::apis::windowing::Vertex> {
+        size_t operator()(pbr::shared::apis::windowing::Vertex const& vertex) const {
+            return ((hash<glm::vec3>()(vertex.pos) ^
+                     (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+                   (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
     };
 }

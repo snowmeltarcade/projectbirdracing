@@ -1,4 +1,6 @@
 #include "application_window.h"
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
 
 #include <algorithm>
 #include <SDL_vulkan.h>
@@ -8,58 +10,11 @@
 #include <set>
 #include <fstream>
 #include <array>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <chrono>
+#include <unordered_map>
 
 namespace pbr::shared::apis::windowing {
     const int MAX_FRAMES_IN_FLIGHT = 2;
-
-    struct Vertex {
-        glm::vec3 pos;
-        glm::vec3 color;
-        glm::vec2 texCoord;
-        glm::vec2 texCoord2;
-
-        static VkVertexInputBindingDescription get_binding_description() {
-            VkVertexInputBindingDescription binding_description{};
-            binding_description.binding = 0;
-            binding_description.stride = sizeof(Vertex);
-            binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-            return binding_description;
-        }
-
-        static std::array<VkVertexInputAttributeDescription, 4> get_attribute_descriptions() {
-            std::array<VkVertexInputAttributeDescription, 4> attribute_descriptions{};
-
-            attribute_descriptions[0].binding = 0;
-            attribute_descriptions[0].location = 0;
-            attribute_descriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attribute_descriptions[0].offset = offsetof(Vertex, pos);
-
-            attribute_descriptions[1].binding = 0;
-            attribute_descriptions[1].location = 1;
-            attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attribute_descriptions[1].offset = offsetof(Vertex, color);
-
-            attribute_descriptions[2].binding = 0;
-            attribute_descriptions[2].location = 2;
-            attribute_descriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-            attribute_descriptions[2].offset = offsetof(Vertex, texCoord);
-
-            attribute_descriptions[3].binding = 0;
-            attribute_descriptions[3].location = 3;
-            attribute_descriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
-            attribute_descriptions[3].offset = offsetof(Vertex, texCoord2);
-
-            return attribute_descriptions;
-        }
-    };
 
     const std::vector<Vertex> g_vertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},
@@ -755,8 +710,12 @@ namespace pbr::shared::apis::windowing {
         endSingleTimeCommands(commandBuffer);
     }
 
-    bool application_window::create_vertex_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* vertex_buffer, VkDeviceMemory* vertex_buffer_memory) {
-        VkDeviceSize buffer_size = sizeof(g_vertices[0]) * g_vertices.size();
+    bool application_window::create_vertex_buffer(VkDevice device,
+                                                  VkPhysicalDevice physical_device,
+                                                  VkBuffer* vertex_buffer,
+                                                  VkDeviceMemory* vertex_buffer_memory,
+                                                  const std::vector<Vertex>& vertices) {
+        VkDeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
 
         // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
         // the shared buffer is technically fine to use, but not as performant
@@ -772,7 +731,7 @@ namespace pbr::shared::apis::windowing {
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, buffer_size, 0, &data);
-        memcpy(data, g_vertices.data(), (size_t) buffer_size);
+        memcpy(data, vertices.data(), (size_t)buffer_size);
         vkUnmapMemory(device, stagingBufferMemory);
 
         create_buffer(device,
@@ -791,8 +750,8 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    bool application_window::create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory) {
-        VkDeviceSize buffer_size = sizeof(g_indices[0]) * g_indices.size();
+    bool application_window::create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory, const std::vector<uint32_t>& indices) {
+        VkDeviceSize buffer_size = sizeof(indices[0]) * indices.size();
 
         // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
         // the shared buffer is technically fine to use, but not as performant
@@ -802,7 +761,7 @@ namespace pbr::shared::apis::windowing {
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, buffer_size, 0, &data);
-        memcpy(data, g_indices.data(), (size_t) buffer_size);
+        memcpy(data, indices.data(), (size_t) buffer_size);
         vkUnmapMemory(device, stagingBufferMemory);
 
         create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, index_buffer, index_buffer_memory);
@@ -839,6 +798,7 @@ namespace pbr::shared::apis::windowing {
     bool application_window::createTextureImageView() {
         this->_texture_image_view = createImageView(this->_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
         this->_texture_image_view2 = createImageView(this->_texture_image2, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        this->_texture_image_view3 = createImageView(this->_texture_image3, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
         return true;
     }
 
@@ -973,7 +933,8 @@ namespace pbr::shared::apis::windowing {
             std::array<VkDescriptorImageInfo, 2> image_infos;
 
             image_infos[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            image_infos[0].imageView = this->_texture_image_view;
+            //image_infos[0].imageView = this->_texture_image_view;
+            image_infos[0].imageView = this->_texture_image_view3; // the model
             image_infos[0].sampler = this->_texture_sampler;
 
             image_infos[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -1197,11 +1158,52 @@ namespace pbr::shared::apis::windowing {
         vkFreeMemory(this->_device, stagingBufferMemory, nullptr);
     }
 
+    void application_window::load_model() {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string err;
+
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "../../../data/viking_room.obj")) {
+            throw std::runtime_error(err);
+        }
+
+        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                Vertex vertex{};
+
+                vertex.pos = {
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2],
+                };
+
+                vertex.texCoord = {
+                    attrib.texcoords[2 * index.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1], // vulkan and the obj model format require opposite image V coords
+                };
+
+                vertex.color = {1.0f, 1.0f, 1.0f};
+
+                if (uniqueVertices.count(vertex) == 0) {
+                    uniqueVertices[vertex] = static_cast<uint32_t>(this->_model_verticies.size());
+                    this->_model_verticies.push_back(vertex);
+                }
+
+                this->_model_indices.push_back(uniqueVertices[vertex]);
+            }
+        }
+    }
+
     bool application_window::create_texture_image() {
         IMG_Init(IMG_INIT_PNG);
 
         this->load_image("../../../data/image.png", &this->_texture_image, &this->_texture_image_memory);
         this->load_image("../../../data/image2.png", &this->_texture_image2, &this->_texture_image_memory2);
+
+        this->load_image("../../../data/viking_room.png", &this->_texture_image3, &this->_texture_image_memory3);
 
         return true;
     }
@@ -1341,13 +1343,39 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        if (!create_vertex_buffer(this->_device, this->_physical_device, &this->_vertex_buffer, &this->_vertex_buffer_memory)) {
+        if (!this->create_vertex_buffer(this->_device,
+                                        this->_physical_device,
+                                        &this->_vertex_buffer,
+                                        &this->_vertex_buffer_memory,
+                                        g_vertices)) {
             this->_log_manager->log_message("Failed to create vertex buffer.", apis::logging::log_levels::error);
             return false;
         }
 
-        if (!create_index_buffer(this->_device, this->_physical_device, &this->_index_buffer, &this->_index_buffer_memory)) {
+        if (!this->create_vertex_buffer(this->_device,
+                                        this->_physical_device,
+                                        &this->_model_vertex_buffer,
+                                        &this->_model_vertex_buffer_memory,
+                                        this->_model_verticies)) {
+            this->_log_manager->log_message("Failed to create vertex buffer.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!this->create_index_buffer(this->_device,
+                                       this->_physical_device,
+                                       &this->_index_buffer,
+                                       &this->_index_buffer_memory,
+                                       g_indices)) {
             this->_log_manager->log_message("Failed to create index buffer.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!this->create_index_buffer(this->_device,
+                                       this->_physical_device,
+                                       &this->_model_index_buffer,
+                                       &this->_model_index_buffer_memory,
+                                       this->_model_indices)) {
+            this->_log_manager->log_message("Failed to create model index buffer.", apis::logging::log_levels::error);
             return false;
         }
 
@@ -1406,19 +1434,72 @@ namespace pbr::shared::apis::windowing {
             render_pass_info.clearValueCount = 2;
             render_pass_info.pClearValues = clearValues.data();
 
-            vkCmdBeginRenderPass(this->_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+            vkCmdBeginRenderPass(this->_command_buffers[i],
+                                 &render_pass_info,
+                                 VK_SUBPASS_CONTENTS_INLINE);
 
-            vkCmdBindPipeline(this->_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, this->_graphics_pipeline);
+            vkCmdBindPipeline(this->_command_buffers[i],
+                              VK_PIPELINE_BIND_POINT_GRAPHICS,
+                              this->_graphics_pipeline);
 
-            VkBuffer vertex_buffers[] = {this->_vertex_buffer};
+            std::array<VkBuffer, 2> vertex_buffers {this->_vertex_buffer, this->_model_vertex_buffer};
             VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(this->_command_buffers[i], 0, 1, vertex_buffers, offsets);
 
-            vkCmdBindIndexBuffer(this->_command_buffers[i], this->_index_buffer, 0, VK_INDEX_TYPE_UINT32);
+            // the squares
+            vkCmdBindVertexBuffers(this->_command_buffers[i],
+                                   0,
+                                   1,
+                                   &vertex_buffers[0],
+                                   offsets);
 
-            vkCmdBindDescriptorSets(this->_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, this->_pipeline_layout, 0, 1, &this->_descriptor_sets[i], 0, nullptr);
+            vkCmdBindIndexBuffer(this->_command_buffers[i],
+                                 this->_index_buffer,
+                                 0,
+                                 VK_INDEX_TYPE_UINT32);
 
-            vkCmdDrawIndexed(this->_command_buffers[i], static_cast<uint32_t>(g_indices.size()), 1, 0, 0, 0);
+            vkCmdBindDescriptorSets(this->_command_buffers[i],
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    this->_pipeline_layout,
+                                    0,
+                                    1,
+                                    &this->_descriptor_sets[i],
+                                    0,
+                                    nullptr);
+
+            vkCmdDrawIndexed(this->_command_buffers[i],
+                             static_cast<uint32_t>(g_indices.size()),
+                             1,
+                             0,
+                             0,
+                             0);
+
+            // the model
+            vkCmdBindVertexBuffers(this->_command_buffers[i],
+                                   0,
+                                   1,
+                                   &vertex_buffers[1],
+                                   offsets);
+
+            vkCmdBindIndexBuffer(this->_command_buffers[i],
+                                 this->_model_index_buffer,
+                                 0,
+                                 VK_INDEX_TYPE_UINT32);
+
+            vkCmdBindDescriptorSets(this->_command_buffers[i],
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    this->_pipeline_layout,
+                                    0,
+                                    1,
+                                    &this->_descriptor_sets[i],
+                                    0,
+                                    nullptr);
+
+            vkCmdDrawIndexed(this->_command_buffers[i],
+                             static_cast<uint32_t>(this->_model_indices.size()),
+                             1,
+                             0,
+                             0,
+                             0);
 
             vkCmdEndRenderPass(this->_command_buffers[i]);
 
@@ -1657,6 +1738,8 @@ namespace pbr::shared::apis::windowing {
 
         this->createTextureSampler();
 
+        this->load_model();
+
         if (!this->create_swap_chain()) {
             this->_log_manager->log_message("Failed to create swap chain.", apis::logging::log_levels::error);
             return false;
@@ -1753,6 +1836,21 @@ namespace pbr::shared::apis::windowing {
                 this->_texture_image_memory2 = nullptr;
             }
 
+            if (this->_texture_image_view3) {
+                vkDestroyImageView(this->_device, this->_texture_image_view3, nullptr);
+                this->_texture_image_view3 = nullptr;
+            }
+
+            if (this->_texture_image3) {
+                vkDestroyImage(this->_device, this->_texture_image3, nullptr);
+                this->_texture_image3 = nullptr;
+            }
+
+            if (this->_texture_image_memory3) {
+                vkFreeMemory(this->_device, this->_texture_image_memory3, nullptr);
+                this->_texture_image_memory3 = nullptr;
+            }
+
             if (this->_depth_image_view) {
                 vkDestroyImageView(this->_device, this->_depth_image_view, nullptr);
                 this->_depth_image_view = nullptr;
@@ -1781,6 +1879,26 @@ namespace pbr::shared::apis::windowing {
             if (this->_index_buffer_memory) {
                 vkFreeMemory(this->_device, this->_index_buffer_memory, nullptr);
                 this->_index_buffer_memory = nullptr;
+            }
+
+            if (this->_model_vertex_buffer) {
+                vkDestroyBuffer(this->_device, this->_model_vertex_buffer, nullptr);
+                this->_model_vertex_buffer = nullptr;
+            }
+
+            if (this->_model_vertex_buffer_memory) {
+                vkFreeMemory(this->_device, this->_model_vertex_buffer_memory, nullptr);
+                this->_model_vertex_buffer_memory = nullptr;
+            }
+
+            if (this->_model_index_buffer) {
+                vkDestroyBuffer(this->_device, this->_model_index_buffer, nullptr);
+                this->_model_index_buffer = nullptr;
+            }
+
+            if (this->_model_index_buffer_memory) {
+                vkFreeMemory(this->_device, this->_model_index_buffer_memory, nullptr);
+                this->_model_index_buffer_memory = nullptr;
             }
 
             if (this->_command_pool) {

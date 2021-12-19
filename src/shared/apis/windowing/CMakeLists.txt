@@ -7,6 +7,7 @@ target_sources(
         iwindow_manager.h
         console_window.h
         window_manager.h
+        tiny_obj_loader.h
     PRIVATE
         application_window.cpp
         console_window.cpp
