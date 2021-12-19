@@ -1025,10 +1025,18 @@ namespace pbr::shared::apis::windowing {
 
         auto surface = IMG_Load("../../../data/image.png");
 
-        auto image_width = surface->w;
-        auto image_height = surface->h;
+        // ensure the image is in a format we want to deal with
+        auto format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA32);
+        auto surfaceRGBA = SDL_ConvertSurface(surface, format, 0);
+        SDL_FreeFormat(format);
 
-        VkDeviceSize image_size = image_width * image_height * surface->format->BytesPerPixel;
+        SDL_FreeSurface(surface);
+        surface = nullptr;
+
+        auto image_width = surfaceRGBA->w;
+        auto image_height = surfaceRGBA->h;
+
+        VkDeviceSize image_size = image_width * image_height * surfaceRGBA->format->BytesPerPixel;
 
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -1043,15 +1051,15 @@ namespace pbr::shared::apis::windowing {
 
         void* data;
         vkMapMemory(this->_device, stagingBufferMemory, 0, image_size, 0, &data);
-        memcpy(data, surface->pixels, static_cast<size_t>(image_size));
+        memcpy(data, surfaceRGBA->pixels, static_cast<size_t>(image_size));
         vkUnmapMemory(this->_device, stagingBufferMemory);
 
-        SDL_FreeSurface(surface);
-        surface = nullptr;
+        SDL_FreeSurface(surfaceRGBA);
+        surfaceRGBA = nullptr;
 
         this->createImage(image_width,
                           image_height,
-                          VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_FORMAT_R8G8B8A8_SRGB, // this should really come from the image itself
                           VK_IMAGE_TILING_OPTIMAL,
                           VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
