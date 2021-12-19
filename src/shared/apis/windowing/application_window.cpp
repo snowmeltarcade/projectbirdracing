@@ -22,6 +22,7 @@ namespace pbr::shared::apis::windowing {
         glm::vec2 pos;
         glm::vec3 color;
         glm::vec2 texCoord;
+        glm::vec2 texCoord2;
 
         static VkVertexInputBindingDescription get_binding_description() {
             VkVertexInputBindingDescription binding_description{};
@@ -32,8 +33,8 @@ namespace pbr::shared::apis::windowing {
             return binding_description;
         }
 
-        static std::array<VkVertexInputAttributeDescription, 3> get_attribute_descriptions() {
-            std::array<VkVertexInputAttributeDescription, 3> attribute_descriptions{};
+        static std::array<VkVertexInputAttributeDescription, 4> get_attribute_descriptions() {
+            std::array<VkVertexInputAttributeDescription, 4> attribute_descriptions{};
 
             attribute_descriptions[0].binding = 0;
             attribute_descriptions[0].location = 0;
@@ -50,15 +51,20 @@ namespace pbr::shared::apis::windowing {
             attribute_descriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
             attribute_descriptions[2].offset = offsetof(Vertex, texCoord);
 
+            attribute_descriptions[3].binding = 0;
+            attribute_descriptions[3].location = 3;
+            attribute_descriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_descriptions[3].offset = offsetof(Vertex, texCoord2);
+
             return attribute_descriptions;
         }
     };
 
     const std::vector<Vertex> g_vertices = {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 1.0f}}
     };
 
     const std::vector<uint32_t> g_indices {
@@ -301,7 +307,14 @@ namespace pbr::shared::apis::windowing {
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+        VkDescriptorSetLayoutBinding samplerLayoutBinding2{};
+        samplerLayoutBinding2.binding = 2;
+        samplerLayoutBinding2.descriptorCount = 1;
+        samplerLayoutBinding2.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding2.pImmutableSamplers = nullptr;
+        samplerLayoutBinding2.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 3> bindings {uboLayoutBinding, samplerLayoutBinding, samplerLayoutBinding2};
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -767,6 +780,7 @@ namespace pbr::shared::apis::windowing {
 
     bool application_window::createTextureImageView() {
         this->_texture_image_view = createImageView(this->_texture_image, VK_FORMAT_R8G8B8A8_SRGB);
+        this->_texture_image_view2 = createImageView(this->_texture_image2, VK_FORMAT_R8G8B8A8_SRGB);
         return true;
     }
 
@@ -821,7 +835,7 @@ namespace pbr::shared::apis::windowing {
         poolSizes[0].descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size());
 
         poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSizes[1].descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size());
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(this->_swap_chain_images.size() * 2); // we have two textures per set
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -858,23 +872,17 @@ namespace pbr::shared::apis::windowing {
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(uniform_buffer_object);
 
-            VkDescriptorImageInfo imageInfo{};
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = this->_texture_image_view;
-            imageInfo.sampler = this->_texture_sampler;
+            std::array<VkDescriptorImageInfo, 2> image_infos;
 
-            VkWriteDescriptorSet descriptorWrite{};
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = this->_descriptor_sets[i];
-            descriptorWrite.dstBinding = 0; // the binding in the shader
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pBufferInfo = &bufferInfo;
-            descriptorWrite.pImageInfo = nullptr;
-            descriptorWrite.pTexelBufferView = nullptr;
+            image_infos[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            image_infos[0].imageView = this->_texture_image_view;
+            image_infos[0].sampler = this->_texture_sampler;
 
-            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            image_infos[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            image_infos[1].imageView = this->_texture_image_view2;
+            image_infos[1].sampler = this->_texture_sampler;
+
+            std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = this->_descriptor_sets[i];
@@ -890,7 +898,15 @@ namespace pbr::shared::apis::windowing {
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorWrites[1].descriptorCount = 1;
-            descriptorWrites[1].pImageInfo = &imageInfo;
+            descriptorWrites[1].pImageInfo = &image_infos[0];
+
+            descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[2].dstSet = this->_descriptor_sets[i];
+            descriptorWrites[2].dstBinding = 2;
+            descriptorWrites[2].dstArrayElement = 0;
+            descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[2].descriptorCount = 1;
+            descriptorWrites[2].pImageInfo = &image_infos[1];
 
             vkUpdateDescriptorSets(this->_device,
                                    static_cast<uint32_t>(descriptorWrites.size()),
@@ -1020,10 +1036,8 @@ namespace pbr::shared::apis::windowing {
         vkBindImageMemory(this->_device, *image, *imageMemory, 0);
     }
 
-    bool application_window::create_texture_image() {
-        IMG_Init(IMG_INIT_PNG);
-
-        auto surface = IMG_Load("../../../data/image.png");
+    void application_window::load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory) {
+        auto surface = IMG_Load(path.c_str());
 
         // ensure the image is in a format we want to deal with
         auto format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA32);
@@ -1063,26 +1077,33 @@ namespace pbr::shared::apis::windowing {
                           VK_IMAGE_TILING_OPTIMAL,
                           VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                          &this->_texture_image,
-                          &this->_texture_image_memory);
+                          image,
+                          image_memory);
 
-        this->transitionImageLayout(this->_texture_image,
+        this->transitionImageLayout(*image,
                                     VK_FORMAT_R8G8B8A8_SRGB,
                                     VK_IMAGE_LAYOUT_UNDEFINED, // this was set in `createImage` above
                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL); // the best format to copy to
 
         this->copyBufferToImage(stagingBuffer,
-                                this->_texture_image,
+                                *image,
                                 static_cast<uint32_t>(image_width),
                                 static_cast<uint32_t>(image_height));
 
-        this->transitionImageLayout(this->_texture_image,
+        this->transitionImageLayout(*image,
                                     VK_FORMAT_R8G8B8A8_SRGB,
                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); // the best format for a shader to read from
 
         vkDestroyBuffer(this->_device, stagingBuffer, nullptr);
         vkFreeMemory(this->_device, stagingBufferMemory, nullptr);
+    }
+
+    bool application_window::create_texture_image() {
+        IMG_Init(IMG_INIT_PNG);
+
+        this->load_image("../../../data/image.png", &this->_texture_image, &this->_texture_image_memory);
+        this->load_image("../../../data/image2.png", &this->_texture_image2, &this->_texture_image_memory2);
 
         return true;
     }
@@ -1610,6 +1631,21 @@ namespace pbr::shared::apis::windowing {
             if (this->_texture_image_memory) {
                 vkFreeMemory(this->_device, this->_texture_image_memory, nullptr);
                 this->_texture_image_memory = nullptr;
+            }
+
+            if (this->_texture_image_view2) {
+                vkDestroyImageView(this->_device, this->_texture_image_view2, nullptr);
+                this->_texture_image_view2 = nullptr;
+            }
+
+            if (this->_texture_image2) {
+                vkDestroyImage(this->_device, this->_texture_image2, nullptr);
+                this->_texture_image2 = nullptr;
+            }
+
+            if (this->_texture_image_memory2) {
+                vkFreeMemory(this->_device, this->_texture_image_memory2, nullptr);
+                this->_texture_image_memory2 = nullptr;
             }
 
             if (this->_vertex_buffer_memory) {

@@ -95,6 +95,8 @@ namespace pbr::shared::apis::windowing {
         bool createTextureImageView();
         void createTextureSampler();
 
+        void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory);
+
         void update_uniform_buffer(uint32_t current_image_index);
 
         VkInstance _vulkan_instance {nullptr};
@@ -133,6 +135,9 @@ namespace pbr::shared::apis::windowing {
         VkImage _texture_image {VK_NULL_HANDLE};
         VkDeviceMemory _texture_image_memory {VK_NULL_HANDLE};
         VkImageView _texture_image_view {VK_NULL_HANDLE};
+        VkImage _texture_image2 {VK_NULL_HANDLE};
+        VkDeviceMemory _texture_image_memory2 {VK_NULL_HANDLE};
+        VkImageView _texture_image_view2 {VK_NULL_HANDLE};
         VkSampler _texture_sampler {VK_NULL_HANDLE};
     };
 }
