@@ -130,6 +130,7 @@ namespace pbr::shared::apis::windowing {
         bool create_texture_image();
         void createImage(uint32_t width,
                          uint32_t height,
+                         uint32_t mip_levels,
                          VkFormat format,
                          VkImageTiling tiling,
                          VkImageUsageFlags usage,
@@ -140,7 +141,7 @@ namespace pbr::shared::apis::windowing {
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
         void copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-        void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+        void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mip_levels);
         bool create_vertex_buffer(VkDevice device,
                                   VkPhysicalDevice physical_device,
                                   VkBuffer* vertex_buffer,
@@ -152,7 +153,7 @@ namespace pbr::shared::apis::windowing {
                                  VkBuffer* index_buffer,
                                  VkDeviceMemory* index_buffer_memory,
                                  const std::vector<uint32_t>& indices);
-        VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags);
+        VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels);
         bool createTextureImageView();
         void createTextureSampler();
         void createDepthResources();
@@ -163,8 +164,9 @@ namespace pbr::shared::apis::windowing {
                                             const std::vector<VkImageView>& swap_chain_image_views,
                                             VkRenderPass render_pass, VkExtent2D swap_chain_extent,
                                             VkDevice device);
+        void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
-        void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory);
+        void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory, uint32_t& mip_levels);
 
         void load_model();
 
@@ -203,9 +205,13 @@ namespace pbr::shared::apis::windowing {
         std::vector<VkDeviceMemory> _uniform_buffers_memory;
         VkDescriptorPool _descriptor_pool {VK_NULL_HANDLE};
         std::vector<VkDescriptorSet> _descriptor_sets;
+
+        uint32_t _mip_levels1 {1};
         VkImage _texture_image {VK_NULL_HANDLE};
         VkDeviceMemory _texture_image_memory {VK_NULL_HANDLE};
         VkImageView _texture_image_view {VK_NULL_HANDLE};
+
+        uint32_t _mip_levels2 {1};
         VkImage _texture_image2 {VK_NULL_HANDLE};
         VkDeviceMemory _texture_image_memory2 {VK_NULL_HANDLE};
         VkImageView _texture_image_view2 {VK_NULL_HANDLE};
@@ -213,6 +219,8 @@ namespace pbr::shared::apis::windowing {
         VkImage _depth_image {VK_NULL_HANDLE};
         VkDeviceMemory _depth_image_memory {VK_NULL_HANDLE};
         VkImageView _depth_image_view {VK_NULL_HANDLE};
+
+        uint32_t _mip_levels3 {1};
         VkImage _texture_image3 {VK_NULL_HANDLE};
         VkDeviceMemory _texture_image_memory3 {VK_NULL_HANDLE};
         VkImageView _texture_image_view3 {VK_NULL_HANDLE};

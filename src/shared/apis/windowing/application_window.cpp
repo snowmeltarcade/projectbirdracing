@@ -615,7 +615,7 @@ namespace pbr::shared::apis::windowing {
         return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
-    void application_window::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    void application_window::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mip_levels) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
@@ -627,7 +627,7 @@ namespace pbr::shared::apis::windowing {
         barrier.image = image;
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.levelCount = mip_levels;
         barrier.subresourceRange.baseArrayLayer = 0;
         barrier.subresourceRange.layerCount = 1;
 
@@ -774,7 +774,7 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    VkImageView application_window::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags) {
+    VkImageView application_window::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = image;
@@ -782,7 +782,7 @@ namespace pbr::shared::apis::windowing {
         viewInfo.format = format;
         viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.levelCount = mip_levels;
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
         viewInfo.subresourceRange.aspectMask = aspect_flags;
@@ -796,9 +796,9 @@ namespace pbr::shared::apis::windowing {
     }
 
     bool application_window::createTextureImageView() {
-        this->_texture_image_view = createImageView(this->_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-        this->_texture_image_view2 = createImageView(this->_texture_image2, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-        this->_texture_image_view3 = createImageView(this->_texture_image3, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        this->_texture_image_view = createImageView(this->_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, this->_mip_levels1);
+        this->_texture_image_view2 = createImageView(this->_texture_image2, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, this->_mip_levels2);
+        this->_texture_image_view3 = createImageView(this->_texture_image3, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, this->_mip_levels3);
         return true;
     }
 
@@ -822,7 +822,7 @@ namespace pbr::shared::apis::windowing {
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
         samplerInfo.mipLodBias = 0.0f;
         samplerInfo.minLod = 0.0f;
-        samplerInfo.maxLod = 0.0f;
+        samplerInfo.maxLod = static_cast<float>(this->_mip_levels3); // I guess we would need one sampler per texture, or texture size, as this value will be different for each texture size
 
         if (vkCreateSampler(this->_device, &samplerInfo, nullptr, &this->_texture_sampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
@@ -834,6 +834,7 @@ namespace pbr::shared::apis::windowing {
 
         createImage(this->_swap_chain_extent.width,
                     this->_swap_chain_extent.height,
+                    1,
                     depthFormat,
                     VK_IMAGE_TILING_OPTIMAL,
                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -841,9 +842,9 @@ namespace pbr::shared::apis::windowing {
                     &this->_depth_image,
                     &this->_depth_image_memory);
 
-        this->_depth_image_view = createImageView(this->_depth_image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+        this->_depth_image_view = createImageView(this->_depth_image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
-        transitionImageLayout(this->_depth_image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        transitionImageLayout(this->_depth_image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
     }
 
     VkFormat application_window::findDepthFormat() {
@@ -1055,6 +1056,7 @@ namespace pbr::shared::apis::windowing {
 
     void application_window::createImage(uint32_t width,
                                          uint32_t height,
+                                         uint32_t mip_levels,
                                          VkFormat format,
                                          VkImageTiling tiling,
                                          VkImageUsageFlags usage,
@@ -1067,7 +1069,7 @@ namespace pbr::shared::apis::windowing {
         imageInfo.extent.width = width;
         imageInfo.extent.height = height;
         imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = 1;
+        imageInfo.mipLevels = mip_levels;
         imageInfo.arrayLayers = 1;
         imageInfo.format = format;
         imageInfo.tiling = tiling;
@@ -1095,7 +1097,7 @@ namespace pbr::shared::apis::windowing {
         vkBindImageMemory(this->_device, *image, *imageMemory, 0);
     }
 
-    void application_window::load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory) {
+    void application_window::load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory, uint32_t& mip_levels) {
         auto surface = IMG_Load(path.c_str());
 
         // ensure the image is in a format we want to deal with
@@ -1108,6 +1110,8 @@ namespace pbr::shared::apis::windowing {
 
         auto image_width = surfaceRGBA->w;
         auto image_height = surfaceRGBA->h;
+
+        mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(image_width, image_height)))) + 1;
 
         VkDeviceSize image_size = image_width * image_height * surfaceRGBA->format->BytesPerPixel;
 
@@ -1132,9 +1136,10 @@ namespace pbr::shared::apis::windowing {
 
         this->createImage(image_width,
                           image_height,
+                          mip_levels,
                           VK_FORMAT_R8G8B8A8_SRGB, // this should really come from the image itself
                           VK_IMAGE_TILING_OPTIMAL,
-                          VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                          VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                           image,
                           image_memory);
@@ -1142,20 +1147,120 @@ namespace pbr::shared::apis::windowing {
         this->transitionImageLayout(*image,
                                     VK_FORMAT_R8G8B8A8_SRGB,
                                     VK_IMAGE_LAYOUT_UNDEFINED, // this was set in `createImage` above
-                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL); // the best format to copy to
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    mip_levels); // the best format to copy to
 
         this->copyBufferToImage(stagingBuffer,
                                 *image,
                                 static_cast<uint32_t>(image_width),
                                 static_cast<uint32_t>(image_height));
 
-        this->transitionImageLayout(*image,
-                                    VK_FORMAT_R8G8B8A8_SRGB,
-                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); // the best format for a shader to read from
+        // this is done after blitting each mipmap level
+//        this->transitionImageLayout(*image,
+//                                    VK_FORMAT_R8G8B8A8_SRGB,
+//                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+//                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+//                                    mip_levels); // the best format for a shader to read from
+        this->generateMipmaps(*image, VK_FORMAT_R8G8B8A8_SRGB, image_width, image_height, mip_levels);
 
         vkDestroyBuffer(this->_device, stagingBuffer, nullptr);
         vkFreeMemory(this->_device, stagingBufferMemory, nullptr);
+    }
+
+    void application_window::generateMipmaps(VkImage image,
+                                             VkFormat imageFormat,
+                                             int32_t texWidth,
+                                             int32_t texHeight,
+                                             uint32_t mipLevels) {
+        VkFormatProperties formatProperties;
+        vkGetPhysicalDeviceFormatProperties(this->_physical_device, imageFormat, &formatProperties);
+
+        if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
+            throw std::runtime_error("texture image format does not support linear blitting!");
+        }
+
+        VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
+
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.image = image;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        barrier.subresourceRange.levelCount = 1;
+
+        int32_t mipWidth = texWidth;
+        int32_t mipHeight = texHeight;
+
+        for (auto i {1u}; i < mipLevels; ++i) {
+            barrier.subresourceRange.baseMipLevel = i - 1;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+            vkCmdPipelineBarrier(commandBuffer,
+                                 VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+                                 0, nullptr,
+                                 0, nullptr,
+                                 1, &barrier);
+
+            VkImageBlit blit{};
+            blit.srcOffsets[0] = { 0, 0, 0 };
+            blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
+            blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit.srcSubresource.mipLevel = i - 1;
+            blit.srcSubresource.baseArrayLayer = 0;
+            blit.srcSubresource.layerCount = 1;
+            blit.dstOffsets[0] = { 0, 0, 0 };
+            blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
+            blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit.dstSubresource.mipLevel = i;
+            blit.dstSubresource.baseArrayLayer = 0;
+            blit.dstSubresource.layerCount = 1;
+
+            // if this command buffer is using a dedicated transfer queue, is must also have graphics capability
+            vkCmdBlitImage(commandBuffer,
+                           image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                           image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                           1, &blit,
+                           VK_FILTER_LINEAR);
+
+            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            vkCmdPipelineBarrier(commandBuffer,
+                                 VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                                 0, nullptr,
+                                 0, nullptr,
+                                 1, &barrier);
+
+            if (mipWidth > 1) {
+                mipWidth /= 2;
+            }
+
+            if (mipHeight > 1) {
+                mipHeight /= 2;
+            }
+        }
+
+        barrier.subresourceRange.baseMipLevel = mipLevels - 1;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        vkCmdPipelineBarrier(commandBuffer,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                             0, nullptr,
+                             0, nullptr,
+                             1, &barrier);
+
+        this->endSingleTimeCommands(commandBuffer);
     }
 
     void application_window::load_model() {
@@ -1200,10 +1305,10 @@ namespace pbr::shared::apis::windowing {
     bool application_window::create_texture_image() {
         IMG_Init(IMG_INIT_PNG);
 
-        this->load_image("../../../data/image.png", &this->_texture_image, &this->_texture_image_memory);
-        this->load_image("../../../data/image2.png", &this->_texture_image2, &this->_texture_image_memory2);
+        this->load_image("../../../data/image.png", &this->_texture_image, &this->_texture_image_memory, this->_mip_levels1);
+        this->load_image("../../../data/image2.png", &this->_texture_image2, &this->_texture_image_memory2, this->_mip_levels2);
 
-        this->load_image("../../../data/viking_room.png", &this->_texture_image3, &this->_texture_image_memory3);
+        this->load_image("../../../data/viking_room.png", &this->_texture_image3, &this->_texture_image_memory3, this->_mip_levels3);
 
         return true;
     }
@@ -1318,7 +1423,8 @@ namespace pbr::shared::apis::windowing {
         for (auto i {0u}; i < this->_swap_chain_images.size(); ++i)  {
             this->_swap_chain_image_views[i] = this->createImageView(this->_swap_chain_images[i],
                                                                      this->_swap_chain_format,
-                                                                     VK_IMAGE_ASPECT_COLOR_BIT);
+                                                                     VK_IMAGE_ASPECT_COLOR_BIT,
+                                                                     1);
         }
 
         if (!create_render_pass(this->_swap_chain_format, this->_device, &this->_render_pass)) {
