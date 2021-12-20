@@ -131,6 +131,7 @@ namespace pbr::shared::apis::windowing {
         void createImage(uint32_t width,
                          uint32_t height,
                          uint32_t mip_levels,
+                         VkSampleCountFlagBits samples_count,
                          VkFormat format,
                          VkImageTiling tiling,
                          VkImageUsageFlags usage,
@@ -165,6 +166,14 @@ namespace pbr::shared::apis::windowing {
                                             VkRenderPass render_pass, VkExtent2D swap_chain_extent,
                                             VkDevice device);
         void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+        VkSampleCountFlagBits getMaxUsableSampleCount();
+        void create_sample_resources();
+        bool create_graphics_pipeline(VkDevice device,
+                                      VkExtent2D swap_chain_extent,
+                                      VkPipelineLayout* pipeline_layout,
+                                      VkRenderPass render_pass,
+                                      VkPipeline* graphics_pipeline,
+                                      VkDescriptorSetLayout* descriptor_set_layout);
 
         void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory, uint32_t& mip_levels);
 
@@ -228,9 +237,16 @@ namespace pbr::shared::apis::windowing {
         std::vector<Vertex> _model_verticies;
         std::vector<uint32_t> _model_indices;
         VkBuffer _model_vertex_buffer {VK_NULL_HANDLE};
-        VkDeviceMemory _model_vertex_buffer_memory  {VK_NULL_HANDLE};
+        VkDeviceMemory _model_vertex_buffer_memory {VK_NULL_HANDLE};
         VkBuffer _model_index_buffer {VK_NULL_HANDLE};
         VkDeviceMemory _model_index_buffer_memory {VK_NULL_HANDLE};
+
+        // the max value wants to be set by the user/graphics level or something like that...
+        VkSampleCountFlagBits _msaa_samples = VK_SAMPLE_COUNT_1_BIT;
+
+        VkImage _samples_image {VK_NULL_HANDLE};
+        VkDeviceMemory _samples_image_memory {VK_NULL_HANDLE};
+        VkImageView _samples_image_view {VK_NULL_HANDLE};
     };
 }
 

@@ -291,7 +291,12 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    bool create_graphics_pipeline(VkDevice device, VkExtent2D swap_chain_extent, VkPipelineLayout* pipeline_layout, VkRenderPass render_pass, VkPipeline* graphics_pipeline, VkDescriptorSetLayout* descriptor_set_layout) {
+    bool application_window::create_graphics_pipeline(VkDevice device,
+                                                      VkExtent2D swap_chain_extent,
+                                                      VkPipelineLayout* pipeline_layout,
+                                                      VkRenderPass render_pass,
+                                                      VkPipeline* graphics_pipeline,
+                                                      VkDescriptorSetLayout* descriptor_set_layout) {
         auto vertex_shader_bytes = read_all_bytes("../../../data/vertex.vert.spv");
         auto fragment_shader_bytes = read_all_bytes("../../../data/fragment.frag.spv");
 
@@ -377,11 +382,14 @@ namespace pbr::shared::apis::windowing {
         memset(&multisampling, 0, sizeof(multisampling));
         multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampling.sampleShadingEnable = VK_FALSE;
-        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampling.rasterizationSamples = this->_msaa_samples;
         multisampling.minSampleShading = 1.0f;
         multisampling.pSampleMask = nullptr;
         multisampling.alphaToCoverageEnable = VK_FALSE;
         multisampling.alphaToOneEnable = VK_FALSE;
+        // aliases pixels within a polygon - will impact performance, so enable on higher graphics settings
+        multisampling.sampleShadingEnable = VK_TRUE;
+        multisampling.minSampleShading = 0.2f; // closer to 1.0f, the smoother
 
         VkPipelineColorBlendAttachmentState color_blend_attachment;
         memset(&color_blend_attachment, 0, sizeof(color_blend_attachment));
@@ -462,25 +470,25 @@ namespace pbr::shared::apis::windowing {
     }
 
     bool application_window::create_render_pass(VkFormat swap_chain_image_format, VkDevice device, VkRenderPass* render_pass) {
-        VkAttachmentDescription color_attachment;
-        memset(&color_attachment, 0, sizeof(color_attachment));
-        color_attachment.format = swap_chain_image_format;
-        color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        VkAttachmentDescription sample_attachment;
+        memset(&sample_attachment, 0, sizeof(sample_attachment));
+        sample_attachment.format = swap_chain_image_format;
+        sample_attachment.samples = this->_msaa_samples;
+        sample_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        sample_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        sample_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        sample_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        sample_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        sample_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        VkAttachmentReference color_attachment_ref;
-        memset(&color_attachment_ref, 0, sizeof(color_attachment_ref));
-        color_attachment_ref.attachment = 0;
-        color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        VkAttachmentReference sample_attachment_ref;
+        memset(&sample_attachment_ref, 0, sizeof(sample_attachment_ref));
+        sample_attachment_ref.attachment = 0;
+        sample_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = this->findDepthFormat();
-        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.samples = this->_msaa_samples;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -492,12 +500,27 @@ namespace pbr::shared::apis::windowing {
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+        VkAttachmentDescription colorAttachmentResolve{};
+        colorAttachmentResolve.format = this->_swap_chain_format;
+        colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference colorAttachmentResolveRef{};
+        colorAttachmentResolveRef.attachment = 2;
+        colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
         VkSubpassDescription subpass;
         memset(&subpass, 0, sizeof(subpass));
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &color_attachment_ref;
+        subpass.pColorAttachments = &sample_attachment_ref;
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
+        subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
         VkSubpassDependency dependency;
         memset(&dependency, 0, sizeof(dependency));
@@ -508,7 +531,7 @@ namespace pbr::shared::apis::windowing {
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-        std::array<VkAttachmentDescription, 2> attachments {color_attachment, depthAttachment};
+        std::array<VkAttachmentDescription, 3> attachments {sample_attachment, depthAttachment, colorAttachmentResolve};
 
         VkRenderPassCreateInfo render_pass_create_info;
         memset(&render_pass_create_info, 0, sizeof(render_pass_create_info));
@@ -535,9 +558,10 @@ namespace pbr::shared::apis::windowing {
         swap_chain_framebuffers.resize(swap_chain_image_views.size());
 
         for (auto i = 0u; i < swap_chain_image_views.size(); ++i) {
-            std::array<VkImageView, 2> attachments {
-                swap_chain_image_views[i],
+            std::array<VkImageView, 3> attachments {
+                this->_samples_image_view,
                 this->_depth_image_view,
+                swap_chain_image_views[i],
             };
 
             VkFramebufferCreateInfo frame_buffer_info;
@@ -829,12 +853,29 @@ namespace pbr::shared::apis::windowing {
         }
     }
 
+    VkSampleCountFlagBits application_window::getMaxUsableSampleCount() {
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(this->_physical_device, &physicalDeviceProperties);
+
+        VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+            physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+        if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+        if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+        if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+        if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+        if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+        if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+        return VK_SAMPLE_COUNT_1_BIT;
+    }
+
     void application_window::createDepthResources() {
         VkFormat depthFormat = this->findDepthFormat();
 
         createImage(this->_swap_chain_extent.width,
                     this->_swap_chain_extent.height,
                     1,
+                    this->_msaa_samples,
                     depthFormat,
                     VK_IMAGE_TILING_OPTIMAL,
                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -1057,6 +1098,7 @@ namespace pbr::shared::apis::windowing {
     void application_window::createImage(uint32_t width,
                                          uint32_t height,
                                          uint32_t mip_levels,
+                                         VkSampleCountFlagBits samples_count,
                                          VkFormat format,
                                          VkImageTiling tiling,
                                          VkImageUsageFlags usage,
@@ -1075,7 +1117,7 @@ namespace pbr::shared::apis::windowing {
         imageInfo.tiling = tiling;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.samples = samples_count;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateImage(this->_device, &imageInfo, nullptr, image) != VK_SUCCESS) {
@@ -1137,6 +1179,7 @@ namespace pbr::shared::apis::windowing {
         this->createImage(image_width,
                           image_height,
                           mip_levels,
+                          VK_SAMPLE_COUNT_1_BIT,
                           VK_FORMAT_R8G8B8A8_SRGB, // this should really come from the image itself
                           VK_IMAGE_TILING_OPTIMAL,
                           VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -1165,6 +1208,26 @@ namespace pbr::shared::apis::windowing {
 
         vkDestroyBuffer(this->_device, stagingBuffer, nullptr);
         vkFreeMemory(this->_device, stagingBufferMemory, nullptr);
+    }
+
+    void application_window::create_sample_resources() {
+        VkFormat colorFormat = this->_swap_chain_format;
+
+        createImage(this->_swap_chain_extent.width,
+                    this->_swap_chain_extent.height,
+                    1,
+                    this->_msaa_samples,
+                    colorFormat,
+                    VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    &this->_samples_image,
+                    &this->_samples_image_memory);
+
+        this->_samples_image_view = createImageView(this->_samples_image,
+                                                    colorFormat,
+                                                    VK_IMAGE_ASPECT_COLOR_BIT,
+                                                    1);
     }
 
     void application_window::generateMipmaps(VkImage image,
@@ -1442,6 +1505,7 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        this->create_sample_resources();
         this->createDepthResources();
 
         if (!create_swap_chain_framebuffers(this->_swap_chain_framebuffers, this->_swap_chain_image_views, this->_render_pass, extent, this->_device)) {
@@ -1754,6 +1818,7 @@ namespace pbr::shared::apis::windowing {
         for (const auto& device : physical_devices) {
             if (is_physical_device_compatible(device, this->_surface)) {
                 this->_physical_device = device;
+                this->_msaa_samples = this->getMaxUsableSampleCount();
                 break;
             }
         }
@@ -1789,6 +1854,8 @@ namespace pbr::shared::apis::windowing {
         VkPhysicalDeviceFeatures device_features;
         memset(&device_features, 0, sizeof(device_features));
         device_features.samplerAnisotropy = VK_TRUE;
+        // aliases pixels within a polygon - will impact performance, so enable on higher graphics settings
+        device_features.sampleRateShading = VK_TRUE;
 
         VkDeviceCreateInfo device_create_info;
         memset(&device_create_info, 0, sizeof(device_create_info));
@@ -1970,6 +2037,21 @@ namespace pbr::shared::apis::windowing {
             if (this->_depth_image_memory) {
                 vkFreeMemory(this->_device, this->_depth_image_memory, nullptr);
                 this->_depth_image_memory = nullptr;
+            }
+
+            if (this->_samples_image_view) {
+                vkDestroyImageView(this->_device, this->_samples_image_view, nullptr);
+                this->_samples_image_view = nullptr;
+            }
+
+            if (this->_samples_image) {
+                vkDestroyImage(this->_device, this->_samples_image, nullptr);
+                this->_samples_image = nullptr;
+            }
+
+            if (this->_samples_image_memory) {
+                vkFreeMemory(this->_device, this->_samples_image_memory, nullptr);
+                this->_samples_image_memory = nullptr;
             }
 
             if (this->_vertex_buffer_memory) {
