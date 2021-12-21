@@ -8,6 +8,7 @@
 #include <SDL.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+#include <vk_mem_alloc.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -143,16 +144,12 @@ namespace pbr::shared::apis::windowing {
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
         void copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
         void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mip_levels);
-        bool create_vertex_buffer(VkDevice device,
-                                  VkPhysicalDevice physical_device,
-                                  VkBuffer* vertex_buffer,
-                                  VkDeviceMemory* vertex_buffer_memory,
+        bool create_vertex_buffer(VkBuffer* vertex_buffer,
+                                  VmaAllocation* vertex_buffer_allocation,
                                   const std::vector<Vertex>& vertices);
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-        bool create_index_buffer(VkDevice device,
-                                 VkPhysicalDevice physical_device,
-                                 VkBuffer* index_buffer,
-                                 VkDeviceMemory* index_buffer_memory,
+        bool create_index_buffer(VkBuffer* index_buffer,
+                                 VmaAllocation* index_buffer_allocation,
                                  const std::vector<uint32_t>& indices);
         VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels);
         bool createTextureImageView();
@@ -175,11 +172,15 @@ namespace pbr::shared::apis::windowing {
                                       VkPipeline* graphics_pipeline,
                                       VkDescriptorSetLayout* descriptor_set_layout);
 
+        void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage properties, VkBuffer* buffer, VmaAllocation* allocation);
+
         void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory, uint32_t& mip_levels);
 
         void load_model();
 
         void update_uniform_buffer(uint32_t current_image_index);
+
+        void setup_vma();
 
         VkInstance _vulkan_instance {nullptr};
         VkDebugUtilsMessengerEXT _debug_messenger {nullptr};
@@ -207,11 +208,11 @@ namespace pbr::shared::apis::windowing {
         uint32_t _current_frame {0u};
         bool _signal_swap_chain_out_of_date {false};
         VkBuffer _vertex_buffer {VK_NULL_HANDLE};
-        VkDeviceMemory _vertex_buffer_memory {VK_NULL_HANDLE};
+        VmaAllocation _vertex_buffer_allocation {VK_NULL_HANDLE};
         VkBuffer _index_buffer {VK_NULL_HANDLE};
-        VkDeviceMemory _index_buffer_memory {VK_NULL_HANDLE};
+        VmaAllocation _index_buffer_allocation {VK_NULL_HANDLE};
         std::vector<VkBuffer> _uniform_buffers;
-        std::vector<VkDeviceMemory> _uniform_buffers_memory;
+        std::vector<VmaAllocation> _uniform_buffers_allocation;
         VkDescriptorPool _descriptor_pool {VK_NULL_HANDLE};
         std::vector<VkDescriptorSet> _descriptor_sets;
 
@@ -237,9 +238,9 @@ namespace pbr::shared::apis::windowing {
         std::vector<Vertex> _model_verticies;
         std::vector<uint32_t> _model_indices;
         VkBuffer _model_vertex_buffer {VK_NULL_HANDLE};
-        VkDeviceMemory _model_vertex_buffer_memory {VK_NULL_HANDLE};
+        VmaAllocation _model_vertex_buffer_allocation {VK_NULL_HANDLE};
         VkBuffer _model_index_buffer {VK_NULL_HANDLE};
-        VkDeviceMemory _model_index_buffer_memory {VK_NULL_HANDLE};
+        VmaAllocation _model_index_buffer_allocation {VK_NULL_HANDLE};
 
         // the max value wants to be set by the user/graphics level or something like that...
         VkSampleCountFlagBits _msaa_samples = VK_SAMPLE_COUNT_1_BIT;
@@ -247,6 +248,8 @@ namespace pbr::shared::apis::windowing {
         VkImage _samples_image {VK_NULL_HANDLE};
         VkDeviceMemory _samples_image_memory {VK_NULL_HANDLE};
         VkImageView _samples_image_view {VK_NULL_HANDLE};
+
+        VmaAllocator _vma_allocator {VK_NULL_HANDLE};
     };
 }
 

@@ -12,4 +12,5 @@ target_sources(
         application_window.cpp
         console_window.cpp
         window_manager.cpp
+        vk_mem_alloc.cpp
 )

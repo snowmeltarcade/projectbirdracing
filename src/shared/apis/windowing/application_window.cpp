@@ -597,30 +597,17 @@ namespace pbr::shared::apis::windowing {
         return 0;
     }
 
-    void create_buffer(VkDevice device, VkPhysicalDevice physical_device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory) {
+    void application_window::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage properties, VkBuffer* buffer, VmaAllocation* allocation) {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = size;
         bufferInfo.usage = usage;
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        if (vkCreateBuffer(device, &bufferInfo, nullptr, buffer) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create buffer!");
-        }
+        VmaAllocationCreateInfo allocInfo {};
+        allocInfo.usage = properties;
 
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(device, *buffer, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = find_memory_type(physical_device, memRequirements.memoryTypeBits, properties);
-
-        if (vkAllocateMemory(device, &allocInfo, nullptr, bufferMemory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate buffer memory!");
-        }
-
-        vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
+        vmaCreateBuffer(this->_vma_allocator, &bufferInfo, &allocInfo, buffer, allocation, nullptr);
     }
 
     void application_window::copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
@@ -734,66 +721,68 @@ namespace pbr::shared::apis::windowing {
         endSingleTimeCommands(commandBuffer);
     }
 
-    bool application_window::create_vertex_buffer(VkDevice device,
-                                                  VkPhysicalDevice physical_device,
-                                                  VkBuffer* vertex_buffer,
-                                                  VkDeviceMemory* vertex_buffer_memory,
+    bool application_window::create_vertex_buffer(VkBuffer* vertex_buffer,
+                                                  VmaAllocation* vertex_buffer_allocation,
                                                   const std::vector<Vertex>& vertices) {
         VkDeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
 
         // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
         // the shared buffer is technically fine to use, but not as performant
         VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        create_buffer(device,
-                      physical_device,
-                      buffer_size,
-                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      &stagingBuffer,
-                      &stagingBufferMemory);
+        VmaAllocation stagingBufferAllocation;
+        this->create_buffer(buffer_size,
+                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                            VMA_MEMORY_USAGE_CPU_TO_GPU,
+                            &stagingBuffer,
+                            &stagingBufferAllocation);
 
         void* data;
-        vkMapMemory(device, stagingBufferMemory, 0, buffer_size, 0, &data);
+        vmaMapMemory(this->_vma_allocator, stagingBufferAllocation, &data);
         memcpy(data, vertices.data(), (size_t)buffer_size);
-        vkUnmapMemory(device, stagingBufferMemory);
+        vmaUnmapMemory(this->_vma_allocator, stagingBufferAllocation);
 
-        create_buffer(device,
-                      physical_device,
-                      buffer_size,
+        create_buffer(buffer_size,
                       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                      VMA_MEMORY_USAGE_GPU_ONLY,
                       vertex_buffer,
-                      vertex_buffer_memory);
+                      vertex_buffer_allocation);
 
         this->copy_buffer(stagingBuffer, *vertex_buffer, buffer_size);
 
-        vkDestroyBuffer(device, stagingBuffer, nullptr);
-        vkFreeMemory(device, stagingBufferMemory, nullptr);
+        vmaDestroyBuffer(this->_vma_allocator, stagingBuffer, stagingBufferAllocation);
 
         return true;
     }
 
-    bool application_window::create_index_buffer(VkDevice device, VkPhysicalDevice physical_device, VkBuffer* index_buffer, VkDeviceMemory* index_buffer_memory, const std::vector<uint32_t>& indices) {
+    bool application_window::create_index_buffer(VkBuffer* index_buffer,
+                                                 VmaAllocation* index_buffer_allocation,
+                                                 const std::vector<uint32_t>& indices) {
         VkDeviceSize buffer_size = sizeof(indices[0]) * indices.size();
 
         // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
         // the shared buffer is technically fine to use, but not as performant
         VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+        VmaAllocation stagingBufferAllocation;
+        this->create_buffer(buffer_size,
+                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                            VMA_MEMORY_USAGE_CPU_TO_GPU,
+                            &stagingBuffer,
+                            &stagingBufferAllocation);
 
         void* data;
-        vkMapMemory(device, stagingBufferMemory, 0, buffer_size, 0, &data);
+        vmaMapMemory(this->_vma_allocator, stagingBufferAllocation, &data);
         memcpy(data, indices.data(), (size_t) buffer_size);
-        vkUnmapMemory(device, stagingBufferMemory);
+        vmaUnmapMemory(this->_vma_allocator, stagingBufferAllocation);
 
-        create_buffer(device, physical_device, buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, index_buffer, index_buffer_memory);
+        create_buffer(buffer_size,
+                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                      VMA_MEMORY_USAGE_GPU_ONLY,
+                      index_buffer,
+                      index_buffer_allocation);
 
         this->copy_buffer(stagingBuffer, *index_buffer, buffer_size);
 
-        vkDestroyBuffer(device, stagingBuffer, nullptr);
-        vkFreeMemory(device, stagingBufferMemory, nullptr);
+        vmaDestroyBuffer(this->_vma_allocator, stagingBuffer, stagingBufferAllocation);
 
         return true;
     }
@@ -915,16 +904,14 @@ namespace pbr::shared::apis::windowing {
         VkDeviceSize bufferSize = sizeof(uniform_buffer_object);
 
         this->_uniform_buffers.resize(this->_swap_chain_images.size());
-        this->_uniform_buffers_memory.resize(this->_swap_chain_images.size());
+        this->_uniform_buffers_allocation.resize(this->_swap_chain_images.size());
 
         for (size_t i = 0; i < this->_swap_chain_images.size(); i++) {
-            create_buffer(this->_device,
-                          this->_physical_device,
-                          bufferSize,
-                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          &this->_uniform_buffers[i],
-                          &this->_uniform_buffers_memory[i]);
+            this->create_buffer(bufferSize,
+                                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                VMA_MEMORY_USAGE_CPU_TO_GPU,
+                                &this->_uniform_buffers[i],
+                                &this->_uniform_buffers_allocation[i]);
         }
     }
 
@@ -1043,9 +1030,9 @@ namespace pbr::shared::apis::windowing {
         ubo.proj[1][1] *= -1;
 
         void* data;
-        vkMapMemory(this->_device, this->_uniform_buffers_memory[current_image_index], 0, sizeof(ubo), 0, &data);
+        vmaMapMemory(this->_vma_allocator, this->_uniform_buffers_allocation[current_image_index], &data);
         memcpy(data, &ubo, sizeof(ubo));
-        vkUnmapMemory(this->_device, this->_uniform_buffers_memory[current_image_index]);
+        vmaUnmapMemory(this->_vma_allocator, this->_uniform_buffers_allocation[current_image_index]);
     }
 
     void application_window::cleanup_swap_chain() {
@@ -1060,8 +1047,9 @@ namespace pbr::shared::apis::windowing {
         }
 
         for (auto i {0u}; i < this->_swap_chain_images.size(); ++i) {
-            vkDestroyBuffer(this->_device, this->_uniform_buffers[i], nullptr);
-            vkFreeMemory(this->_device, this->_uniform_buffers_memory[i], nullptr);
+            vmaDestroyBuffer(this->_vma_allocator,
+                             this->_uniform_buffers[i],
+                             this->_uniform_buffers_allocation[i]);
         }
 
         if (this->_descriptor_pool) {
@@ -1158,20 +1146,20 @@ namespace pbr::shared::apis::windowing {
         VkDeviceSize image_size = image_width * image_height * surfaceRGBA->format->BytesPerPixel;
 
         VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
+        VmaAllocation stagingBufferAllocation;
 
-        create_buffer(this->_device,
-                      this->_physical_device,
-                      image_size,
-                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      &stagingBuffer,
-                      &stagingBufferMemory);
+        this->create_buffer(image_size,
+                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                            VMA_MEMORY_USAGE_CPU_TO_GPU,
+                            &stagingBuffer,
+                            &stagingBufferAllocation);
 
         void* data;
-        vkMapMemory(this->_device, stagingBufferMemory, 0, image_size, 0, &data);
+        vmaMapMemory(this->_vma_allocator,
+                     stagingBufferAllocation,
+                     &data);
         memcpy(data, surfaceRGBA->pixels, static_cast<size_t>(image_size));
-        vkUnmapMemory(this->_device, stagingBufferMemory);
+        vmaUnmapMemory(this->_vma_allocator, stagingBufferAllocation);
 
         SDL_FreeSurface(surfaceRGBA);
         surfaceRGBA = nullptr;
@@ -1206,8 +1194,7 @@ namespace pbr::shared::apis::windowing {
 //                                    mip_levels); // the best format for a shader to read from
         this->generateMipmaps(*image, VK_FORMAT_R8G8B8A8_SRGB, image_width, image_height, mip_levels);
 
-        vkDestroyBuffer(this->_device, stagingBuffer, nullptr);
-        vkFreeMemory(this->_device, stagingBufferMemory, nullptr);
+        vmaDestroyBuffer(this->_vma_allocator, stagingBuffer, stagingBufferAllocation);
     }
 
     void application_window::create_sample_resources() {
@@ -1513,37 +1500,29 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
-        if (!this->create_vertex_buffer(this->_device,
-                                        this->_physical_device,
-                                        &this->_vertex_buffer,
-                                        &this->_vertex_buffer_memory,
+        if (!this->create_vertex_buffer(&this->_vertex_buffer,
+                                        &this->_vertex_buffer_allocation,
                                         g_vertices)) {
             this->_log_manager->log_message("Failed to create vertex buffer.", apis::logging::log_levels::error);
             return false;
         }
 
-        if (!this->create_vertex_buffer(this->_device,
-                                        this->_physical_device,
-                                        &this->_model_vertex_buffer,
-                                        &this->_model_vertex_buffer_memory,
+        if (!this->create_vertex_buffer(&this->_model_vertex_buffer,
+                                        &this->_model_vertex_buffer_allocation,
                                         this->_model_verticies)) {
             this->_log_manager->log_message("Failed to create vertex buffer.", apis::logging::log_levels::error);
             return false;
         }
 
-        if (!this->create_index_buffer(this->_device,
-                                       this->_physical_device,
-                                       &this->_index_buffer,
-                                       &this->_index_buffer_memory,
+        if (!this->create_index_buffer(&this->_index_buffer,
+                                       &this->_index_buffer_allocation,
                                        g_indices)) {
             this->_log_manager->log_message("Failed to create index buffer.", apis::logging::log_levels::error);
             return false;
         }
 
-        if (!this->create_index_buffer(this->_device,
-                                       this->_physical_device,
-                                       &this->_model_index_buffer,
-                                       &this->_model_index_buffer_memory,
+        if (!this->create_index_buffer(&this->_model_index_buffer,
+                                       &this->_model_index_buffer_allocation,
                                        this->_model_indices)) {
             this->_log_manager->log_message("Failed to create model index buffer.", apis::logging::log_levels::error);
             return false;
@@ -1680,6 +1659,16 @@ namespace pbr::shared::apis::windowing {
         }
 
         return true;
+    }
+
+    void application_window::setup_vma() {
+        VmaAllocatorCreateInfo allocatorInfo {};
+        allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_1;
+        allocatorInfo.physicalDevice = this->_physical_device;
+        allocatorInfo.device = this->_device;
+        allocatorInfo.instance = this->_vulkan_instance;
+
+        vmaCreateAllocator(&allocatorInfo, &this->_vma_allocator);
     }
 
     bool application_window::create(std::string_view title,
@@ -1884,6 +1873,8 @@ namespace pbr::shared::apis::windowing {
             return false;
         }
 
+        this->setup_vma();
+
         vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
         vkGetDeviceQueue(this->_device, *qfi.present_family_index, 0, &this->_present_queue);
 
@@ -1969,11 +1960,6 @@ namespace pbr::shared::apis::windowing {
             this->_render_finished_semaphores.clear();
             this->_in_flight_fences.clear();
 
-            if (this->_vertex_buffer) {
-                vkDestroyBuffer(this->_device, this->_vertex_buffer, nullptr);
-                this->_vertex_buffer = nullptr;
-            }
-
             if (this->_texture_sampler) {
                 vkDestroySampler(this->_device, this->_texture_sampler, nullptr);
                 this->_texture_sampler = nullptr;
@@ -2054,39 +2040,36 @@ namespace pbr::shared::apis::windowing {
                 this->_samples_image_memory = nullptr;
             }
 
-            if (this->_vertex_buffer_memory) {
-                vkFreeMemory(this->_device, this->_vertex_buffer_memory, nullptr);
-                this->_vertex_buffer_memory = nullptr;
+            if (this->_vertex_buffer) {
+                vmaDestroyBuffer(this->_vma_allocator,
+                                 this->_vertex_buffer,
+                                 this->_vertex_buffer_allocation);
+                this->_vertex_buffer = nullptr;
+                this->_vertex_buffer_allocation = nullptr;
             }
 
             if (this->_index_buffer) {
-                vkDestroyBuffer(this->_device, this->_index_buffer, nullptr);
+                vmaDestroyBuffer(this->_vma_allocator,
+                                 this->_index_buffer,
+                                 this->_index_buffer_allocation);
                 this->_index_buffer = nullptr;
-            }
-
-            if (this->_index_buffer_memory) {
-                vkFreeMemory(this->_device, this->_index_buffer_memory, nullptr);
-                this->_index_buffer_memory = nullptr;
+                this->_index_buffer_allocation = nullptr;
             }
 
             if (this->_model_vertex_buffer) {
-                vkDestroyBuffer(this->_device, this->_model_vertex_buffer, nullptr);
+                vmaDestroyBuffer(this->_vma_allocator,
+                                 this->_model_vertex_buffer,
+                                 this->_model_vertex_buffer_allocation);
                 this->_model_vertex_buffer = nullptr;
-            }
-
-            if (this->_model_vertex_buffer_memory) {
-                vkFreeMemory(this->_device, this->_model_vertex_buffer_memory, nullptr);
-                this->_model_vertex_buffer_memory = nullptr;
+                this->_model_vertex_buffer_allocation = nullptr;
             }
 
             if (this->_model_index_buffer) {
-                vkDestroyBuffer(this->_device, this->_model_index_buffer, nullptr);
+                vmaDestroyBuffer(this->_vma_allocator,
+                                 this->_model_index_buffer,
+                                 this->_model_index_buffer_allocation);
                 this->_model_index_buffer = nullptr;
-            }
-
-            if (this->_model_index_buffer_memory) {
-                vkFreeMemory(this->_device, this->_model_index_buffer_memory, nullptr);
-                this->_model_index_buffer_memory = nullptr;
+                this->_model_index_buffer_allocation = nullptr;
             }
 
             if (this->_command_pool) {
@@ -2097,6 +2080,11 @@ namespace pbr::shared::apis::windowing {
             if (this->_descriptor_set_layout) {
                 vkDestroyDescriptorSetLayout(this->_device, this->_descriptor_set_layout, nullptr);
                 this->_descriptor_set_layout = nullptr;
+            }
+
+            if (this->_vma_allocator) {
+                vmaDestroyAllocator(this->_vma_allocator);
+                this->_vma_allocator = nullptr;
             }
 
             if (this->_device) {
