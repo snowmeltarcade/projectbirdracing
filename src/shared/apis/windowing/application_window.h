@@ -136,9 +136,9 @@ namespace pbr::shared::apis::windowing {
                          VkFormat format,
                          VkImageTiling tiling,
                          VkImageUsageFlags usage,
-                         VkMemoryPropertyFlags properties,
+                         VmaMemoryUsage memory_usage,
                          VkImage* image,
-                         VkDeviceMemory* imageMemory);
+                         VmaAllocation* imageAllocation);
 
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
@@ -174,7 +174,7 @@ namespace pbr::shared::apis::windowing {
 
         void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage properties, VkBuffer* buffer, VmaAllocation* allocation);
 
-        void load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory, uint32_t& mip_levels);
+        void load_image(std::string path, VkImage* image, VmaAllocation* image_allocation, uint32_t& mip_levels);
 
         void load_model();
 
@@ -218,21 +218,21 @@ namespace pbr::shared::apis::windowing {
 
         uint32_t _mip_levels1 {1};
         VkImage _texture_image {VK_NULL_HANDLE};
-        VkDeviceMemory _texture_image_memory {VK_NULL_HANDLE};
+        VmaAllocation _texture_image_allocation {VK_NULL_HANDLE};
         VkImageView _texture_image_view {VK_NULL_HANDLE};
 
         uint32_t _mip_levels2 {1};
         VkImage _texture_image2 {VK_NULL_HANDLE};
-        VkDeviceMemory _texture_image_memory2 {VK_NULL_HANDLE};
+        VmaAllocation _texture_image_allocation2 {VK_NULL_HANDLE};
         VkImageView _texture_image_view2 {VK_NULL_HANDLE};
         VkSampler _texture_sampler {VK_NULL_HANDLE};
         VkImage _depth_image {VK_NULL_HANDLE};
-        VkDeviceMemory _depth_image_memory {VK_NULL_HANDLE};
+        VmaAllocation _depth_image_allocation {VK_NULL_HANDLE};
         VkImageView _depth_image_view {VK_NULL_HANDLE};
 
         uint32_t _mip_levels3 {1};
         VkImage _texture_image3 {VK_NULL_HANDLE};
-        VkDeviceMemory _texture_image_memory3 {VK_NULL_HANDLE};
+        VmaAllocation _texture_image_allocation3 {VK_NULL_HANDLE};
         VkImageView _texture_image_view3 {VK_NULL_HANDLE};
 
         std::vector<Vertex> _model_verticies;
@@ -246,7 +246,7 @@ namespace pbr::shared::apis::windowing {
         VkSampleCountFlagBits _msaa_samples = VK_SAMPLE_COUNT_1_BIT;
 
         VkImage _samples_image {VK_NULL_HANDLE};
-        VkDeviceMemory _samples_image_memory {VK_NULL_HANDLE};
+        VmaAllocation _samples_image_allocation {VK_NULL_HANDLE};
         VkImageView _samples_image_view {VK_NULL_HANDLE};
 
         VmaAllocator _vma_allocator {VK_NULL_HANDLE};

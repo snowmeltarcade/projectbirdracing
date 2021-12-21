@@ -583,20 +583,6 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
-    uint32_t find_memory_type(VkPhysicalDevice physical_device, uint32_t type_filter, VkMemoryPropertyFlags properties) {
-        VkPhysicalDeviceMemoryProperties memory_properties{};
-        vkGetPhysicalDeviceMemoryProperties(physical_device, &memory_properties);
-
-        for (auto i = 0u; i < memory_properties.memoryTypeCount; ++i) {
-            if ((type_filter & (1 << i)) && (memory_properties.memoryTypes[i].propertyFlags & properties) == properties) {
-                return i;
-            }
-        }
-
-        std::cerr << "Failed to find suitable memory type.\n";
-        return 0;
-    }
-
     void application_window::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage properties, VkBuffer* buffer, VmaAllocation* allocation) {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -868,9 +854,9 @@ namespace pbr::shared::apis::windowing {
                     depthFormat,
                     VK_IMAGE_TILING_OPTIMAL,
                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    VMA_MEMORY_USAGE_GPU_ONLY,
                     &this->_depth_image,
-                    &this->_depth_image_memory);
+                    &this->_depth_image_allocation);
 
         this->_depth_image_view = createImageView(this->_depth_image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
@@ -1090,9 +1076,9 @@ namespace pbr::shared::apis::windowing {
                                          VkFormat format,
                                          VkImageTiling tiling,
                                          VkImageUsageFlags usage,
-                                         VkMemoryPropertyFlags properties,
+                                         VmaMemoryUsage memory_usage,
                                          VkImage* image,
-                                         VkDeviceMemory* imageMemory) {
+                                         VmaAllocation* imageAllocation) {
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -1108,26 +1094,15 @@ namespace pbr::shared::apis::windowing {
         imageInfo.samples = samples_count;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        if (vkCreateImage(this->_device, &imageInfo, nullptr, image) != VK_SUCCESS) {
+        VmaAllocationCreateInfo allocInfo {};
+        allocInfo.usage = memory_usage;
+
+        if (vmaCreateImage(this->_vma_allocator, &imageInfo, &allocInfo, image, imageAllocation, nullptr) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image!");
         }
-
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(this->_device, *image, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = find_memory_type(this->_physical_device, memRequirements.memoryTypeBits, properties);
-
-        if (vkAllocateMemory(this->_device, &allocInfo, nullptr, imageMemory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate image memory!");
-        }
-
-        vkBindImageMemory(this->_device, *image, *imageMemory, 0);
     }
 
-    void application_window::load_image(std::string path, VkImage* image, VkDeviceMemory* image_memory, uint32_t& mip_levels) {
+    void application_window::load_image(std::string path, VkImage* image, VmaAllocation* image_allocation, uint32_t& mip_levels) {
         auto surface = IMG_Load(path.c_str());
 
         // ensure the image is in a format we want to deal with
@@ -1171,9 +1146,9 @@ namespace pbr::shared::apis::windowing {
                           VK_FORMAT_R8G8B8A8_SRGB, // this should really come from the image itself
                           VK_IMAGE_TILING_OPTIMAL,
                           VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          VMA_MEMORY_USAGE_GPU_ONLY,
                           image,
-                          image_memory);
+                          image_allocation);
 
         this->transitionImageLayout(*image,
                                     VK_FORMAT_R8G8B8A8_SRGB,
@@ -1186,12 +1161,6 @@ namespace pbr::shared::apis::windowing {
                                 static_cast<uint32_t>(image_width),
                                 static_cast<uint32_t>(image_height));
 
-        // this is done after blitting each mipmap level
-//        this->transitionImageLayout(*image,
-//                                    VK_FORMAT_R8G8B8A8_SRGB,
-//                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-//                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-//                                    mip_levels); // the best format for a shader to read from
         this->generateMipmaps(*image, VK_FORMAT_R8G8B8A8_SRGB, image_width, image_height, mip_levels);
 
         vmaDestroyBuffer(this->_vma_allocator, stagingBuffer, stagingBufferAllocation);
@@ -1207,9 +1176,9 @@ namespace pbr::shared::apis::windowing {
                     colorFormat,
                     VK_IMAGE_TILING_OPTIMAL,
                     VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    VMA_MEMORY_USAGE_GPU_ONLY,
                     &this->_samples_image,
-                    &this->_samples_image_memory);
+                    &this->_samples_image_allocation);
 
         this->_samples_image_view = createImageView(this->_samples_image,
                                                     colorFormat,
@@ -1355,10 +1324,10 @@ namespace pbr::shared::apis::windowing {
     bool application_window::create_texture_image() {
         IMG_Init(IMG_INIT_PNG);
 
-        this->load_image("../../../data/image.png", &this->_texture_image, &this->_texture_image_memory, this->_mip_levels1);
-        this->load_image("../../../data/image2.png", &this->_texture_image2, &this->_texture_image_memory2, this->_mip_levels2);
+        this->load_image("../../../data/image.png", &this->_texture_image, &this->_texture_image_allocation, this->_mip_levels1);
+        this->load_image("../../../data/image2.png", &this->_texture_image2, &this->_texture_image_allocation2, this->_mip_levels2);
 
-        this->load_image("../../../data/viking_room.png", &this->_texture_image3, &this->_texture_image_memory3, this->_mip_levels3);
+        this->load_image("../../../data/viking_room.png", &this->_texture_image3, &this->_texture_image_allocation3, this->_mip_levels3);
 
         return true;
     }
@@ -1971,13 +1940,8 @@ namespace pbr::shared::apis::windowing {
             }
 
             if (this->_texture_image) {
-                vkDestroyImage(this->_device, this->_texture_image, nullptr);
+                vmaDestroyImage(this->_vma_allocator, this->_texture_image, _texture_image_allocation);
                 this->_texture_image = nullptr;
-            }
-
-            if (this->_texture_image_memory) {
-                vkFreeMemory(this->_device, this->_texture_image_memory, nullptr);
-                this->_texture_image_memory = nullptr;
             }
 
             if (this->_texture_image_view2) {
@@ -1986,13 +1950,8 @@ namespace pbr::shared::apis::windowing {
             }
 
             if (this->_texture_image2) {
-                vkDestroyImage(this->_device, this->_texture_image2, nullptr);
+                vmaDestroyImage(this->_vma_allocator, this->_texture_image2, _texture_image_allocation2);
                 this->_texture_image2 = nullptr;
-            }
-
-            if (this->_texture_image_memory2) {
-                vkFreeMemory(this->_device, this->_texture_image_memory2, nullptr);
-                this->_texture_image_memory2 = nullptr;
             }
 
             if (this->_texture_image_view3) {
@@ -2001,13 +1960,8 @@ namespace pbr::shared::apis::windowing {
             }
 
             if (this->_texture_image3) {
-                vkDestroyImage(this->_device, this->_texture_image3, nullptr);
+                vmaDestroyImage(this->_vma_allocator, this->_texture_image3, this->_texture_image_allocation3);
                 this->_texture_image3 = nullptr;
-            }
-
-            if (this->_texture_image_memory3) {
-                vkFreeMemory(this->_device, this->_texture_image_memory3, nullptr);
-                this->_texture_image_memory3 = nullptr;
             }
 
             if (this->_depth_image_view) {
@@ -2016,13 +1970,8 @@ namespace pbr::shared::apis::windowing {
             }
 
             if (this->_depth_image) {
-                vkDestroyImage(this->_device, this->_depth_image, nullptr);
+                vmaDestroyImage(this->_vma_allocator, this->_depth_image, _depth_image_allocation);
                 this->_depth_image = nullptr;
-            }
-
-            if (this->_depth_image_memory) {
-                vkFreeMemory(this->_device, this->_depth_image_memory, nullptr);
-                this->_depth_image_memory = nullptr;
             }
 
             if (this->_samples_image_view) {
@@ -2031,13 +1980,8 @@ namespace pbr::shared::apis::windowing {
             }
 
             if (this->_samples_image) {
-                vkDestroyImage(this->_device, this->_samples_image, nullptr);
+                vmaDestroyImage(this->_vma_allocator, this->_samples_image, _samples_image_allocation);
                 this->_samples_image = nullptr;
-            }
-
-            if (this->_samples_image_memory) {
-                vkFreeMemory(this->_device, this->_samples_image_memory, nullptr);
-                this->_samples_image_memory = nullptr;
             }
 
             if (this->_vertex_buffer) {
