@@ -16,6 +16,7 @@
   - [Naming](#naming)
   - [Programming](#programming)
     - [Code Practices](#code-practices)
+    - [Namespaces](#namespaces)
     - [Error Handling](#error-handling)
     - [Compiling](#compiling)
     - [Profiling and Optimization](#profiling-and-optimization)
@@ -264,7 +265,11 @@ The following APIs will be used:
 
 Actual rendering will be done using [Vulkan](https://www.vulkan.org/) for Windows, Linux and Android and [MoltenVK](https://github.com/KhronosGroup/MoltenVK/) for Mac and iOS.
 
+Graphics based memory management will be handled using the [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator).
+
 [GLSL](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language#:~:text=The%20OpenGL%20Shading%20Language%20(GLSL,is%20a%20C%2Dstyle%20language.&text=The%20current%20version%20of%20GLSL%20is%204.60.) will be used as the shader language.
+
+See [here](graphics.md) for more information.
 
 ### Math
 
