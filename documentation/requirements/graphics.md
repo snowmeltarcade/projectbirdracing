@@ -6,6 +6,7 @@
   - [Materials](#materials)
     - [Material File](#material-file)
   - [Cameras](#cameras)
+    - [Tripods](#tripods)
   - [Lighting](#lighting)
 
 Both 2D and 3D rendering must be supported. Rendering should take place in its own thread. Data to be rendered should be pushed into this component and not read from other components.
@@ -72,6 +73,14 @@ The following post processing effects must be supported:
 
 - Bloom
 - HDR
+
+### Tripods
+
+A camera will be attached to a tripod. A tripod will provide the location and orientation of the camera. The tripod can be attached to another entity, via an attachment point on that entity, thus the tripod will inherit the entity's location and orientation.
+
+A tripod can also have a distance, which acts as an offset from the [anchor point](./entity_component_system.md#location_3d), much like a camera at the end of a selfie stick.
+
+If a camera is set to look at an entity, the required look at orientation will override any orientation provided by the tripod.
 
 ## Lighting
 
