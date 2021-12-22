@@ -3,6 +3,7 @@
 #include "shared/memory/basic_allocators.h"
 #include "shared/apis/logging/ilog_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
+#include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/windowing/iapplication_window.h"
 #include "shared/scene/iscene_manager.h"
 
@@ -19,14 +20,19 @@ namespace pbr::shared::game {
         /// Constructs this manager
         /// \param log_manager The log manager to use
         /// \param window_manager The window manager to use
+        /// \param graphics_manager The graphics manager to use
+        /// \param scene_manager The scene manager to use
         game_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
                      std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
+                     std::shared_ptr<apis::graphics::igraphics_manager> graphics_manager,
                      std::shared_ptr<scene::iscene_manager> scene_manager)
             : _log_manager(log_manager),
               _window_manager(window_manager),
+              _graphics_manager(graphics_manager),
               _scene_manager(scene_manager) {
             assert((this->_log_manager));
             assert((this->_window_manager));
+            assert((this->_graphics_manager));
             assert((this->_scene_manager));
         }
 
@@ -42,6 +48,7 @@ namespace pbr::shared::game {
         game_manager(game_manager&& other) {
             this->_log_manager = std::move(other._log_manager);
             this->_window_manager = std::move(other._window_manager);
+            this->_graphics_manager = std::move(other._graphics_manager);
             this->_has_exit_been_requested = other._has_exit_been_requested.load();
         }
         game_manager(const game_manager&) = delete;
@@ -62,6 +69,9 @@ namespace pbr::shared::game {
 
         /// The window manager
         std::shared_ptr<apis::windowing::iwindow_manager> _window_manager;
+
+        /// The graphics manager
+        std::shared_ptr<apis::graphics::igraphics_manager> _graphics_manager;
 
         /// The main render window
         std::shared_ptr<apis::windowing::iapplication_window> _application_window;

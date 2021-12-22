@@ -37,6 +37,13 @@ namespace pbr::shared::apis::windowing {
             this->shutdown();
         }
 
+        /// Returns the native window handle
+        /// \returns The native window handle
+        [[nodiscard]]
+        SDL_Window* get_native_handle() const noexcept {
+            return this->_window;
+        }
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;

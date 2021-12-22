@@ -4,6 +4,7 @@
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/logging/endpoints/stdout.h"
 #include "shared/apis/windowing/window_manager.h"
+#include "shared/apis/graphics/vulkan_graphics_manager.h"
 #include "shared/scene/scene_manager.h"
 #include "scene/scene_factory.h"
 
@@ -26,6 +27,18 @@ game::game_manager create_game_manager() {
 
     auto window_manager = std::make_shared<apis::windowing::window_manager>(log_manager);
 
+    apis::graphics::application_information app_info {
+        std::string(PROJECT_NAME) + " - Server",
+        "PBREngine",
+        PROJECT_VERSION_MAJOR,
+        PROJECT_VERSION_MINOR,
+        PROJECT_VERSION_BUILD,
+    };
+
+    auto graphics_manager = std::make_shared<apis::graphics::vulkan_graphics_manager>(log_manager,
+                                                                                      window_manager,
+                                                                                      app_info);
+
     auto scene_factory = std::make_shared<pbr::server::scene::scene_factory>(log_manager);
 
     auto scene_manager = std::make_shared<scene::scene_manager>(scene_factory,
@@ -34,6 +47,7 @@ game::game_manager create_game_manager() {
 
     game::game_manager gm(log_manager,
                           window_manager,
+                          graphics_manager,
                           scene_manager);
     return gm;
 }

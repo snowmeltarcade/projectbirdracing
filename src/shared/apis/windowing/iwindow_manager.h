@@ -29,6 +29,11 @@ namespace pbr::shared::apis::windowing {
         [[nodiscard]]
         virtual std::shared_ptr<iapplication_window> create_application_window() noexcept = 0;
 
+        /// Returns the main application window
+        /// \returns The main application window, else `nullptr` is no application window has been created
+        [[nodiscard]]
+        virtual std::shared_ptr<iapplication_window> get_main_application_window() const noexcept = 0;
+
         /// Updates the windowing system
         /// \returns `true` upon success, else `false`
         [[nodiscard]]

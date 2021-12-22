@@ -3,6 +3,7 @@
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
+#include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/windowing/iconsole_window.h"
 #include "shared/scene/iscene_manager.h"
 
@@ -27,6 +28,10 @@ public:
     }
 
     std::shared_ptr<apis::windowing::iconsole_window> create_console_window() noexcept override {
+        return {};
+    }
+
+    std::shared_ptr<apis::windowing::iapplication_window> get_main_application_window() const noexcept override {
         return {};
     }
 
@@ -55,6 +60,12 @@ public:
     }
 };
 
+class test_graphics_manager : public apis::graphics::igraphics_manager {
+    bool initialize() override {
+        return true;
+    }
+};
+
 class test_scene_manager : public scene::iscene_manager {
 public:
     bool run_called {false};
@@ -67,6 +78,7 @@ public:
 };
 
 std::shared_ptr<test_window_manager> g_window_manager;
+std::shared_ptr<test_graphics_manager> g_graphics_manager;
 std::shared_ptr<test_scene_manager> g_scene_manager;
 
 game_manager create_game_manager() {
@@ -74,11 +86,12 @@ game_manager create_game_manager() {
     auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
 
     g_window_manager = std::make_shared<test_window_manager>();
-
+    g_graphics_manager = std::make_shared<test_graphics_manager>();
     g_scene_manager = std::make_shared<test_scene_manager>();
 
     game_manager gm(log_manager,
                     g_window_manager,
+                    g_graphics_manager,
                     g_scene_manager);
     return gm;
 }

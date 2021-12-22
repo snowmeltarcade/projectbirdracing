@@ -33,6 +33,13 @@ namespace pbr::shared::apis::windowing {
         [[nodiscard]]
         std::shared_ptr<iapplication_window> create_application_window() noexcept override;
 
+        /// Returns the main application window
+        /// \returns The main application window, else `nullptr` is no application window has been created
+        [[nodiscard]]
+        std::shared_ptr<iapplication_window> get_main_application_window() const noexcept override {
+            return this->_application_windows.empty() ? nullptr : this->_application_windows[0];
+        }
+
         /// Updates the windowing system
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
