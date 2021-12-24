@@ -7,8 +7,8 @@ namespace pbr::shared::apis::windowing {
     bool window_manager::initialize() noexcept {
         this->_log_manager->log_message("Initializing the window manager...", apis::logging::log_levels::info);
 
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            this->_log_manager->log_message("Failed to init SDL.", apis::logging::log_levels::error);
+        if (SDL_Init(SDL_INIT_EVENTS) < 0) {
+            this->_log_manager->log_message("Failed to init SDL with error:", apis::logging::log_levels::error);
             return false;
         }
 

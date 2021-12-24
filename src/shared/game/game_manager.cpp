@@ -4,6 +4,11 @@ namespace pbr::shared::game {
     bool game_manager::initialize() noexcept {
         this->_log_manager->log_message("Initializing the game manager...", apis::logging::log_levels::info);
 
+        if (!this->_graphics_manager->load_api()) {
+            this->_log_manager->log_message("Failed to load the graphics API.", apis::logging::log_levels::error);
+            return false;
+        }
+
         if (!this->_window_manager->initialize()) {
             this->_log_manager->log_message("Failed to initialize window manager.", apis::logging::log_levels::error);
             return false;
@@ -12,6 +17,11 @@ namespace pbr::shared::game {
         this->_application_window = this->_window_manager->create_application_window();
         if (!this->_application_window) {
             this->_log_manager->log_message("Failed to create application window.", apis::logging::log_levels::error);
+            return false;
+        }
+
+        if (!this->_graphics_manager->initialize()) {
+            this->_log_manager->log_message("Failed to initialize graphics manager.", apis::logging::log_levels::error);
             return false;
         }
 

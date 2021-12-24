@@ -27,7 +27,16 @@ namespace pbr::shared::apis::graphics {
         }
 
         /// Destroys this manager
-        ~vulkan_graphics_manager() override = default;
+        ~vulkan_graphics_manager() override {
+            if (!this->shutdown()) {
+                this->_log_manager->log_message("Failed to shutdown the graphics manager.", apis::logging::log_levels::error);
+            }
+        }
+
+        /// Loads any needed dependencies or libraries required by the graphics api
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool load_api() override;
 
         /// Initializes this manager
         /// \returns `true` upon success, else `false`
@@ -46,5 +55,10 @@ namespace pbr::shared::apis::graphics {
 
         /// The Vulkan instance
         vulkan::instance _instance;
+
+        /// Shuts down the graphics manager
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool shutdown() noexcept;
     };
 }

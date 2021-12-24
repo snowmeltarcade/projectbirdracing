@@ -61,8 +61,21 @@ public:
 };
 
 class test_graphics_manager : public apis::graphics::igraphics_manager {
+public:
+    bool load_api_called {false};
+    bool load_api_result {true};
+
+    bool load_api() override {
+        this->load_api_called = true;
+        return this->load_api_result;
+    }
+
+    bool initialize_called {false};
+    bool initialize_result {true};
+
     bool initialize() override {
-        return true;
+        this->initialize_called = true;
+        return this->initialize_result;
     }
 };
 
@@ -108,6 +121,24 @@ TEST_CASE("initialize - successfully initializes game - returns true", "[shared/
     REQUIRE(result);
 }
 
+TEST_CASE("initialize - loads graphics api", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    auto result = g_graphics_manager->load_api_called;
+    REQUIRE(result);
+}
+
+TEST_CASE("initialize - load graphics api fails - returns false", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    g_graphics_manager->load_api_result = false;
+
+    auto result = gm.initialize();
+    REQUIRE_FALSE(result);
+}
+
 TEST_CASE("initialize - initializes window manager", "[shared/game]") {
     auto gm = create_game_manager();
 
@@ -139,6 +170,24 @@ TEST_CASE("initialize - create application window fails - returns false", "[shar
     auto gm = create_game_manager();
 
     g_window_manager->create_application_window_result = {};
+
+    auto result = gm.initialize();
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("initialize - initializes graphics manager", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    auto result = g_graphics_manager->initialize_called;
+    REQUIRE(result);
+}
+
+TEST_CASE("initialize - initialize graphics manager fails - returns false", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    g_graphics_manager->initialize_result = false;
 
     auto result = gm.initialize();
     REQUIRE_FALSE(result);

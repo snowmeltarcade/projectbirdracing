@@ -11,6 +11,11 @@ namespace pbr::shared::apis::graphics {
         /// Destroys this manager
         virtual ~igraphics_manager() = default;
 
+        /// Loads any needed dependencies or libraries required by the graphics api
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        virtual bool load_api() = 0;
+
         /// Initializes this manager
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
