@@ -54,7 +54,7 @@ namespace pbr::shared::apis::graphics {
         application_information _application_information;
 
         /// The Vulkan instance
-        vulkan::instance _instance;
+        vulkan::instance _instance { this->_log_manager };
 
         /// Shuts down the graphics manager
         /// \returns `true` upon success, else `false`
