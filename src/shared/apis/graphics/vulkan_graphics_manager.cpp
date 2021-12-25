@@ -67,6 +67,10 @@ namespace pbr::shared::apis::graphics {
                                                                          application_window,
                                                                          this->_log_manager);
 
+        this->_physical_device = std::make_unique<vulkan::physical_device>(this->_instance,
+                                                                           *this->_window_surface,
+                                                                           this->_log_manager);
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -78,6 +82,8 @@ namespace pbr::shared::apis::graphics {
         this->_log_manager->log_message("Shutting down the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        this->_physical_device.reset();
 
         this->_window_surface.reset();
 

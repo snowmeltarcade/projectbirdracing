@@ -23,6 +23,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Destroys this surface
         ~window_surface();
 
+        /// Returns the native handle to this surface
+        /// \returns The native handle to this surface
+        [[nodiscard]]
+        VkSurfaceKHR get_native_handle() const noexcept {
+            return this->_surface;
+        }
+
     private:
         /// The Vulkan instance
         instance& _instance;

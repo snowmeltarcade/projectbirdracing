@@ -6,6 +6,7 @@
 #include "application_information.h"
 #include "vulkan/instance.h"
 #include "vulkan/window_surface.h"
+#include "vulkan/physical_device.h"
 
 #include <memory>
 #include <string>
@@ -71,5 +72,8 @@ namespace pbr::shared::apis::graphics {
 
         /// The window surface to render to
         std::unique_ptr<vulkan::window_surface> _window_surface;
+
+        /// The physical to use for graphics processing
+        std::unique_ptr<vulkan::physical_device> _physical_device;
     };
 }
