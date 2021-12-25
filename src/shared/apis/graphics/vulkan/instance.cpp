@@ -2,7 +2,6 @@
 #include "debug_messenger.h"
 
 #include <cstdlib>
-#include <iostream>
 #include <cassert>
 
 namespace pbr::shared::apis::graphics::vulkan {
@@ -39,11 +38,11 @@ namespace pbr::shared::apis::graphics::vulkan {
         std::array<VkValidationFeatureEnableEXT, 1> enables;
         VkValidationFeaturesEXT features {};
         this->enable_best_practices_validation_layer(instance_create_info, enables, features);
-#endif
 
         auto debug_messenger_create_info = debug_messenger::get_create_info(
             this->_log_manager);
         features.pNext = &debug_messenger_create_info;
+#endif
 
         if (vkCreateInstance(&instance_create_info, nullptr, &this->_instance) != VK_SUCCESS) {
             this->_log_manager->log_message("Failed to create Vulkan instance.",
@@ -65,12 +64,12 @@ namespace pbr::shared::apis::graphics::vulkan {
                                         apis::logging::log_levels::info,
                                         "Graphics");
         setenv("VK_LAYER_PATH", VK_LAYER_PATH, 0);
+#endif
 
         this->_log_manager->log_message("Setting `VK_ICD_FILENAMES` to " + std::string(VK_ICD_FILENAMES),
                                         apis::logging::log_levels::info,
                                         "Graphics");
         setenv("VK_ICD_FILENAMES", VK_ICD_FILENAMES, 0);
-#endif
     }
 
     VkApplicationInfo instance::construct_application_info(application_information application_information) const noexcept {
@@ -151,7 +150,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     VkInstanceCreateInfo instance::construct_instance_create_info(const VkApplicationInfo& application_info,
                                                                   const std::vector<const char*>& extensions,
-                                                                  const std::vector<const char*>& validation_layers) const noexcept {
+                                                                  [[maybe_unused]] const std::vector<const char*>& validation_layers) const noexcept {
         VkInstanceCreateInfo create_info {};
         create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         create_info.pApplicationInfo = &application_info;
