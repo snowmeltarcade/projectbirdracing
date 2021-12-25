@@ -1,15 +1,12 @@
 #include "instance.h"
 #include "debug_messenger.h"
 
-#include <cstdlib>
 #include <cassert>
 
 namespace pbr::shared::apis::graphics::vulkan {
     bool instance::initialize(SDL_Window* window,
                               application_information application_information) noexcept {
         assert((window != nullptr));
-
-        this->set_environment_variables();
 
         this->_log_manager->log_message("Initializing Vulkan instance...",
                                         apis::logging::log_levels::info,
@@ -56,20 +53,6 @@ namespace pbr::shared::apis::graphics::vulkan {
                                         "Graphics");
 
         return true;
-    }
-
-    void instance::set_environment_variables() const noexcept {
-#if defined(DEBUG) && defined(REQUIRES_MOLTEN_VK)
-        this->_log_manager->log_message("Setting `VK_LAYER_PATH` to " + std::string(VK_LAYER_PATH),
-                                        apis::logging::log_levels::info,
-                                        "Graphics");
-        setenv("VK_LAYER_PATH", VK_LAYER_PATH, 0);
-#endif
-
-        this->_log_manager->log_message("Setting `VK_ICD_FILENAMES` to " + std::string(VK_ICD_FILENAMES),
-                                        apis::logging::log_levels::info,
-                                        "Graphics");
-        setenv("VK_ICD_FILENAMES", VK_ICD_FILENAMES, 0);
     }
 
     VkApplicationInfo instance::construct_application_info(application_information application_information) const noexcept {

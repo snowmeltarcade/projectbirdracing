@@ -44,9 +44,6 @@ namespace pbr::shared::apis::graphics::vulkan {
                         application_information application_information) noexcept;
 
     private:
-        /// Sets the needed environment variables for Vulkan if they are not already set by the developer
-        void set_environment_variables() const noexcept;
-
         /// Constructs the `VkApplicationInfo` struct
         /// \param application_information Needed application information
         [[nodiscard]]

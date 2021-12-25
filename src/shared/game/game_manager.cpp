@@ -6,7 +6,7 @@ namespace pbr::shared::game {
                                         apis::logging::log_levels::info,
                                         "Game");
 
-        if (!this->_graphics_manager->load_api()) {
+        if (!this->_graphics_manager->load_api(this->_executable_path)) {
             this->_log_manager->log_message("Failed to load the graphics API.",
                                             apis::logging::log_levels::error,
                                             "Game");

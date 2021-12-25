@@ -8,6 +8,7 @@
 #include "shared/apis/graphics/vulkan_graphics_manager.h"
 #include "shared/scene/scene_manager.h"
 #include "scene/scene_factory.h"
+#include "shared/utils/program_arguments.h"
 
 #include <iostream>
 #include <vector>
@@ -17,8 +18,9 @@
 using namespace pbr::shared;
 
 /// Creates the game manager
+/// \param arguments The program arguments
 /// \returns The created game manager
-game::game_manager create_game_manager() {
+game::game_manager create_game_manager(const utils::program_arguments& arguments) {
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
 
     auto game_log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
@@ -57,7 +59,10 @@ game::game_manager create_game_manager() {
                                                                 scene::scene_types::loading,
                                                                 game_log_manager);
 
-    game::game_manager gm(game_log_manager,
+    auto executable_path = arguments.get_executable_path().parent_path();
+
+    game::game_manager gm(executable_path,
+                          game_log_manager,
                           window_manager,
                           graphics_manager,
                           scene_manager);
@@ -65,8 +70,9 @@ game::game_manager create_game_manager() {
 }
 
 /// Sets up and runs the game
-void run() {
-    auto gm = create_game_manager();
+/// \param arguments The program arguments
+void run(const utils::program_arguments& arguments) {
+    auto gm = create_game_manager(arguments);
 
     if (!gm.initialize()) {
         std::cout << "Failed to initialize game manager.\n";
@@ -104,7 +110,9 @@ int main(int argv, char* args[]) {
         arguments.push_back(args[i]);
     }
 
-    run();
+    utils::program_arguments pa(arguments);
+
+    run(pa);
 
     std::cout << "Server complete.\n";
 

@@ -36,9 +36,10 @@ namespace pbr::shared::apis::graphics {
         }
 
         /// Loads any needed dependencies or libraries required by the graphics api
+        /// \param executable_path The path of the main executable
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
-        bool load_api() override;
+        bool load_api(const std::filesystem::path& executable_path) override;
 
         /// Initializes this manager
         /// \returns `true` upon success, else `false`
@@ -46,6 +47,15 @@ namespace pbr::shared::apis::graphics {
         bool initialize() override;
 
     private:
+        /// Sets the needed environment variables for Vulkan if they are not already set by the developer
+        /// \param executable_path The path of the main executable
+        void set_environment_variables(const std::filesystem::path& executable_path) const noexcept;
+
+        /// Shuts down the graphics manager
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool shutdown() noexcept;
+
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
 
@@ -57,10 +67,5 @@ namespace pbr::shared::apis::graphics {
 
         /// The Vulkan instance
         vulkan::instance _instance { this->_log_manager };
-
-        /// Shuts down the graphics manager
-        /// \returns `true` upon success, else `false`
-        [[nodiscard]]
-        bool shutdown() noexcept;
     };
 }

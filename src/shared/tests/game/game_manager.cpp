@@ -65,7 +65,7 @@ public:
     bool load_api_called {false};
     bool load_api_result {true};
 
-    bool load_api() override {
+    bool load_api(const std::filesystem::path&) override {
         this->load_api_called = true;
         return this->load_api_result;
     }
@@ -102,7 +102,8 @@ game_manager create_game_manager() {
     g_graphics_manager = std::make_shared<test_graphics_manager>();
     g_scene_manager = std::make_shared<test_scene_manager>();
 
-    game_manager gm(log_manager,
+    game_manager gm("",
+                    log_manager,
                     g_window_manager,
                     g_graphics_manager,
                     g_scene_manager);

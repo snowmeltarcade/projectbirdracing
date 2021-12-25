@@ -1,7 +1,9 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        program_arguments.h
         strings.h
     PRIVATE
+        program_arguments.cpp
         strings.cpp
 )

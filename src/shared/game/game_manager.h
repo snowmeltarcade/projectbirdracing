@@ -10,6 +10,7 @@
 #include <cassert>
 #include <memory>
 #include <atomic>
+#include <filesystem>
 
 namespace pbr::shared::game {
     /// Provides the skeleton of the game. The managers to be used are first configured and then added
@@ -18,15 +19,18 @@ namespace pbr::shared::game {
     class game_manager {
     public:
         /// Constructs this manager
+        /// \param executable_path The path of the main executable
         /// \param log_manager The log manager to use
         /// \param window_manager The window manager to use
         /// \param graphics_manager The graphics manager to use
         /// \param scene_manager The scene manager to use
-        game_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
+        game_manager(std::filesystem::path executable_path,
+                     std::shared_ptr<apis::logging::ilog_manager> log_manager,
                      std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
                      std::shared_ptr<apis::graphics::igraphics_manager> graphics_manager,
                      std::shared_ptr<scene::iscene_manager> scene_manager)
-            : _log_manager(log_manager),
+            : _executable_path(executable_path),
+              _log_manager(log_manager),
               _window_manager(window_manager),
               _graphics_manager(graphics_manager),
               _scene_manager(scene_manager) {
@@ -66,6 +70,9 @@ namespace pbr::shared::game {
         bool run() noexcept;
 
     private:
+        /// The path of the main executable
+        std::filesystem::path _executable_path;
+
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
 
