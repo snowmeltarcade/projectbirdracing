@@ -43,6 +43,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         bool initialize(SDL_Window* window,
                         application_information application_information) noexcept;
 
+        /// Returns the native Vulkan instance handle
+        /// \returns The native Vulkan instance handle
+        [[nodiscard]]
+        const VkInstance& get_native_handle() const noexcept {
+            return this->_instance;
+        }
+
     private:
         /// Constructs the `VkApplicationInfo` struct
         /// \param application_information Needed application information

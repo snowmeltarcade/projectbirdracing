@@ -11,14 +11,16 @@ else()
     add_definitions(-DREQUIRES_MOLTEN_VK)
     add_definitions(-DVK_LAYER_PATH="${VULKAN_SDK}/share/vulkan/explicit_layer.d")
 
-    add_definitions(-DMOLTENVK_LIB_FILENAME="lib/libMoltenVK.dylib")
-    add_definitions(-DVK_ICD_FILENAMES="share/vulkan/icd.d/MoltenVK_icd.json")
+    add_definitions(-DMOLTENVK_LIB_FILENAME="macOS/lib/libMoltenVK.dylib")
+    add_definitions(-DVK_ICD_FILENAMES="macOS/share/vulkan/icd.d/MoltenVK_icd.json")
 
-    file(COPY "${VULKAN_SDK}/lib/libMoltenVK.dylib"
-         DESTINATION "${PROJECT_BINARY_DIR}/bin/lib/")
+    # no ending / so we copy the folder itself
+    file(GLOB VULKAN_DYLIBS "${LIBRARIES_ROOT_DIR}/vulkan/Darwin/macOS/lib/*.dylib")
+    file(COPY ${VULKAN_DYLIBS}
+         DESTINATION "${PROJECT_BINARY_DIR}/bin/macOS/lib/")
 
-    file(COPY "${VULKAN_SDK}/share/vulkan/icd.d/MoltenVK_icd.json"
-         DESTINATION "${PROJECT_BINARY_DIR}/bin/share/vulkan/icd.d/")
+    file(COPY "${LIBRARIES_ROOT_DIR}/vulkan/Darwin/macOS/share"
+            DESTINATION "${PROJECT_BINARY_DIR}/bin/macOS/")
 endif()
 
 set(ENV{VULKAN_SDK} ${VULKAN_SDK})

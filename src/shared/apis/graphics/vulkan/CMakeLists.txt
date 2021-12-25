@@ -3,8 +3,10 @@ target_sources(
     PUBLIC
         debug_messenger.h
         instance.h
+        window_surface.h
     PRIVATE
         debug_messenger.cpp
         instance.cpp
         vma.cpp
+        window_surface.cpp
 )

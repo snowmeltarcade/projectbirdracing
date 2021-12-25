@@ -5,6 +5,7 @@
 #include "igraphics_manager.h"
 #include "application_information.h"
 #include "vulkan/instance.h"
+#include "vulkan/window_surface.h"
 
 #include <memory>
 #include <string>
@@ -67,5 +68,8 @@ namespace pbr::shared::apis::graphics {
 
         /// The Vulkan instance
         vulkan::instance _instance { this->_log_manager };
+
+        /// The window surface to render to
+        std::unique_ptr<vulkan::window_surface> _window_surface;
     };
 }

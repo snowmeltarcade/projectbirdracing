@@ -24,19 +24,6 @@ namespace pbr::shared::apis::graphics {
             return false;
         }
 
-#ifdef REQUIRES_MOLTEN_VK
-        auto lib_path = executable_path / MOLTENVK_LIB_FILENAME;
-        if (SDL_Vulkan_LoadLibrary(lib_path.c_str()) < 0) {
-            this->_log_manager->log_message("Failed to load MoltenVK library with error:",
-                                            apis::logging::log_levels::error,
-                                            "Graphics");
-            this->_log_manager->log_message(SDL_GetError(),
-                                            apis::logging::log_levels::error,
-                                            "Graphics");
-            return false;
-        }
-#endif
-
         this->_log_manager->log_message("Loaded the graphics API.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -76,6 +63,10 @@ namespace pbr::shared::apis::graphics {
             return false;
         }
 
+        this->_window_surface = std::make_unique<vulkan::window_surface>(this->_instance,
+                                                                         application_window,
+                                                                         this->_log_manager);
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -87,6 +78,8 @@ namespace pbr::shared::apis::graphics {
         this->_log_manager->log_message("Shutting down the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        this->_window_surface.reset();
 
         SDL_VideoQuit();
 
