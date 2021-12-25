@@ -58,7 +58,7 @@ namespace pbr::shared::apis::logging {
         std::scoped_lock<std::mutex> lock(this->_mutex);
 
         for (const auto& e : this->_endpoints) {
-            e->log(formatted_message);
+            e->log(formatted_message, level);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 #include "shared/memory/basic_allocators.h"
 #include "ilog_manager.h"
+#include "log_levels.h"
 #include "shared/apis/datetime/idatetime_manager.h"
 
 #include <mutex>
