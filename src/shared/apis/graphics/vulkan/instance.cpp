@@ -4,6 +4,38 @@
 #include <cassert>
 
 namespace pbr::shared::apis::graphics::vulkan {
+    /// Create the debug messenger for the instance. This is needed because
+    /// the `vkCreateDebugUtilsMessengerEXT` function is not exposed by default
+    /// \param instance The Vulkan instance
+    /// \param create_info The create info
+    /// \param allocator An optional allocator
+    /// \param debug_messenger The debug messenger to create
+    VkResult create_debug_utils_messenger_ext(VkInstance instance,
+                                              const VkDebugUtilsMessengerCreateInfoEXT* create_info,
+                                              const VkAllocationCallbacks* allocator,
+                                              VkDebugUtilsMessengerEXT* debug_messenger) {
+        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+        if (func != nullptr) {
+            return func(instance, create_info, allocator, debug_messenger);
+        } else {
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+    }
+
+    /// Destroys the passed debug messenger. This is needed because the `vkDestroyDebugUtilsMessengerEXT`
+    /// function is not natively exposed.
+    /// \param instance The Vulkan instance
+    /// \param debug_messenger The debug messenger to destroy
+    /// \param allocator An optional allocator
+    void destroy_debug_utils_messenger_ext(VkInstance instance,
+                                           VkDebugUtilsMessengerEXT debug_messenger,
+                                           const VkAllocationCallbacks* allocator) {
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+        if (func != nullptr) {
+            func(instance, debug_messenger, allocator);
+        }
+    }
+
     bool instance::initialize(SDL_Window* window,
                               application_information application_information) noexcept {
         assert((window != nullptr));
@@ -47,6 +79,16 @@ namespace pbr::shared::apis::graphics::vulkan {
                                             "Graphics");
             return false;
         }
+
+#ifdef DEBUG
+        if (create_debug_utils_messenger_ext(this->_instance,
+                                             &debug_messenger_create_info,
+                                             nullptr,
+                                             &this->_debug_messenger) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to create debug messenger.", apis::logging::log_levels::error);
+            return false;
+        }
+#endif
 
         this->_log_manager->log_message("Initialized Vulkan instance.",
                                         apis::logging::log_levels::info,
@@ -170,6 +212,11 @@ namespace pbr::shared::apis::graphics::vulkan {
         this->_log_manager->log_message("Shutting down Vulkan instance...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        if (this->_debug_messenger) {
+            destroy_debug_utils_messenger_ext(this->_instance, this->_debug_messenger, nullptr);
+            this->_debug_messenger = nullptr;
+        }
 
         vkDestroyInstance(this->_instance, nullptr);
         this->_instance = nullptr;

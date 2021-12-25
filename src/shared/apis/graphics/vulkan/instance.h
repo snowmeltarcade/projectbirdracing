@@ -91,5 +91,8 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         /// A handle to this instance
         VkInstance _instance {VK_NULL_HANDLE};
+
+        /// The debug messenger
+        VkDebugUtilsMessengerEXT _debug_messenger {VK_NULL_HANDLE};
     };
 }
