@@ -1,21 +1,11 @@
 #include "instance.h"
+#include "debug_messenger.h"
 
 #include <cstdlib>
 #include <iostream>
 #include <cassert>
 
 namespace pbr::shared::apis::graphics::vulkan {
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT,
-        VkDebugUtilsMessageTypeFlagsEXT,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void*) {
-
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-        return VK_FALSE;
-    }
-
     bool instance::initialize(SDL_Window* window,
                               application_information application_information) noexcept {
         assert((window != nullptr));
@@ -51,13 +41,9 @@ namespace pbr::shared::apis::graphics::vulkan {
         this->enable_best_practices_validation_layer(instance_create_info, enables, features);
 #endif
 
-        VkDebugUtilsMessengerCreateInfoEXT createInfo {};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
-
-        features.pNext = &createInfo;
+        auto debug_messenger_create_info = debug_messenger::get_create_info(
+            this->_log_manager);
+        features.pNext = &debug_messenger_create_info;
 
         if (vkCreateInstance(&instance_create_info, nullptr, &this->_instance) != VK_SUCCESS) {
             this->_log_manager->log_message("Failed to create Vulkan instance.",

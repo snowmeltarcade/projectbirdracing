@@ -1,8 +1,10 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        debug_messenger.h
         instance.h
     PRIVATE
+        debug_messenger.cpp
         instance.cpp
         vma.cpp
 )
