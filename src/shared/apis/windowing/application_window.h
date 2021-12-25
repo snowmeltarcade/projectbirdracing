@@ -27,7 +27,9 @@ namespace pbr::shared::apis::windowing {
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               w, h)) {
                 auto message = "Failed to create application window.";
-                this->_log_manager->log_message(message, apis::logging::log_levels::fatal);
+                this->_log_manager->log_message(message,
+                                                apis::logging::log_levels::fatal,
+                                                "Windowing");
                 throw std::logic_error(message);
             }
         }

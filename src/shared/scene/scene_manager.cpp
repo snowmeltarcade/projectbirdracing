@@ -4,7 +4,9 @@ namespace pbr::shared::scene {
     bool scene_manager::run() noexcept {
         if (this->_are_loading_new_scenes) {
             if (!this->_loading_scene->run()) {
-                this->_log_manager->log_message("Failed to run loading scene.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to run loading scene.",
+                                                apis::logging::log_levels::error,
+                                                "Scene");
                 return false;
             }
 
@@ -18,7 +20,9 @@ namespace pbr::shared::scene {
 
             for (auto &scene: this->_loaded_scenes) {
                 if (!scene->run()) {
-                    this->_log_manager->log_message("Failed to run scene.", apis::logging::log_levels::error);
+                    this->_log_manager->log_message("Failed to run scene.",
+                                                    apis::logging::log_levels::error,
+                                                    "Scene");
                     return false;
                 }
 
@@ -49,12 +53,15 @@ namespace pbr::shared::scene {
         if (!this->_loading_scene) {
             this->_log_manager->log_message("Failed to create scene with type: " +
                                             std::to_string(static_cast<uint32_t>(this->_loading_scene_type)),
-                                            apis::logging::log_levels::error);
+                                            apis::logging::log_levels::error,
+                                            "Scene");
             return false;
         }
 
         if (!this->_loading_scene->load()) {
-            this->_log_manager->log_message("Failed to load loading scene.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to load loading scene.",
+                                            apis::logging::log_levels::error,
+                                            "Scene");
             return false;
         }
 
@@ -73,7 +80,9 @@ namespace pbr::shared::scene {
             auto next_scenes = this->_scene_factory->get_next_scenes(this->_loaded_scenes);
 
             if (!this->queue_new_scenes(next_scenes)) {
-                this->_log_manager->log_message("Failed to load new scenes.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to load new scenes.",
+                                                apis::logging::log_levels::error,
+                                                "Scene");
                 this->_did_loading_new_scenes_fail = true;
                 return;
             }
@@ -86,7 +95,9 @@ namespace pbr::shared::scene {
 
     bool scene_manager::queue_new_scenes(const std::vector<scene_types>& types) noexcept {
         if (types.empty()) {
-            this->_log_manager->log_message("No scene types queued.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("No scene types queued.",
+                                            apis::logging::log_levels::error,
+                                            "Scene");
             return false;
         }
 
@@ -97,14 +108,16 @@ namespace pbr::shared::scene {
             if (!scene) {
                 this->_log_manager->log_message("Failed to create scene with type: " +
                                                 std::to_string(static_cast<uint32_t>(type)),
-                                                apis::logging::log_levels::error);
+                                                apis::logging::log_levels::error,
+                                                "Scene");
                 return false;
             }
 
             if (!scene->load()) {
                 this->_log_manager->log_message("Failed to load with type: " +
                                                 std::to_string(static_cast<uint32_t>(type)),
-                                                apis::logging::log_levels::error);
+                                                apis::logging::log_levels::error,
+                                                "Scene");
                 return false;
             }
 

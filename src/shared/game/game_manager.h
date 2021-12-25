@@ -39,7 +39,9 @@ namespace pbr::shared::game {
         /// Destructs this manager. The game will be shutdown here
         ~game_manager() {
             if (!this->shutdown()) {
-                this->_log_manager->log_message("Failed to shutdown game manager.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to shutdown game manager.",
+                                                apis::logging::log_levels::error,
+                                                "Game");
             }
         }
 
@@ -89,7 +91,10 @@ namespace pbr::shared::game {
 
         /// Requests this game manager exits
         void request_exit() noexcept {
-            this->_log_manager->log_message("Requesting exit from game manager...", apis::logging::log_levels::info);
+            this->_log_manager->log_message("Requesting exit from game manager...",
+                                            apis::logging::log_levels::info,
+                                            "Game");
+
             this->_has_exit_been_requested = true;
         }
     };

@@ -30,7 +30,9 @@ namespace pbr::server::scene {
             return { shared::scene::scene_types::world_generation };
         }
 
-        this->_log_manager->log_message("Invalid scene state machine state.", shared::apis::logging::log_levels::error);
+        this->_log_manager->log_message("Invalid scene state machine state.",
+                                        shared::apis::logging::log_levels::error,
+                                        "Scene");
         return {};
     }
 }

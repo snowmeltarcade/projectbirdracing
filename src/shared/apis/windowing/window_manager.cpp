@@ -5,14 +5,20 @@
 
 namespace pbr::shared::apis::windowing {
     bool window_manager::initialize() noexcept {
-        this->_log_manager->log_message("Initializing the window manager...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Initializing the window manager...",
+                                        apis::logging::log_levels::info,
+                                        "Windowing");
 
         if (SDL_Init(SDL_INIT_EVENTS) < 0) {
-            this->_log_manager->log_message("Failed to init SDL with error:", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to init SDL with error:",
+                                            apis::logging::log_levels::error,
+                                            "Windowing");
             return false;
         }
 
-        this->_log_manager->log_message("Initialized the window manager.", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Initialized the window manager.",
+                                        apis::logging::log_levels::info,
+                                        "Windowing");
         return true;
     }
 
@@ -21,7 +27,9 @@ namespace pbr::shared::apis::windowing {
     }
 
     std::shared_ptr<iapplication_window> window_manager::create_application_window() noexcept {
-        auto window = std::make_shared<application_window>(this->_log_manager, "PBR", 500, 500);
+        auto window = std::make_shared<application_window>(this->_log_manager,
+                                                           "PBR",
+                                                           500, 500);
 
         this->_application_windows.push_back(window);
 
@@ -37,14 +45,18 @@ namespace pbr::shared::apis::windowing {
             {
                 case SDL_APP_TERMINATING:
                 {
-                    this->_log_manager->log_message("Event: App terminating...", apis::logging::log_levels::info);
+                    this->_log_manager->log_message("Event: App terminating...",
+                                                    apis::logging::log_levels::info,
+                                                    "Windowing");
 
                     this->_should_quit = true;
                     break;
                 }
                 case SDL_QUIT:
                 {
-                    this->_log_manager->log_message("Event: Quit...", apis::logging::log_levels::info);
+                    this->_log_manager->log_message("Event: Quit...",
+                                                    apis::logging::log_levels::info,
+                                                    "Windowing");
 
                     this->_should_quit = true;
                     break;
@@ -60,14 +72,18 @@ namespace pbr::shared::apis::windowing {
     }
 
     bool window_manager::shutdown() noexcept {
-        this->_log_manager->log_message("Shutting down the window manager...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Shutting down the window manager...",
+                                        apis::logging::log_levels::info,
+                                        "Windowing");
 
         // remove references we know about so, hopefully, the destructors will be called
         this->_application_windows.clear();
 
         SDL_Quit();
 
-        this->_log_manager->log_message("Shut down the window manager.", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Shut down the window manager.",
+                                        apis::logging::log_levels::info,
+                                        "Windowing");
         return true;
     }
 }

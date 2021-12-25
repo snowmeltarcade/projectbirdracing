@@ -27,7 +27,9 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Destroys this instance
         ~instance() {
             if (!this->shutdown()) {
-                this->_log_manager->log_message("Failed to shutdown Vulkan instance.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to shutdown Vulkan instance.",
+                                                apis::logging::log_levels::error,
+                                                "Graphics");
             }
         }
 

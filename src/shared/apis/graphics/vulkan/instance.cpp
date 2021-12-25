@@ -22,7 +22,9 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         this->set_environment_variables();
 
-        this->_log_manager->log_message("Initializing Vulkan instance...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Initializing Vulkan instance...",
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
 
         this->_window = window;
 
@@ -32,7 +34,9 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         auto validation_layers = this->get_validation_layers();
         if (!validation_layers) {
-            this->_log_manager->log_message("Did not get required validation layers.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Did not get required validation layers.",
+                                            apis::logging::log_levels::error,
+                                            "Graphics");
             return false;
         }
 
@@ -56,11 +60,15 @@ namespace pbr::shared::apis::graphics::vulkan {
         features.pNext = &createInfo;
 
         if (vkCreateInstance(&instance_create_info, nullptr, &this->_instance) != VK_SUCCESS) {
-            this->_log_manager->log_message("Failed to create Vulkan instance.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to create Vulkan instance.",
+                                            apis::logging::log_levels::error,
+                                            "Graphics");
             return false;
         }
 
-        this->_log_manager->log_message("Initialized Vulkan instance.", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Initialized Vulkan instance.",
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
 
         return true;
     }
@@ -68,11 +76,13 @@ namespace pbr::shared::apis::graphics::vulkan {
     void instance::set_environment_variables() const noexcept {
 #if defined(DEBUG) && defined(REQUIRES_MOLTEN_VK)
         this->_log_manager->log_message("Setting `VK_LAYER_PATH` to " + std::string(VK_LAYER_PATH),
-                                        apis::logging::log_levels::info);
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
         setenv("VK_LAYER_PATH", VK_LAYER_PATH, 0);
 
         this->_log_manager->log_message("Setting `VK_ICD_FILENAMES` to " + std::string(VK_ICD_FILENAMES),
-                                        apis::logging::log_levels::info);
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
         setenv("VK_ICD_FILENAMES", VK_ICD_FILENAMES, 0);
 #endif
     }
@@ -144,7 +154,8 @@ namespace pbr::shared::apis::graphics::vulkan {
 
             if (!are_desired_validation_layers_supported) {
                 this->_log_manager->log_message("Requested layers are not supported.",
-                                                apis::logging::log_levels::error);
+                                                apis::logging::log_levels::error,
+                                                "Graphics");
                 return {};
             }
         }
@@ -188,12 +199,16 @@ namespace pbr::shared::apis::graphics::vulkan {
             return true;
         }
 
-        this->_log_manager->log_message("Shutting down Vulkan instance...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Shutting down Vulkan instance...",
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
 
         vkDestroyInstance(this->_instance, nullptr);
         this->_instance = nullptr;
 
-        this->_log_manager->log_message("Shut down Vulkan instance.", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Shut down Vulkan instance.",
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
 
         return true;
     }

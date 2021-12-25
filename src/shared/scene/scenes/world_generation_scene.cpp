@@ -2,12 +2,16 @@
 
 namespace pbr::shared::scene::scenes {
     bool world_generation_scene::load() noexcept {
-        this->_log_manager->log_message("Loading the world generation scene...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Loading the world generation scene...",
+                                        apis::logging::log_levels::info,
+                                        "Scene");
         return true;
     }
 
     bool world_generation_scene::run() noexcept {
-        //this->_log_manager->log_message("Running the world generation scene...", apis::logging::log_levels::info);
+        //this->_log_manager->log_message("Running the world generation scene...",
+        // apis::logging::log_levels::info,
+        // "Scene");
         return true;
     }
 }

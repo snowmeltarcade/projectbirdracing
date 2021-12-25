@@ -13,8 +13,12 @@ namespace pbr::shared::apis::windowing {
                                          flags);
 
         if (!this->_window) {
-            this->_log_manager->log_message("Failed to create SDL window, with error:", apis::logging::log_levels::error);
-            this->_log_manager->log_message(SDL_GetError(), apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to create SDL window, with error:",
+                                            apis::logging::log_levels::error,
+                                            "Windowing");
+            this->_log_manager->log_message(SDL_GetError(),
+                                            apis::logging::log_levels::error,
+                                            "Windowing");
             return false;
         }
 

@@ -33,13 +33,20 @@ namespace pbr::shared::apis::logging {
         return this->_current_log_level;
     }
 
-    void log_manager::log_message(std::string_view message, const log_levels level) noexcept {
+    void log_manager::log_message(std::string_view message,
+                                  const log_levels level,
+                                  std::string_view prefix) noexcept {
         if (level < this->_current_log_level) {
             return;
         }
 
-        // date time | level> message
+        // prefix: date time | level> message
         std::stringstream ss;
+
+        if (!prefix.empty()) {
+            ss << prefix << ": ";
+        }
+
         ss << this->_datetime_manager->get_date_time_as_utc_string()
             << " | "
             << to_string(level)

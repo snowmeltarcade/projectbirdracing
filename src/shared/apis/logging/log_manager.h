@@ -45,7 +45,10 @@ namespace pbr::shared::apis::logging {
         /// the message will not be logged. The level, current date and time in UTC will be prefixed to the message
         /// \param message The message to log
         /// \param level The logging level to log against
-        void log_message(std::string_view message, const log_levels level) noexcept override;
+        /// \param key A prefix to the message
+        void log_message(std::string_view message,
+                         const log_levels level,
+                         std::string_view prefix = "") noexcept override;
 
     private:
         /// Helps ensure logging is thread safe

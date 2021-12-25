@@ -29,7 +29,9 @@ namespace pbr::shared::apis::graphics {
         /// Destroys this manager
         ~vulkan_graphics_manager() override {
             if (!this->shutdown()) {
-                this->_log_manager->log_message("Failed to shutdown the graphics manager.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to shutdown the graphics manager.",
+                                                apis::logging::log_levels::error,
+                                                "Graphics");
             }
         }
 

@@ -14,7 +14,9 @@ namespace pbr::shared::apis::windowing {
         }
         ~window_manager() override {
             if (!this->shutdown()) {
-                this->_log_manager->log_message("Failed to shutdown the window manager.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to shutdown the window manager.",
+                                                apis::logging::log_levels::error,
+                                                "Windowing");
             }
         }
 
