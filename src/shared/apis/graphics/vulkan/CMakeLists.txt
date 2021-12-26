@@ -6,11 +6,13 @@ target_sources(
         instance.h
         physical_device.h
         window_surface.h
+        vma.h
     PRIVATE
         debug_messenger.cpp
         device.cpp
         instance.cpp
-        vma.cpp
         physical_device.cpp
+        vma.cpp
+        vma_implementation.cpp
         window_surface.cpp
 )

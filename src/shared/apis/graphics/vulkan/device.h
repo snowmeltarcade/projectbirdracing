@@ -22,6 +22,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Destroys this device
         ~device();
 
+        /// Returns the native handle to this device
+        /// \returns The native handle to this device
+        [[nodiscard]]
+        VkDevice get_native_handle() const noexcept {
+            return this->_device;
+        }
+
     private:
         /// The logical device
         VkDevice _device {VK_NULL_HANDLE};

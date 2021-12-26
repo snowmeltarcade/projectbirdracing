@@ -26,7 +26,7 @@ namespace pbr::shared::apis::graphics::vulkan {
                         window_surface& window_surface,
                         std::shared_ptr<logging::ilog_manager> log_manager);
 
-        /// Destroys this physical devuce
+        /// Destroys this physical device
         ~physical_device();
 
         /// Returns the queue family indexes for this physical device

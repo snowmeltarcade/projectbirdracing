@@ -8,6 +8,7 @@
 #include "vulkan/window_surface.h"
 #include "vulkan/physical_device.h"
 #include "vulkan/device.h"
+#include "vulkan/vma.h"
 
 #include <memory>
 #include <string>
@@ -79,5 +80,8 @@ namespace pbr::shared::apis::graphics {
 
         /// The logical device to use for graphics processing
         std::unique_ptr<vulkan::device> _device;
+
+        /// Manages VMA
+        std::unique_ptr<vulkan::vma> _vma;
     };
 }

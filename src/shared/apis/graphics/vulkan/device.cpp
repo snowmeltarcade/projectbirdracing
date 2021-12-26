@@ -99,8 +99,6 @@ namespace pbr::shared::apis::graphics::vulkan {
             FATAL_ERROR("Failed to create logical device.")
         }
 
-//        this->setup_vma();
-//
 //        vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
 //        vkGetDeviceQueue(this->_device, *qfi.present_family_index, 0, &this->_present_queue);
 
