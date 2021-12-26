@@ -9,6 +9,7 @@
 #include "vulkan/physical_device.h"
 #include "vulkan/device.h"
 #include "vulkan/vma.h"
+#include "vulkan/queue.h"
 
 #include <memory>
 #include <string>
@@ -83,5 +84,11 @@ namespace pbr::shared::apis::graphics {
 
         /// Manages VMA
         std::unique_ptr<vulkan::vma> _vma;
+
+        /// The graphics queue
+        std::unique_ptr<vulkan::queue> _graphics_queue;
+
+        /// The present queue
+        std::unique_ptr<vulkan::queue> _present_queue;
     };
 }

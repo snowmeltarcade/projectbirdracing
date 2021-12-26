@@ -5,6 +5,7 @@ target_sources(
         device.h
         instance.h
         physical_device.h
+        queue.h
         window_surface.h
         vma.h
     PRIVATE
@@ -12,6 +13,7 @@ target_sources(
         device.cpp
         instance.cpp
         physical_device.cpp
+        queue.cpp
         vma.cpp
         vma_implementation.cpp
         window_surface.cpp

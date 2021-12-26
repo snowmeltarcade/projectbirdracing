@@ -80,6 +80,16 @@ namespace pbr::shared::apis::graphics {
                                                    *this->_device,
                                                    this->_log_manager);
 
+        auto queue_indexes = this->_physical_device->get_queue_family_indexes();
+
+        this->_graphics_queue = std::make_unique<vulkan::queue>(*this->_device,
+                                                                *queue_indexes.graphics_family_index,
+                                                                this->_log_manager);
+
+        this->_present_queue = std::make_unique<vulkan::queue>(*this->_device,
+                                                               *queue_indexes.present_family_index,
+                                                               this->_log_manager);
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
