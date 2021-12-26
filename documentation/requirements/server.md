@@ -3,6 +3,7 @@
 - [Server](#server)
   - [Graphics](#graphics)
   - [Window](#window)
+    - [Resolutions](#resolutions)
   - [Input](#input)
   - [Networking](#networking)
   - [Scene](#scene)
@@ -220,24 +221,7 @@ See [UI](ui.md) for more information.
 
 ## ECS
 
-All entities in the server are managed by the ECS (entity component system).
-
-The following components are required:
-
-- `location_2d`
-  - Contains the 2D location of this entity in screen space
-- `sprite`
-  - Contains the data needed to render a 2D sprite. Requires a `location_2d` component.
-- `material`
-  - Contains the needed material data to render this entity, such as shader and textures.
-- `rigid_body_2d`
-  - Contains the needed data to handle 2D collisions, such as bounding box and circle collisions.
-- `velocity_2d`
-  - Contains the needed data to impart movement to the attached `location_2d` component.
-- `script`
-  - Contains the data needed to run a script that will act on this entity in some way. This will be used extensively for NPCs to run their AI.
-
-See [here](ai.md) for more information on how AI is managed.
+See [here](entity_component_system.md) for more information.
 
 ## Scripting
 

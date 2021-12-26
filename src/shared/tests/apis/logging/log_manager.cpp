@@ -26,7 +26,7 @@ public:
 
     /// Logs a test message
     /// \param message The message to log
-    void log(std::string_view message) noexcept override {
+    void log(std::string_view message, log_levels) noexcept override {
         ++test_endpoint::_log_call_count;
 
         this->_logged_message = message;

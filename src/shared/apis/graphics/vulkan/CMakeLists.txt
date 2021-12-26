@@ -1,0 +1,22 @@
+target_sources(
+    "${SHARED_PROJECT_NAME}"
+    PUBLIC
+        command_pool.h
+        debug_messenger.h
+        device.h
+        instance.h
+        physical_device.h
+        queue.h
+        window_surface.h
+        vma.h
+    PRIVATE
+        command_pool.cpp
+        debug_messenger.cpp
+        device.cpp
+        instance.cpp
+        physical_device.cpp
+        queue.cpp
+        vma.cpp
+        vma_implementation.cpp
+        window_surface.cpp
+)

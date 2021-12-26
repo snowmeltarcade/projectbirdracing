@@ -1,13 +1,15 @@
 # Shared Classes
 
 - [Shared Classes](#shared-classes)
-  - [Game](#game)
+  - [Game Manager](#game-manager)
     - [Threading](#threading)
     - [Graphics Thread](#graphics-thread)
     - [Audio Thread](#audio-thread)
     - [Network Thread](#network-thread)
     - [Logic Thread](#logic-thread)
   - [Log Manager](#log-manager)
+  - [Data Manager](#data-manager)
+  - [File Manager](#file-manager)
   - [Graphics Manager](#graphics-manager)
   - [Audio Manager](#audio-manager)
   - [Input Manager](#input-manager)
@@ -98,6 +100,19 @@ The default data format is `JSON`.
 When loading a file from the `data` folder, the file extension is not required. The data manager will search for the file using file extensions of formats it knows about.
 
 Data can be set into the data manager, overwriting any data loaded from a file. New data can also be set.
+
+## File Manager
+
+Handles the loading of files from multiple sources. Currently, the following sources are supported:
+
+1) Local file system
+2) A networked location
+
+Other sources may be supported in the future, such as compressed archives or Git repositories.
+
+A URI will be provided and a binary blob of the file data will be returned as a promise. This allows asynchronous file loading, which is very useful if a file is either very large or needs to be downloaded from a network location.
+
+No cache functionality will currently be supported.
 
 ## Graphics Manager
 

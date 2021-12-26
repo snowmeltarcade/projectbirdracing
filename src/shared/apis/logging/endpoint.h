@@ -1,5 +1,7 @@
 #pragma once
 
+#include "log_levels.h"
+
 #include <string>
 
 namespace pbr::shared::apis::logging {
@@ -13,6 +15,7 @@ namespace pbr::shared::apis::logging {
         /// Logs a message to this endpoint
         /// \param message The message to log. It is up to the caller to add any date, time or id etc... information
         // to this message
-        virtual void log(std::string_view message) noexcept = 0;
+        /// \param level The log level
+        virtual void log(std::string_view message, log_levels level) noexcept = 0;
     };
 }

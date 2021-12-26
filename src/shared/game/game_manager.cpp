@@ -2,30 +2,56 @@
 
 namespace pbr::shared::game {
     bool game_manager::initialize() noexcept {
-        this->_log_manager->log_message("Initializing the game manager...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Initializing the game manager...",
+                                        apis::logging::log_levels::info,
+                                        "Game");
+
+        if (!this->_graphics_manager->load_api(this->_executable_path)) {
+            this->_log_manager->log_message("Failed to load the graphics API.",
+                                            apis::logging::log_levels::error,
+                                            "Game");
+            return false;
+        }
 
         if (!this->_window_manager->initialize()) {
-            this->_log_manager->log_message("Failed to initialize window manager.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to initialize window manager.",
+                                            apis::logging::log_levels::error,
+                                            "Game");
             return false;
         }
 
         this->_application_window = this->_window_manager->create_application_window();
         if (!this->_application_window) {
-            this->_log_manager->log_message("Failed to create application window.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to create application window.",
+                                            apis::logging::log_levels::error,
+                                            "Game");
             return false;
         }
 
-        this->_log_manager->log_message("Initialized the game manager.", apis::logging::log_levels::info);
+        if (!this->_graphics_manager->initialize()) {
+            this->_log_manager->log_message("Failed to initialize graphics manager.",
+                                            apis::logging::log_levels::error,
+                                            "Game");
+            return false;
+        }
+
+        this->_log_manager->log_message("Initialized the game manager.",
+                                        apis::logging::log_levels::info,
+                                        "Game");
 
         return true;
     }
 
     bool game_manager::run() noexcept {
-        this->_log_manager->log_message("Running the game manager...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Running the game manager...",
+                                        apis::logging::log_levels::info,
+                                        "Game");
 
         while (!this->_has_exit_been_requested) {
             if (!this->_window_manager->update()) {
-                this->_log_manager->log_message("Failed to update window manager.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to update window manager.",
+                                                apis::logging::log_levels::error,
+                                                "Game");
                 return false;
             }
 
@@ -35,20 +61,28 @@ namespace pbr::shared::game {
             }
 
             if (!this->_scene_manager->run()) {
-                this->_log_manager->log_message("Failed to run scene manager.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to run scene manager.",
+                                                apis::logging::log_levels::error,
+                                                "Game");
                 return false;
             }
         }
 
-        this->_log_manager->log_message("Finished running the game manager.", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Finished running the game manager.",
+                                        apis::logging::log_levels::info,
+                                        "Game");
 
         return true;
     }
 
     bool game_manager::shutdown() noexcept {
-        this->_log_manager->log_message("Shutting down the game manager...", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Shutting down the game manager...",
+                                        apis::logging::log_levels::info,
+                                        "Game");
 
-        this->_log_manager->log_message("Shut down the game manager.", apis::logging::log_levels::info);
+        this->_log_manager->log_message("Shut down the game manager.",
+                                        apis::logging::log_levels::info,
+                                        "Game");
 
         return true;
     }

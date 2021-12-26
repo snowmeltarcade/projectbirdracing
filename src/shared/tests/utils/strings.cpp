@@ -11,21 +11,21 @@ using namespace pbr::shared::utils;
  * trim
  ********************************************/
 
-TEST_CASE("trim - empty string - returns empty string", "[shared/utils]") {
+TEST_CASE("trim - empty string - returns empty string", "[shared/utils/strings]") {
     auto s = "";
     auto result = trim(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("trim - whitespace string - returns empty string", "[shared/utils]") {
+TEST_CASE("trim - whitespace string - returns empty string", "[shared/utils/strings]") {
     auto s = "     ";
     auto result = trim(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("trim - string with whitespace at beginning - returns trimmed string", "[shared/utils]") {
+TEST_CASE("trim - string with whitespace at beginning - returns trimmed string", "[shared/utils/strings]") {
     auto s = "  my text";
     auto result = trim(s);
 
@@ -33,7 +33,7 @@ TEST_CASE("trim - string with whitespace at beginning - returns trimmed string",
     REQUIRE(result == expected);
 }
 
-TEST_CASE("trim - string with whitespace at end - returns trimmed string", "[shared/utils]") {
+TEST_CASE("trim - string with whitespace at end - returns trimmed string", "[shared/utils/strings]") {
     auto s = "my text   ";
     auto result = trim(s);
 
@@ -41,7 +41,7 @@ TEST_CASE("trim - string with whitespace at end - returns trimmed string", "[sha
     REQUIRE(result == expected);
 }
 
-TEST_CASE("trim - string with whitespace at beginning and end - returns trimmed string", "[shared/utils]") {
+TEST_CASE("trim - string with whitespace at beginning and end - returns trimmed string", "[shared/utils/strings]") {
     auto s = "    my text   ";
     auto result = trim(s);
 
@@ -49,7 +49,7 @@ TEST_CASE("trim - string with whitespace at beginning and end - returns trimmed 
     REQUIRE(result == expected);
 }
 
-TEST_CASE("trim - custom character - trims custom character", "[shared/utils]") {
+TEST_CASE("trim - custom character - trims custom character", "[shared/utils/strings]") {
     auto s = "0000text00000";
     auto result = trim(s, '0');
 
@@ -61,21 +61,21 @@ TEST_CASE("trim - custom character - trims custom character", "[shared/utils]") 
  * ltrim
  ********************************************/
 
-TEST_CASE("ltrim - empty string - returns empty string", "[shared/utils]") {
+TEST_CASE("ltrim - empty string - returns empty string", "[shared/utils/strings]") {
     auto s = "";
     auto result = ltrim(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("ltrim - whitespace string - returns empty string", "[shared/utils]") {
+TEST_CASE("ltrim - whitespace string - returns empty string", "[shared/utils/strings]") {
     auto s = "     ";
     auto result = ltrim(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("ltrim - string with whitespace at beginning and end - returns left trimmed string", "[shared/utils]") {
+TEST_CASE("ltrim - string with whitespace at beginning and end - returns left trimmed string", "[shared/utils/strings]") {
     auto s = "    my text   ";
     auto result = ltrim(s);
 
@@ -83,7 +83,7 @@ TEST_CASE("ltrim - string with whitespace at beginning and end - returns left tr
     REQUIRE(result == expected);
 }
 
-TEST_CASE("ltrim - custom character - trims custom character", "[shared/utils]") {
+TEST_CASE("ltrim - custom character - trims custom character", "[shared/utils/strings]") {
     auto s = "00000text";
     auto result = ltrim(s, '0');
 
@@ -95,21 +95,21 @@ TEST_CASE("ltrim - custom character - trims custom character", "[shared/utils]")
  * rtrim
  ********************************************/
 
-TEST_CASE("rtrim - empty string - returns empty string", "[shared/utils]") {
+TEST_CASE("rtrim - empty string - returns empty string", "[shared/utils/strings]") {
     auto s = "";
     auto result = rtrim(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("rtrim - whitespace string - returns empty string", "[shared/utils]") {
+TEST_CASE("rtrim - whitespace string - returns empty string", "[shared/utils/strings]") {
     auto s = "     ";
     auto result = rtrim(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("rtrim - string with whitespace at beginning and end - returns right trimmed string", "[shared/utils]") {
+TEST_CASE("rtrim - string with whitespace at beginning and end - returns right trimmed string", "[shared/utils/strings]") {
     auto s = "    my text   ";
     auto result = rtrim(s);
 
@@ -117,7 +117,7 @@ TEST_CASE("rtrim - string with whitespace at beginning and end - returns right t
     REQUIRE(result == expected);
 }
 
-TEST_CASE("rtrim - custom character - trims custom character", "[shared/utils]") {
+TEST_CASE("rtrim - custom character - trims custom character", "[shared/utils/strings]") {
     auto s = "text00000";
     auto result = rtrim(s, '0');
 
@@ -129,14 +129,14 @@ TEST_CASE("rtrim - custom character - trims custom character", "[shared/utils]")
  * to_lower
  ********************************************/
 
-TEST_CASE("to_lower - empty string - returns empty string", "[shared/utils]") {
+TEST_CASE("to_lower - empty string - returns empty string", "[shared/utils/strings]") {
     auto s = "";
     auto result = to_lower(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("to_lower - string with uppercase letters - returns lowercase string", "[shared/utils]") {
+TEST_CASE("to_lower - string with uppercase letters - returns lowercase string", "[shared/utils/strings]") {
     auto s = " My StRiNG !! ";
     auto result = to_lower(s);
 
@@ -148,14 +148,14 @@ TEST_CASE("to_lower - string with uppercase letters - returns lowercase string",
  * to_upper
  ********************************************/
 
-TEST_CASE("to_upper - empty string - returns empty string", "[shared/utils]") {
+TEST_CASE("to_upper - empty string - returns empty string", "[shared/utils/strings]") {
     auto s = "";
     auto result = to_upper(s);
 
     REQUIRE(result.empty());
 }
 
-TEST_CASE("to_upper - string with lowercase letters - returns uppercase string", "[shared/utils]") {
+TEST_CASE("to_upper - string with lowercase letters - returns uppercase string", "[shared/utils/strings]") {
     auto s = " My StRiNG !! ";
     auto result = to_upper(s);
 
@@ -167,7 +167,7 @@ TEST_CASE("to_upper - string with lowercase letters - returns uppercase string",
  * to_array
  ********************************************/
 
-TEST_CASE("to_array - valid string - returns array", "[shared/utils]") {
+TEST_CASE("to_array - valid string - returns array", "[shared/utils/strings]") {
     constexpr auto s = "my string";
     auto result = to_array<9>(s);
 
@@ -186,7 +186,7 @@ TEST_CASE("to_array - valid string - returns array", "[shared/utils]") {
     REQUIRE(result == expected);
 }
 
-TEST_CASE("to_array - string to short - returns array with backslash 0 as remaining characters", "[shared/utils]") {
+TEST_CASE("to_array - string to short - returns array with backslash 0 as remaining characters", "[shared/utils/strings]") {
     constexpr auto s = "my str";
     auto result = to_array<9>(s);
 
@@ -205,7 +205,7 @@ TEST_CASE("to_array - string to short - returns array with backslash 0 as remain
     REQUIRE(result == expected);
 }
 
-TEST_CASE("to_array - string to long - returns array of the specified length", "[shared/utils]") {
+TEST_CASE("to_array - string to long - returns array of the specified length", "[shared/utils/strings]") {
     constexpr auto s = "my string my string my string";
     auto result = to_array<11>(s);
 
@@ -230,7 +230,7 @@ TEST_CASE("to_array - string to long - returns array of the specified length", "
  * from_array
  ********************************************/
 
-TEST_CASE("from_array - valid array - returns string", "[shared/utils]") {
+TEST_CASE("from_array - valid array - returns string", "[shared/utils/strings]") {
     constexpr auto a = std::array<uint8_t, 9>({
     'm',
     'y',
@@ -254,7 +254,7 @@ TEST_CASE("from_array - valid array - returns string", "[shared/utils]") {
  * split
  ********************************************/
 
-TEST_CASE("split - empty divisor - returns empty list", "[shared/utils]") {
+TEST_CASE("split - empty divisor - returns empty list", "[shared/utils/strings]") {
     constexpr auto divisor = "";
     constexpr auto s = "mykey=myvalue";
 
@@ -265,7 +265,7 @@ TEST_CASE("split - empty divisor - returns empty list", "[shared/utils]") {
     REQUIRE(result == expected);
 }
 
-TEST_CASE("split - empty string to split - returns empty list", "[shared/utils]") {
+TEST_CASE("split - empty string to split - returns empty list", "[shared/utils/strings]") {
     constexpr auto divisor = "=";
     constexpr auto s = "";
 
@@ -276,7 +276,7 @@ TEST_CASE("split - empty string to split - returns empty list", "[shared/utils]"
     REQUIRE(result == expected);
 }
 
-TEST_CASE("split - single character - returns text", "[shared/utils]") {
+TEST_CASE("split - single character - returns text", "[shared/utils/strings]") {
     constexpr auto divisor = "=";
     constexpr auto s = "a";
 
@@ -289,7 +289,7 @@ TEST_CASE("split - single character - returns text", "[shared/utils]") {
     REQUIRE(result == expected);
 }
 
-TEST_CASE("split - no divisor - returns text", "[shared/utils]") {
+TEST_CASE("split - no divisor - returns text", "[shared/utils/strings]") {
     constexpr auto divisor = "=";
     constexpr auto s = "mykey&myvalue";
 
@@ -302,7 +302,7 @@ TEST_CASE("split - no divisor - returns text", "[shared/utils]") {
     REQUIRE(result == expected);
 }
 
-TEST_CASE("split - two parts - returns results list", "[shared/utils]") {
+TEST_CASE("split - two parts - returns results list", "[shared/utils/strings]") {
     constexpr auto divisor = "=";
     constexpr auto s = "mykey=myvalue";
 
@@ -316,7 +316,7 @@ TEST_CASE("split - two parts - returns results list", "[shared/utils]") {
     REQUIRE(result == expected);
 }
 
-TEST_CASE("split - 5 parts - returns results list", "[shared/utils]") {
+TEST_CASE("split - 5 parts - returns results list", "[shared/utils/strings]") {
     constexpr auto divisor = "=";
     constexpr auto s = "mykey=myvalue=1=234=56789";
 
@@ -333,7 +333,7 @@ TEST_CASE("split - 5 parts - returns results list", "[shared/utils]") {
     REQUIRE(result == expected);
 }
 
-TEST_CASE("split - multi-character delimiter - returns results list", "[shared/utils]") {
+TEST_CASE("split - multi-character delimiter - returns results list", "[shared/utils/strings]") {
     constexpr auto divisor = "<>";
     constexpr auto s = "mykey<>myvalue<>1<>234<>56789";
 
@@ -354,7 +354,7 @@ TEST_CASE("split - multi-character delimiter - returns results list", "[shared/u
  * starts_with
  ********************************************/
 
-TEST_CASE("starts_with - empty string to check - returns false", "[shared/utils]") {
+TEST_CASE("starts_with - empty string to check - returns false", "[shared/utils/strings]") {
     constexpr auto string_to_check = "";
     constexpr auto starts = "start part";
 
@@ -363,7 +363,7 @@ TEST_CASE("starts_with - empty string to check - returns false", "[shared/utils]
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("starts_with - empty value to check for - returns false", "[shared/utils]") {
+TEST_CASE("starts_with - empty value to check for - returns false", "[shared/utils/strings]") {
     constexpr auto string_to_check = "start part of this string";
     constexpr auto starts = "";
 
@@ -372,7 +372,7 @@ TEST_CASE("starts_with - empty value to check for - returns false", "[shared/uti
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("starts_with - value to check for longer than string to check - returns false", "[shared/utils]") {
+TEST_CASE("starts_with - value to check for longer than string to check - returns false", "[shared/utils/strings]") {
     constexpr auto string_to_check = "string";
     constexpr auto starts = "long value to check for";
 
@@ -381,7 +381,7 @@ TEST_CASE("starts_with - value to check for longer than string to check - return
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("starts_with - string starts with value to check for - returns true", "[shared/utils]") {
+TEST_CASE("starts_with - string starts with value to check for - returns true", "[shared/utils/strings]") {
     constexpr auto string_to_check = "start part of this string";
     constexpr auto starts = "start part";
 
@@ -390,7 +390,7 @@ TEST_CASE("starts_with - string starts with value to check for - returns true", 
     REQUIRE(result);
 }
 
-TEST_CASE("starts_with - string does not start with value to check for - returns true", "[shared/utils]") {
+TEST_CASE("starts_with - string does not start with value to check for - returns true", "[shared/utils/strings]") {
     constexpr auto string_to_check = "start part of this string";
     constexpr auto starts = "abcd";
 
@@ -403,7 +403,7 @@ TEST_CASE("starts_with - string does not start with value to check for - returns
  * ends_with
  ********************************************/
 
-TEST_CASE("ends_with - empty string to check - returns false", "[shared/utils]") {
+TEST_CASE("ends_with - empty string to check - returns false", "[shared/utils/strings]") {
     constexpr auto string_to_check = "";
     constexpr auto ends = "end part";
 
@@ -412,7 +412,7 @@ TEST_CASE("ends_with - empty string to check - returns false", "[shared/utils]")
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("ends_with - empty value to check for - returns false", "[shared/utils]") {
+TEST_CASE("ends_with - empty value to check for - returns false", "[shared/utils/strings]") {
     constexpr auto string_to_check = "start part of this string";
     constexpr auto ends = "";
 
@@ -421,7 +421,7 @@ TEST_CASE("ends_with - empty value to check for - returns false", "[shared/utils
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("ends_with - value to check for longer than string to check - returns false", "[shared/utils]") {
+TEST_CASE("ends_with - value to check for longer than string to check - returns false", "[shared/utils/strings]") {
     constexpr auto string_to_check = "string";
     constexpr auto ends = "long value to check for";
 
@@ -430,7 +430,7 @@ TEST_CASE("ends_with - value to check for longer than string to check - returns 
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("ends_with - string ends with value to check for - returns true", "[shared/utils]") {
+TEST_CASE("ends_with - string ends with value to check for - returns true", "[shared/utils/strings]") {
     constexpr auto string_to_check = "this string has an end part";
     constexpr auto ends = "end part";
 
@@ -439,7 +439,7 @@ TEST_CASE("ends_with - string ends with value to check for - returns true", "[sh
     REQUIRE(result);
 }
 
-TEST_CASE("ends_with - string does not end with value to check for - returns true", "[shared/utils]") {
+TEST_CASE("ends_with - string does not end with value to check for - returns true", "[shared/utils/strings]") {
     constexpr auto string_to_check = "this string has an end part";
     constexpr auto ends = "abcd";
 

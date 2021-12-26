@@ -14,7 +14,9 @@ namespace pbr::shared::apis::windowing {
         }
         ~window_manager() override {
             if (!this->shutdown()) {
-                this->_log_manager->log_message("Failed to shutdown the window manager.", apis::logging::log_levels::error);
+                this->_log_manager->log_message("Failed to shutdown the window manager.",
+                                                apis::logging::log_levels::error,
+                                                "Windowing");
             }
         }
 
@@ -32,6 +34,13 @@ namespace pbr::shared::apis::windowing {
         /// \returns The created application window
         [[nodiscard]]
         std::shared_ptr<iapplication_window> create_application_window() noexcept override;
+
+        /// Returns the main application window
+        /// \returns The main application window, else `nullptr` is no application window has been created
+        [[nodiscard]]
+        std::shared_ptr<iapplication_window> get_main_application_window() const noexcept override {
+            return this->_application_windows.empty() ? nullptr : this->_application_windows[0];
+        }
 
         /// Updates the windowing system
         /// \returns `true` upon success, else `false`

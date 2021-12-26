@@ -35,6 +35,14 @@
         {
             "name": "doxygen",
             "version": ""
+        },
+        {
+            "name": "vulkan",
+            "version": "1.2.198.1"
+        },
+        {
+            "name": "vulkan_memory_allocator",
+            "version": "2.3.0"
         }
     ]
 }

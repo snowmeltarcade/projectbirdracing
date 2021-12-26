@@ -4,6 +4,8 @@ target_link_libraries(
     "${SERVER_PROJECT_NAME}"
     PRIVATE
         "${SHARED_PROJECT_NAME}"
+		${SDL2_LIBRARIES}
+		${Vulkan_LIBRARIES}
 )
 
 target_sources(
@@ -16,7 +18,10 @@ target_sources(
 target_include_directories(
 	"${SERVER_PROJECT_NAME}"
 	SYSTEM PRIVATE
+		${SDL2_INCLUDE_DIRS}
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${Vulkan_INCLUDE_DIRS}
+		${VMA_INCLUDE_DIRS}
 )
 
 install(

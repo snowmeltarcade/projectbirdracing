@@ -27,7 +27,9 @@ namespace pbr::shared::apis::windowing {
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               w, h)) {
                 auto message = "Failed to create application window.";
-                this->_log_manager->log_message(message, apis::logging::log_levels::fatal);
+                this->_log_manager->log_message(message,
+                                                apis::logging::log_levels::fatal,
+                                                "Windowing");
                 throw std::logic_error(message);
             }
         }
@@ -35,6 +37,13 @@ namespace pbr::shared::apis::windowing {
         /// Destroys this window
         ~application_window() override {
             this->shutdown();
+        }
+
+        /// Returns the native window handle
+        /// \returns The native window handle
+        [[nodiscard]]
+        SDL_Window* get_native_handle() const noexcept {
+            return this->_window;
         }
 
     private:

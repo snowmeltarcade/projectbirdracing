@@ -1,7 +1,9 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        file.h
         stdout.h
     PRIVATE
+        file.cpp
         stdout.cpp
 )

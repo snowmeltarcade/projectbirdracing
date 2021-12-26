@@ -3,9 +3,12 @@
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/logging/endpoints/stdout.h"
+#include "shared/apis/logging/endpoints/file.h"
 #include "shared/apis/windowing/window_manager.h"
+#include "shared/apis/graphics/vulkan_graphics_manager.h"
 #include "shared/scene/scene_manager.h"
 #include "scene/scene_factory.h"
+#include "shared/utils/program_arguments.h"
 
 #include <iostream>
 #include <vector>
@@ -15,32 +18,61 @@
 using namespace pbr::shared;
 
 /// Creates the game manager
+/// \param arguments The program arguments
 /// \returns The created game manager
-game::game_manager create_game_manager() {
+game::game_manager create_game_manager(const utils::program_arguments& arguments) {
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
 
-    auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
-    if (!log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::stdout>())) {
+    auto game_log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
+    if (!game_log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::stdout>())) {
         throw std::logic_error("Failed to add `stdout` logging endpoint.");
     }
 
-    auto window_manager = std::make_shared<apis::windowing::window_manager>(log_manager);
+    auto graphics_log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
+    if (!graphics_log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::stdout>())) {
+        throw std::logic_error("Failed to add `stdout` logging endpoint.");
+    }
 
-    auto scene_factory = std::make_shared<pbr::server::scene::scene_factory>(log_manager);
+    if (!graphics_log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::file>(
+        "graphics_log.txt",
+        true))) {
+        throw std::logic_error("Failed to add `file` logging endpoint.");
+    }
+
+    auto window_manager = std::make_shared<apis::windowing::window_manager>(game_log_manager);
+
+    apis::graphics::application_information app_info {
+        std::string(PROJECT_NAME) + " - Server",
+        "PBREngine",
+        PROJECT_VERSION_MAJOR,
+        PROJECT_VERSION_MINOR,
+        PROJECT_VERSION_BUILD,
+    };
+
+    auto graphics_manager = std::make_shared<apis::graphics::vulkan_graphics_manager>(graphics_log_manager,
+                                                                                      window_manager,
+                                                                                      app_info);
+
+    auto scene_factory = std::make_shared<pbr::server::scene::scene_factory>(game_log_manager);
 
     auto scene_manager = std::make_shared<scene::scene_manager>(scene_factory,
                                                                 scene::scene_types::loading,
-                                                                log_manager);
+                                                                game_log_manager);
 
-    game::game_manager gm(log_manager,
+    auto executable_path = arguments.get_executable_path().parent_path();
+
+    game::game_manager gm(executable_path,
+                          game_log_manager,
                           window_manager,
+                          graphics_manager,
                           scene_manager);
     return gm;
 }
 
 /// Sets up and runs the game
-void run() {
-    auto gm = create_game_manager();
+/// \param arguments The program arguments
+void run(const utils::program_arguments& arguments) {
+    auto gm = create_game_manager(arguments);
 
     if (!gm.initialize()) {
         std::cout << "Failed to initialize game manager.\n";
@@ -78,7 +110,9 @@ int main(int argv, char* args[]) {
         arguments.push_back(args[i]);
     }
 
-    run();
+    utils::program_arguments pa(arguments);
+
+    run(pa);
 
     std::cout << "Server complete.\n";
 

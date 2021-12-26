@@ -3,6 +3,7 @@
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
+#include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/windowing/iconsole_window.h"
 #include "shared/scene/iscene_manager.h"
 
@@ -27,6 +28,10 @@ public:
     }
 
     std::shared_ptr<apis::windowing::iconsole_window> create_console_window() noexcept override {
+        return {};
+    }
+
+    std::shared_ptr<apis::windowing::iapplication_window> get_main_application_window() const noexcept override {
         return {};
     }
 
@@ -55,6 +60,25 @@ public:
     }
 };
 
+class test_graphics_manager : public apis::graphics::igraphics_manager {
+public:
+    bool load_api_called {false};
+    bool load_api_result {true};
+
+    bool load_api(const std::filesystem::path&) override {
+        this->load_api_called = true;
+        return this->load_api_result;
+    }
+
+    bool initialize_called {false};
+    bool initialize_result {true};
+
+    bool initialize() override {
+        this->initialize_called = true;
+        return this->initialize_result;
+    }
+};
+
 class test_scene_manager : public scene::iscene_manager {
 public:
     bool run_called {false};
@@ -67,6 +91,7 @@ public:
 };
 
 std::shared_ptr<test_window_manager> g_window_manager;
+std::shared_ptr<test_graphics_manager> g_graphics_manager;
 std::shared_ptr<test_scene_manager> g_scene_manager;
 
 game_manager create_game_manager() {
@@ -74,11 +99,13 @@ game_manager create_game_manager() {
     auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
 
     g_window_manager = std::make_shared<test_window_manager>();
-
+    g_graphics_manager = std::make_shared<test_graphics_manager>();
     g_scene_manager = std::make_shared<test_scene_manager>();
 
-    game_manager gm(log_manager,
+    game_manager gm("",
+                    log_manager,
                     g_window_manager,
+                    g_graphics_manager,
                     g_scene_manager);
     return gm;
 }
@@ -93,6 +120,24 @@ TEST_CASE("initialize - successfully initializes game - returns true", "[shared/
     auto result = gm.initialize();
 
     REQUIRE(result);
+}
+
+TEST_CASE("initialize - loads graphics api", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    auto result = g_graphics_manager->load_api_called;
+    REQUIRE(result);
+}
+
+TEST_CASE("initialize - load graphics api fails - returns false", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    g_graphics_manager->load_api_result = false;
+
+    auto result = gm.initialize();
+    REQUIRE_FALSE(result);
 }
 
 TEST_CASE("initialize - initializes window manager", "[shared/game]") {
@@ -126,6 +171,24 @@ TEST_CASE("initialize - create application window fails - returns false", "[shar
     auto gm = create_game_manager();
 
     g_window_manager->create_application_window_result = {};
+
+    auto result = gm.initialize();
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("initialize - initializes graphics manager", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    auto result = g_graphics_manager->initialize_called;
+    REQUIRE(result);
+}
+
+TEST_CASE("initialize - initialize graphics manager fails - returns false", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    g_graphics_manager->initialize_result = false;
 
     auto result = gm.initialize();
     REQUIRE_FALSE(result);
