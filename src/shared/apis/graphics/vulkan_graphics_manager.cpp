@@ -90,6 +90,10 @@ namespace pbr::shared::apis::graphics {
                                                                *queue_indexes.present_family_index,
                                                                this->_log_manager);
 
+        this->_command_pool = std::make_unique<vulkan::command_pool>(*this->_device,
+                                                                     *queue_indexes.graphics_family_index,
+                                                                     this->_log_manager);
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -101,6 +105,8 @@ namespace pbr::shared::apis::graphics {
         this->_log_manager->log_message("Shutting down the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        this->_command_pool.reset();
 
         this->_vma.reset();
 

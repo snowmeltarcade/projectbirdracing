@@ -17,7 +17,7 @@ namespace pbr::shared::apis::graphics::vulkan {
               uint32_t index,
               std::shared_ptr<logging::ilog_manager> log_manager);
 
-        /// Destroys this physical device
+        /// Destroys this queue
         ~queue();
 
         /// Returns the native handle to this queue

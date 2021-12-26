@@ -10,6 +10,7 @@
 #include "vulkan/device.h"
 #include "vulkan/vma.h"
 #include "vulkan/queue.h"
+#include "vulkan/command_pool.h"
 
 #include <memory>
 #include <string>
@@ -90,5 +91,8 @@ namespace pbr::shared::apis::graphics {
 
         /// The present queue
         std::unique_ptr<vulkan::queue> _present_queue;
+
+        /// The command pool
+        std::unique_ptr<vulkan::command_pool> _command_pool;
     };
 }
