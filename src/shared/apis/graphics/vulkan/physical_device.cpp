@@ -205,73 +205,9 @@ namespace pbr::shared::apis::graphics::vulkan {
         this->_queue_family_indexes = query_queue_family_indexes(this->_physical_device, this->_window_surface);
         this->_max_msaa_samples = query_max_msaa_samples(this->_physical_device);
 
-
-//
-//        // set up the logical device
-//        auto qfi = find_queue_families(this->_physical_device, this->_surface);
-//
-//        std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
-//
-//        std::set<int> unique_queue_ids {
-//            *qfi.graphics_family_index,
-//            *qfi.present_family_index
-//        };
-//
-//        for (const auto& queue_id : unique_queue_ids) {
-//            VkDeviceQueueCreateInfo queue_create_info;
-//            memset(&queue_create_info, 0, sizeof(queue_create_info));
-//            queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-//            queue_create_info.queueFamilyIndex = queue_id;
-//            queue_create_info.queueCount = 1;
-//
-//            auto queue_priority = 1.0f;
-//            queue_create_info.pQueuePriorities = &queue_priority;
-//
-//            queue_create_infos.push_back(queue_create_info);
-//        }
-//
-//        VkPhysicalDeviceFeatures device_features;
-//        memset(&device_features, 0, sizeof(device_features));
-//        device_features.samplerAnisotropy = VK_TRUE;
-//        // aliases pixels within a polygon - will impact performance, so enable on higher graphics settings
-//        device_features.sampleRateShading = VK_TRUE;
-//
-//        VkDeviceCreateInfo device_create_info;
-//        memset(&device_create_info, 0, sizeof(device_create_info));
-//        device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-//        device_create_info.pQueueCreateInfos = queue_create_infos.data();
-//        device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
-//        device_create_info.pEnabledFeatures = &device_features;
-//
-//        // do this check in real life:
-//        // vkCreateDevice: VK_KHR_portability_subset must be enabled because physical device VkPhysicalDevice 0x7fdc1b5ff9a0[] supports it The Vulkan spec states: If the VK_KHR_portability_subset extension is included in pProperties of vkEnumerateDeviceExtensionProperties, ppEnabledExtensions must include "VK_KHR_portability_subset" (https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451)
-//        std::vector<const char*> device_extensions {
-//            "VK_KHR_portability_subset",
-//            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-//        };
-//        device_create_info.enabledExtensionCount = static_cast<uint32_t>(device_extensions.size());
-//        device_create_info.ppEnabledExtensionNames = device_extensions.data();
-//#ifdef RELEASE
-//        device_create_info.enabledLayerCount = 0u;
-//#else
-//        device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
-//        device_create_info.ppEnabledLayerNames = validation_layers.data();
-//#endif
-//
-//        if (vkCreateDevice(this->_physical_device, &device_create_info, nullptr, &this->_device) != VK_SUCCESS) {
-//            this->_log_manager->log_message("Failed to create logical device.", apis::logging::log_levels::error);
-//            return false;
-//        }
-//
-//        this->setup_vma();
-//
-//        vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
-//        vkGetDeviceQueue(this->_device, *qfi.present_family_index, 0, &this->_present_queue);
-
         this->_log_manager->log_message("Created physical device.", logging::log_levels::info);
     }
 
     physical_device::~physical_device() {
-
     }
 }

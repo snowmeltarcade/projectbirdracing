@@ -50,6 +50,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_instance;
         }
 
+        /// Returns the validation layers this instance requested
+        /// \returns The validation layers this instance requested
+        [[nodiscard]]
+        const std::vector<const char*>& get_validation_layers() const noexcept {
+            return this->_validation_layers;
+        }
+
     private:
         /// Constructs the `VkApplicationInfo` struct
         /// \param application_information Needed application information
@@ -64,16 +71,14 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Returns available validation layers
         /// \returns The available validation layers. If empty, the required validation layers are not supported
         [[nodiscard]]
-        std::optional<std::vector<const char*>> get_validation_layers() const noexcept;
+        std::optional<std::vector<const char*>> query_validation_layers() const noexcept;
 
         /// Constructs the instance create info struct
         /// \param application_info The application info
         /// \param extensions The desired extensions
-        /// \param validation_layers The desired validation layers
         [[nodiscard]]
         VkInstanceCreateInfo construct_instance_create_info(const VkApplicationInfo& application_info,
-                                                            const std::vector<const char*>& extensions,
-                                                            const std::vector<const char*>& validation_layers) const noexcept;
+                                                            const std::vector<const char*>& extensions) const noexcept;
 
         /// Enabled the best practices validation layer on the passed instance create info
         /// See: https://vulkan.lunarg.com/doc/sdk/1.2.198.1/windows/best_practices.html
@@ -101,5 +106,8 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         /// The debug messenger
         VkDebugUtilsMessengerEXT _debug_messenger {VK_NULL_HANDLE};
+
+        /// The validation layers requested
+        std::vector<const char*> _validation_layers;
     };
 }

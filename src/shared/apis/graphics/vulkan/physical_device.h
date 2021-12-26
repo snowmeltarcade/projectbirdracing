@@ -26,7 +26,7 @@ namespace pbr::shared::apis::graphics::vulkan {
                         window_surface& window_surface,
                         std::shared_ptr<logging::ilog_manager> log_manager);
 
-        /// Destroys this surface
+        /// Destroys this physical devuce
         ~physical_device();
 
         /// Returns the queue family indexes for this physical device
@@ -41,6 +41,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         [[nodiscard]]
         VkSampleCountFlagBits get_max_msaa_samples() const noexcept {
             return this->_max_msaa_samples;
+        }
+
+        /// Returns the native handle to this physical device
+        /// \returns The native handle to this physical device
+        [[nodiscard]]
+        VkPhysicalDevice get_native_handle() const noexcept {
+            return this->_physical_device;
         }
 
     private:

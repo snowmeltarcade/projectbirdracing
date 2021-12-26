@@ -50,7 +50,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         auto extensions = this->get_extensions();
 
-        auto validation_layers = this->get_validation_layers();
+        auto validation_layers = this->query_validation_layers();
         if (!validation_layers) {
             this->_log_manager->log_message("Did not get required validation layers.",
                                             apis::logging::log_levels::error,
@@ -58,10 +58,11 @@ namespace pbr::shared::apis::graphics::vulkan {
             return false;
         }
 
+        this->_validation_layers = *validation_layers;
+
         auto instance_create_info = this->construct_instance_create_info(
             application_info,
-            extensions,
-            *validation_layers);
+            extensions);
 
 #ifdef DEBUG
         std::array<VkValidationFeatureEnableEXT, 1> enables;
@@ -127,7 +128,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         return extensions;
     }
 
-    std::optional<std::vector<const char*>> instance::get_validation_layers() const noexcept {
+    std::optional<std::vector<const char*>> instance::query_validation_layers() const noexcept {
         auto validation_layer_count {0u};
         vkEnumerateInstanceLayerProperties(&validation_layer_count, nullptr);
 
@@ -174,8 +175,7 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     VkInstanceCreateInfo instance::construct_instance_create_info(const VkApplicationInfo& application_info,
-                                                                  const std::vector<const char*>& extensions,
-                                                                  [[maybe_unused]] const std::vector<const char*>& validation_layers) const noexcept {
+                                                                  const std::vector<const char*>& extensions) const noexcept {
         VkInstanceCreateInfo create_info {};
         create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         create_info.pApplicationInfo = &application_info;
@@ -185,8 +185,8 @@ namespace pbr::shared::apis::graphics::vulkan {
         // we don't want any validation layers in release
         create_info.enabledLayerCount = 0u;
 #else
-        create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
-        create_info.ppEnabledLayerNames = validation_layers.data();
+        create_info.enabledLayerCount = static_cast<uint32_t>(this->_validation_layers.size());
+        create_info.ppEnabledLayerNames = this->_validation_layers.data();
 #endif
 
         return create_info;

@@ -2,11 +2,13 @@ target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
         debug_messenger.h
+        device.h
         instance.h
         physical_device.h
         window_surface.h
     PRIVATE
         debug_messenger.cpp
+        device.cpp
         instance.cpp
         vma.cpp
         physical_device.cpp
