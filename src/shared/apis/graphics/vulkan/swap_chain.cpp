@@ -235,6 +235,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             FATAL_ERROR("Failed to create swap chain.")
         }
 
+        this->_image_format = create_info.imageFormat;
+        this->_extent = create_info.imageExtent;
+
+        if (!this->setup_images()) {
+            FATAL_ERROR("Failed to setup images.")
+        }
+
         this->_log_manager->log_message("Created swap chain.",
                                         logging::log_levels::info,
                                         "Vulkan");
@@ -245,5 +252,49 @@ namespace pbr::shared::apis::graphics::vulkan {
             vkDestroySwapchainKHR(this->_device.get_native_handle(), this->_swap_chain, nullptr);
             this->_swap_chain = nullptr;
         }
+    }
+
+    bool swap_chain::setup_images() noexcept {
+        auto image_count {0u};
+        vkGetSwapchainImagesKHR(this->_device.get_native_handle(),
+                                this->_swap_chain,
+                                &image_count,
+                                nullptr);
+
+        this->_images.resize(image_count);
+        vkGetSwapchainImagesKHR(this->_device.get_native_handle(),
+                                this->_swap_chain,
+                                &image_count,
+                                this->_images.data());
+
+        if (!this->setup_image_views()) {
+            this->_log_manager->log_message("Failed to setup image view.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        this->_log_manager->log_message("Created swap chain with `" + std::to_string(this->_images.size()) + "` images.",
+                                        logging::log_levels::info,
+                                        "Vulkan");
+
+        return true;
+    }
+
+    bool swap_chain::setup_image_views() noexcept {
+        // we don't want any destructors called when adding items to this list when memory is
+        // moved, so reserve all we need up front
+        this->_image_views.reserve(this->_images.size());
+
+        for (const auto& image : this->_images) {
+            this->_image_views.emplace_back(this->_device,
+                                            image,
+                                            this->_image_format,
+                                            VK_IMAGE_ASPECT_COLOR_BIT,
+                                            1,
+                                            this->_log_manager);
+        }
+
+        return true;
     }
 }

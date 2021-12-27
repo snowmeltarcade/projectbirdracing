@@ -4,6 +4,7 @@
 #include "device.h"
 #include "physical_device.h"
 #include "window_surface.h"
+#include "image_view.h"
 #include "shared/apis/windowing/iapplication_window.h"
 #include "shared/apis/graphics/performance_settings.h"
 
@@ -46,7 +47,27 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// The swap chain
         VkSwapchainKHR _swap_chain {VK_NULL_HANDLE};
 
+        /// The format of the swap chain images
+        VkFormat _image_format;
+
+        /// The size of the swap chain images
+        VkExtent2D _extent;
+
+        /// The images in this swap chain
+        std::vector<VkImage> _images;
+
+        /// The image views
+        std::vector<image_view> _image_views;
+
         /// The log manager to use
         std::shared_ptr<logging::ilog_manager> _log_manager;
+
+        /// Sets up the images to use in the swap chain
+        [[nodiscard]]
+        bool setup_images() noexcept;
+
+        /// Sets up the image views to use in the swap chain
+        [[nodiscard]]
+        bool setup_image_views() noexcept;
     };
 }
