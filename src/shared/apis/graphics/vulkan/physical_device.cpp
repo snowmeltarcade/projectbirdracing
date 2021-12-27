@@ -3,7 +3,7 @@
 #include <set>
 
 #define FATAL_ERROR(message) \
-    this->_log_manager->log_message(message, apis::logging::log_levels::fatal); \
+    this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
     throw std::runtime_error(message);
 
 namespace pbr::shared::apis::graphics::vulkan {
@@ -175,7 +175,9 @@ namespace pbr::shared::apis::graphics::vulkan {
         : _instance(instance),
           _window_surface(window_surface),
           _log_manager(log_manager) {
-        this->_log_manager->log_message("Creating physical device...", logging::log_levels::info);
+        this->_log_manager->log_message("Creating physical device...",
+                                        logging::log_levels::info,
+                                        "Vulkan");
 
         auto physical_device_count {0u};
         vkEnumeratePhysicalDevices(this->_instance.get_native_handle(),
@@ -205,7 +207,9 @@ namespace pbr::shared::apis::graphics::vulkan {
         this->_queue_family_indexes = query_queue_family_indexes(this->_physical_device, this->_window_surface);
         this->_max_msaa_samples = query_max_msaa_samples(this->_physical_device);
 
-        this->_log_manager->log_message("Created physical device.", logging::log_levels::info);
+        this->_log_manager->log_message("Created physical device.",
+                                        logging::log_levels::info,
+                                        "Vulkan");
     }
 
     physical_device::~physical_device() {

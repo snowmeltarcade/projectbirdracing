@@ -3,6 +3,7 @@ target_sources(
     PUBLIC
         application_information.h
         igraphics_manager.h
+        performance_settings.h
         vulkan_graphics_manager.h
     PRIVATE
         vulkan_graphics_manager.cpp

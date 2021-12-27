@@ -1,5 +1,7 @@
 #include "application_window.h"
 
+#include <SDL_vulkan.h>
+
 namespace pbr::shared::apis::windowing {
     bool application_window::create(std::string_view title,
                                     uint32_t x, uint32_t y,
@@ -23,6 +25,22 @@ namespace pbr::shared::apis::windowing {
         }
 
         return true;
+    }
+
+    window_size application_window::get_window_size() const noexcept {
+        window_size size;
+
+        int width {0};
+        int height {0};
+
+        SDL_Vulkan_GetDrawableSize(this->_window,
+                                   &width,
+                                   &height);
+
+        size.width_in_pixels = static_cast<pixels>(width);
+        size.height_in_pixels = static_cast<pixels>(height);
+
+        return size;
     }
 
     void application_window::shutdown() noexcept {

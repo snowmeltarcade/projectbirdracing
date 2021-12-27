@@ -3,7 +3,7 @@
 #include <set>
 
 #define FATAL_ERROR(message) \
-    this->_log_manager->log_message(message, apis::logging::log_levels::fatal); \
+    this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
     throw std::runtime_error(message);
 
 namespace pbr::shared::apis::graphics::vulkan {
@@ -63,7 +63,9 @@ namespace pbr::shared::apis::graphics::vulkan {
                    physical_device& physical_device,
                    std::shared_ptr<logging::ilog_manager> log_manager)
         : _log_manager(log_manager) {
-        this->_log_manager->log_message("Creating the logical device...", logging::log_levels::info);
+        this->_log_manager->log_message("Creating the logical device...",
+                                        logging::log_levels::info,
+                                        "Vulkan");
 
         auto queue_indexes = physical_device.get_queue_family_indexes();
 
@@ -99,10 +101,9 @@ namespace pbr::shared::apis::graphics::vulkan {
             FATAL_ERROR("Failed to create logical device.")
         }
 
-//        vkGetDeviceQueue(this->_device, *qfi.graphics_family_index, 0, &this->_graphics_queue);
-//        vkGetDeviceQueue(this->_device, *qfi.present_family_index, 0, &this->_present_queue);
-
-        this->_log_manager->log_message("Created the logical device.", logging::log_levels::info);
+        this->_log_manager->log_message("Created the logical device.",
+                                        logging::log_levels::info,
+                                        "Vulkan");
     }
 
     device::~device() {

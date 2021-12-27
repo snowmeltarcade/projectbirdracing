@@ -5,6 +5,7 @@
 #include "shared/apis/windowing/iwindow_manager.h"
 #include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/windowing/iconsole_window.h"
+#include "shared/apis/windowing/window_size.h"
 #include "shared/scene/iscene_manager.h"
 
 #include <thread>
@@ -14,7 +15,10 @@ using namespace pbr::shared;
 using namespace pbr::shared::game;
 
 class test_application_window : public apis::windowing::iapplication_window {
-
+public:
+    apis::windowing::window_size get_window_size() const noexcept {
+        return {};
+    }
 };
 
 class test_window_manager : public apis::windowing::iwindow_manager {
@@ -65,7 +69,7 @@ public:
     bool load_api_called {false};
     bool load_api_result {true};
 
-    bool load_api(const std::filesystem::path&) override {
+    bool load_api(const std::filesystem::path&) noexcept override {
         this->load_api_called = true;
         return this->load_api_result;
     }
@@ -73,10 +77,14 @@ public:
     bool initialize_called {false};
     bool initialize_result {true};
 
-    bool initialize() override {
+    bool initialize() noexcept override {
         this->initialize_called = true;
         return this->initialize_result;
     }
+
+    bool refresh_resources() noexcept override {
+        return true;
+    };
 };
 
 class test_scene_manager : public scene::iscene_manager {

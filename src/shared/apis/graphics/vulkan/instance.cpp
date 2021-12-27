@@ -86,7 +86,9 @@ namespace pbr::shared::apis::graphics::vulkan {
                                              &debug_messenger_create_info,
                                              nullptr,
                                              &this->_debug_messenger) != VK_SUCCESS) {
-            this->_log_manager->log_message("Failed to create debug messenger.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to create debug messenger.",
+                                            apis::logging::log_levels::error,
+                                            "Vulkan");
             return false;
         }
 #endif

@@ -7,7 +7,7 @@
 using namespace pbr::shared::apis;
 
 namespace pbr::shared::apis::graphics {
-    bool vulkan_graphics_manager::load_api(const std::filesystem::path& executable_path) {
+    bool vulkan_graphics_manager::load_api(const std::filesystem::path& executable_path) noexcept {
         this->_log_manager->log_message("Loading the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -46,7 +46,7 @@ namespace pbr::shared::apis::graphics {
         setenv("VK_ICD_FILENAMES", icd_path.c_str(), 0);
     }
 
-    bool vulkan_graphics_manager::initialize() {
+    bool vulkan_graphics_manager::initialize() noexcept {
         this->_log_manager->log_message("Initializing the graphics manager...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -94,9 +94,38 @@ namespace pbr::shared::apis::graphics {
                                                                      *queue_indexes.graphics_family_index,
                                                                      this->_log_manager);
 
+        if (!this->refresh_resources()) {
+            this->_log_manager->log_message("Failed to refresh resources.",
+                                            apis::logging::log_levels::error,
+                                            "Graphics");
+            return false;
+        }
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        return true;
+    }
+
+    bool vulkan_graphics_manager::refresh_resources() noexcept {
+        // wait until Vulkan has finished using everything
+        vkDeviceWaitIdle(this->_device->get_native_handle());
+
+        VkSwapchainKHR old_swap_chain_handle = {VK_NULL_HANDLE};
+
+        if (this->_swap_chain) {
+            old_swap_chain_handle = this->_swap_chain->get_native_handle();
+            this->_swap_chain.reset();
+        }
+
+        this->_swap_chain = std::make_unique<vulkan::swap_chain>(*this->_device,
+                                                                 *this->_physical_device,
+                                                                 *this->_window_surface,
+                                                                 this->_performance_settings,
+                                                                 this->_window_manager->get_main_application_window(),
+                                                                 old_swap_chain_handle,
+                                                                 this->_log_manager);
 
         return true;
     }
@@ -105,6 +134,8 @@ namespace pbr::shared::apis::graphics {
         this->_log_manager->log_message("Shutting down the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        this->_swap_chain.reset();
 
         this->_command_pool.reset();
 

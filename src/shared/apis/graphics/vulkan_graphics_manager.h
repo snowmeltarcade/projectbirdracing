@@ -4,6 +4,7 @@
 #include "shared/apis/windowing/iwindow_manager.h"
 #include "igraphics_manager.h"
 #include "application_information.h"
+#include "performance_settings.h"
 #include "vulkan/instance.h"
 #include "vulkan/window_surface.h"
 #include "vulkan/physical_device.h"
@@ -11,6 +12,7 @@
 #include "vulkan/vma.h"
 #include "vulkan/queue.h"
 #include "vulkan/command_pool.h"
+#include "vulkan/swap_chain.h"
 
 #include <memory>
 #include <string>
@@ -23,12 +25,15 @@ namespace pbr::shared::apis::graphics {
         /// \param log_manager The log manager to use
         /// \param window_manager The window manager
         /// \param application_information Needed application information
+        /// \param performance_settings The performance settings to use
         vulkan_graphics_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
                                 std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
-                                application_information application_information)
+                                application_information application_information,
+                                performance_settings performance_settings)
             : _log_manager(log_manager),
                 _window_manager(window_manager),
-                _application_information(application_information)
+                _application_information(application_information),
+                _performance_settings(performance_settings)
         {
         }
 
@@ -45,12 +50,18 @@ namespace pbr::shared::apis::graphics {
         /// \param executable_path The path of the main executable
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
-        bool load_api(const std::filesystem::path& executable_path) override;
+        bool load_api(const std::filesystem::path& executable_path) noexcept override;
 
         /// Initializes this manager
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
-        bool initialize() override;
+        bool initialize() noexcept override;
+
+        /// Refreshes any dynamic resources, such as swap chains, frame buffers etc...
+        /// This is called both during initialization and when the window surface size changes
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool refresh_resources() noexcept override;
 
     private:
         /// Sets the needed environment variables for Vulkan if they are not already set by the developer
@@ -70,6 +81,9 @@ namespace pbr::shared::apis::graphics {
 
         /// Needed application information
         application_information _application_information;
+
+        /// The performance settings to use
+        performance_settings _performance_settings;
 
         /// The Vulkan instance
         vulkan::instance _instance { this->_log_manager };
@@ -94,5 +108,8 @@ namespace pbr::shared::apis::graphics {
 
         /// The command pool
         std::unique_ptr<vulkan::command_pool> _command_pool;
+
+        /// The swap chain
+        std::unique_ptr<vulkan::swap_chain> _swap_chain;
     };
 }

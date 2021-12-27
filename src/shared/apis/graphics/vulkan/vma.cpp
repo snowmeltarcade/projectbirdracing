@@ -1,7 +1,7 @@
 #include "vma.h"
 
 #define FATAL_ERROR(message) \
-    this->_log_manager->log_message(message, apis::logging::log_levels::fatal); \
+    this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
     throw std::runtime_error(message);
 
 namespace pbr::shared::apis::graphics::vulkan {
@@ -10,7 +10,9 @@ namespace pbr::shared::apis::graphics::vulkan {
              device& device,
              std::shared_ptr<logging::ilog_manager> log_manager)
          : _log_manager(log_manager) {
-        this->_log_manager->log_message("Creating Vulkan Memory Allocator...", logging::log_levels::info);
+        this->_log_manager->log_message("Creating Vulkan Memory Allocator...",
+                                        logging::log_levels::info,
+                                        "Vulkan");
 
         VmaAllocatorCreateInfo allocatorInfo {};
         allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_1;
@@ -22,7 +24,9 @@ namespace pbr::shared::apis::graphics::vulkan {
             FATAL_ERROR("Failed to create Vulkan Memory Allocator.")
         }
 
-        this->_log_manager->log_message("Created Vulkan Memory Allocator.", logging::log_levels::info);
+        this->_log_manager->log_message("Created Vulkan Memory Allocator.",
+                                        logging::log_levels::info,
+                                        "Vulkan");
     }
 
     vma::~vma() {
