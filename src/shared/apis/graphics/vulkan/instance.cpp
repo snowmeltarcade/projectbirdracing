@@ -109,7 +109,7 @@ namespace pbr::shared::apis::graphics::vulkan {
                                                     application_information._version_build, 0);
         ai.pEngineName = std::string(application_information._engine_name).c_str();
         ai.engineVersion = ai.applicationVersion;
-        ai.apiVersion = VK_API_VERSION_1_1;
+        ai.apiVersion = this->get_api_version();
 
         return ai;
     }

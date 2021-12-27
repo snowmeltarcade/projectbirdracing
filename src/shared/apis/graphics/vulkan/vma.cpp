@@ -15,7 +15,7 @@ namespace pbr::shared::apis::graphics::vulkan {
                                         "Vulkan");
 
         VmaAllocatorCreateInfo allocatorInfo {};
-        allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_1;
+        allocatorInfo.vulkanApiVersion = instance.get_api_version();
         allocatorInfo.instance = instance.get_native_handle();
         allocatorInfo.physicalDevice = physical_device.get_native_handle();
         allocatorInfo.device = device.get_native_handle();
