@@ -6,6 +6,7 @@ target_sources(
         device.h
         image_view.h
         instance.h
+        render_pass.h
         physical_device.h
         queue.h
         swap_chain.h
@@ -17,6 +18,7 @@ target_sources(
         device.cpp
         image_view.cpp
         instance.cpp
+        render_pass.cpp
         physical_device.cpp
         queue.cpp
         swap_chain.cpp

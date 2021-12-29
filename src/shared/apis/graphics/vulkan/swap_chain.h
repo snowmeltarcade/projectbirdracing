@@ -40,6 +40,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_swap_chain;
         }
 
+        /// Returns the image format
+        /// \returns The image format
+        [[nodiscard]]
+        VkFormat get_image_format() const noexcept {
+            return this->_image_format;
+        }
+
     private:
         /// The logical device
         device& _device;

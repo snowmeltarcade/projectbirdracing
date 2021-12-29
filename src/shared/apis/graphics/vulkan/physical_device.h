@@ -50,6 +50,15 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_physical_device;
         }
 
+        /// Returns the format from `candidates` that satisfies the passed tiling and features
+        /// \param candidates The desired formats
+        /// \param tiling The image tiling the format must support
+        /// \param features The features the format must support
+        /// \returns The selected format, or empty if a format was not found
+        std::optional<VkFormat> query_supported_image_tiling_format(const std::vector<VkFormat>& candidates,
+                                                                    VkImageTiling tiling,
+                                                                    VkFormatFeatureFlags features);
+
     private:
         /// The Vulkan instance
         instance& _instance;

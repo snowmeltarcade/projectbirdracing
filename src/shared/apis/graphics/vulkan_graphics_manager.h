@@ -13,6 +13,7 @@
 #include "vulkan/queue.h"
 #include "vulkan/command_pool.h"
 #include "vulkan/swap_chain.h"
+#include "vulkan/render_pass.h"
 
 #include <memory>
 #include <string>
@@ -73,6 +74,9 @@ namespace pbr::shared::apis::graphics {
         [[nodiscard]]
         bool shutdown() noexcept;
 
+        /// Cleans up any dynamic resources, such as the swap chain etc...
+        void cleanup_resources() noexcept;
+
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
 
@@ -111,5 +115,8 @@ namespace pbr::shared::apis::graphics {
 
         /// The swap chain
         std::unique_ptr<vulkan::swap_chain> _swap_chain;
+
+        /// The render pass
+        std::unique_ptr<vulkan::render_pass> _render_pass;
     };
 }

@@ -119,6 +119,8 @@ namespace pbr::shared::apis::graphics {
             this->_swap_chain.reset();
         }
 
+        this->cleanup_resources();
+
         this->_swap_chain = std::make_unique<vulkan::swap_chain>(*this->_device,
                                                                  *this->_physical_device,
                                                                  *this->_window_surface,
@@ -126,6 +128,12 @@ namespace pbr::shared::apis::graphics {
                                                                  this->_window_manager->get_main_application_window(),
                                                                  old_swap_chain_handle,
                                                                  this->_log_manager);
+
+        this->_render_pass = std::make_unique<vulkan::render_pass>(*this->_device,
+                                                                   *this->_physical_device,
+                                                                   this->_swap_chain->get_image_format(),
+                                                                   this->_performance_settings,
+                                                                   this->_log_manager);
 
         return true;
     }
@@ -135,7 +143,7 @@ namespace pbr::shared::apis::graphics {
                                         apis::logging::log_levels::info,
                                         "Graphics");
 
-        this->_swap_chain.reset();
+        this->cleanup_resources();
 
         this->_command_pool.reset();
 
@@ -154,5 +162,19 @@ namespace pbr::shared::apis::graphics {
                                         "Graphics");
 
         return true;
+    }
+
+    void vulkan_graphics_manager::cleanup_resources() noexcept {
+        this->_log_manager->log_message("Cleaning up graphics resources...",
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
+
+        this->_render_pass.reset();
+
+        this->_swap_chain.reset();
+
+        this->_log_manager->log_message("Cleaned up graphics resources.",
+                                        apis::logging::log_levels::info,
+                                        "Graphics");
     }
 }
