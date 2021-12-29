@@ -5,7 +5,7 @@
     throw std::runtime_error(message);
 
 namespace pbr::shared::apis::graphics::vulkan {
-    /// Create the image view create info
+    /// Creates the image view create info
     /// \param image The image to create this view from
     /// \param format The format this view should take on
     /// \param aspect What aspect this view should have - color or depth for example

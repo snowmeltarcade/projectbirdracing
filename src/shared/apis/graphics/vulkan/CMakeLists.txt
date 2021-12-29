@@ -4,6 +4,7 @@ target_sources(
         command_pool.h
         debug_messenger.h
         device.h
+        image.h
         image_view.h
         instance.h
         render_pass.h
@@ -16,6 +17,7 @@ target_sources(
         command_pool.cpp
         debug_messenger.cpp
         device.cpp
+        image.cpp
         image_view.cpp
         instance.cpp
         render_pass.cpp

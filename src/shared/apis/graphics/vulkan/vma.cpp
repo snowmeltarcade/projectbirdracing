@@ -35,4 +35,11 @@ namespace pbr::shared::apis::graphics::vulkan {
             this->_allocator = nullptr;
         }
     }
+
+    VmaAllocationCreateInfo vma::create_allocation_create_info(VmaMemoryUsage usage) noexcept {
+        VmaAllocationCreateInfo create_info {};
+        create_info.usage = usage;
+
+        return create_info;
+    }
 }

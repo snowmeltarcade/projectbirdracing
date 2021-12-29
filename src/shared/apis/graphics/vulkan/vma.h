@@ -24,6 +24,19 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Destroys this allocator
         ~vma();
 
+        /// Returns the native handle to this allocator
+        /// \returns The native handle to this allocator
+        [[nodiscard]]
+        VmaAllocator get_native_handle() const noexcept {
+            return this->_allocator;
+        }
+
+        /// Creates an allocation create info
+        /// \param How the memory will be used
+        /// \returns The allocation create info
+        [[nodiscard]]
+        static VmaAllocationCreateInfo create_allocation_create_info(VmaMemoryUsage usage) noexcept;
+
     private:
         /// The allocator
         VmaAllocator _allocator {VK_NULL_HANDLE};

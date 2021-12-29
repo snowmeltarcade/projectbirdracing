@@ -4,6 +4,7 @@
 #include "shared/apis/graphics/performance_settings.h"
 #include "device.h"
 #include "physical_device.h"
+#include "image.h"
 
 #include <memory>
 
