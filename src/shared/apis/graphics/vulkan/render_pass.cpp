@@ -107,11 +107,11 @@ namespace pbr::shared::apis::graphics::vulkan {
             _log_manager(log_manager) {
         this->_log_manager->log_message("Creating render pass...", logging::log_levels::info);
 
-        auto samples = get_msaa_samples(performance_settings);
+        this->_msaa_samples = get_msaa_samples(performance_settings);
 
         // color
         auto color_attachment_create_info = create_attachment_description(image_format,
-                                                                          samples,
+                                                                          this->_msaa_samples,
                                                                           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         auto color_attachment_reference = create_attachment_reference(0,
@@ -126,10 +126,10 @@ namespace pbr::shared::apis::graphics::vulkan {
                                                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         // depth
-        auto depth_format = this->get_depth_format(physical_device);
+        this->_depth_format = this->get_depth_format(physical_device);
 
-        auto depth_attachment_create_info = create_attachment_description(depth_format,
-                                                                          samples,
+        auto depth_attachment_create_info = create_attachment_description(this->_depth_format,
+                                                                          this->_msaa_samples,
                                                                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
         auto depth_attachment_reference = create_attachment_reference(2,

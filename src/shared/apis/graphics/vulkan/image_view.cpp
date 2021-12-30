@@ -29,7 +29,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         return create_info;
     }
 
-    image_view::image_view(device& device,
+    image_view::image_view(const device& device,
                            VkImage image,
                            VkFormat format,
                            VkImageAspectFlags aspect,

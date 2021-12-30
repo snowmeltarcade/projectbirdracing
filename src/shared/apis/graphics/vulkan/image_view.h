@@ -16,7 +16,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// \param aspect What aspect this view should have - color or depth for example
         /// \param mip_levels The number of mip map levels to generate
         /// \param log_manager The log manager to use
-        image_view(device& device,
+        image_view(const device& device,
                    VkImage image,
                    VkFormat format,
                    VkImageAspectFlags aspect,
@@ -28,7 +28,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     private:
         /// The logical device
-        device& _device;
+        const device& _device;
 
         /// The image view
         VkImageView _view {VK_NULL_HANDLE};

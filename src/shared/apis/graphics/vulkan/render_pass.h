@@ -35,6 +35,20 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_render_pass;
         }
 
+        /// Returns the format of the depth buffer
+        /// \returns The format of the depth buffer
+        [[nodiscard]]
+        VkFormat get_depth_format() const noexcept {
+            return this->_depth_format;
+        }
+
+        /// Returns the number of MSAA samples
+        /// \returns The number of MSAA samples
+        [[nodiscard]]
+        VkSampleCountFlagBits get_msaa_samples() const noexcept {
+            return this->_msaa_samples;
+        }
+
     private:
         /// The logical device
         device& _device;
@@ -44,6 +58,12 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         /// The log manager to use
         std::shared_ptr<logging::ilog_manager> _log_manager;
+
+        /// The format of the depth buffer
+        VkFormat _depth_format;
+
+        /// The number of MSAA samples
+        VkSampleCountFlagBits _msaa_samples;
 
         /// Returns the image format for the depth attachment
         /// \param physical_device The physical device to query

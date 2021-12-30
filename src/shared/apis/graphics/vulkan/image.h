@@ -25,7 +25,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// \param usage How this image will be used
         /// \param memory_usage How the image memory will be used
         /// \param log_manager The log manager to use
-        image(device& device,
+        image(const device& device,
               const vma& vma,
               uint32_t width,
               uint32_t height,
@@ -41,12 +41,25 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Destroys this image
         ~image();
 
+        /// Transitions this image from the old layout to the new layout
+        /// \param old_layout The old image layout
+        /// \param new_layout The new image layout
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool transition_layout(VkImageLayout old_layout, VkImageLayout new_layout) noexcept;
+
     private:
         /// The logical device
-        device& _device;
+        const device& _device;
 
         /// The memory allocator
         const vma& _vma;
+
+        /// The number of mipmap levels
+        uint32_t _mip_levels {1u};
+
+        /// The format of this image
+        VkFormat _format;
 
         // The image view
         std::unique_ptr<image_view> _view;

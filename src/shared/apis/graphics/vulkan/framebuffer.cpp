@@ -28,6 +28,8 @@ namespace pbr::shared::apis::graphics::vulkan {
                 std::shared_ptr<logging::ilog_manager> log_manager)
         : _device(device),
             _vma(vma),
+            _render_pass(render_pass),
+            _swap_chain(swap_chain),
             _log_manager(log_manager) {
         this->_log_manager->log_message("Creating framebuffer...",
                                         logging::log_levels::info,
@@ -62,20 +64,21 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     bool framebuffer::create_images() noexcept {
-        VkFormat depthFormat = this->findDepthFormat();
+        this->_depth_image = std::make_unique<image>(this->_device,
+                                                     this->_vma,
+                                                     this->_swap_chain.get_extent().width,
+                                                     this->_swap_chain.get_extent().height,
+                                                     1,
+                                                     this->_render_pass.get_msaa_samples(),
+                                                     this->_render_pass.get_depth_format(),
+                                                     VK_IMAGE_ASPECT_DEPTH_BIT,
+                                                     VK_IMAGE_TILING_OPTIMAL,
+                                                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                                     VMA_MEMORY_USAGE_GPU_ONLY,
+                                                     this->_log_manager);
 
-        createImage(this->_swap_chain_extent.width,
-                    this->_swap_chain_extent.height,
-                    1,
-                    this->_msaa_samples,
-                    depthFormat,
-                    VK_IMAGE_TILING_OPTIMAL,
-                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                    VMA_MEMORY_USAGE_GPU_ONLY,
-                    &this->_depth_image,
-                    &this->_depth_image_allocation);
-
-        this->_depth_image_view = createImageView(this->_depth_image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+        this->_depth_image.transition_layout(VK_IMAGE_LAYOUT_UNDEFINED,
+                                             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
         transitionImageLayout(this->_depth_image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 

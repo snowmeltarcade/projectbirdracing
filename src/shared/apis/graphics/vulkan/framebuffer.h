@@ -41,6 +41,12 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// The memory allocator
         const vma& _vma;
 
+        /// The render pass this framebuffer is based on
+        const render_pass& _render_pass;
+
+        /// The swap chain to use
+        const swap_chain& _swap_chain;
+
         /// The framebuffer
         VkFramebuffer _framebuffer {VK_NULL_HANDLE};
 
