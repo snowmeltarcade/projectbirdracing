@@ -47,6 +47,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_image_format;
         }
 
+        /// Returns the extent
+        /// \returns The extent
+        [[nodiscard]]
+        VkExtent2D get_extent() const noexcept {
+            return this->_extent;
+        }
+
     private:
         /// The logical device
         device& _device;
