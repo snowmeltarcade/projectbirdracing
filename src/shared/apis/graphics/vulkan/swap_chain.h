@@ -54,6 +54,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_extent;
         }
 
+        /// Returns the image views
+        /// \returns The image views
+        [[nodiscard]]
+        const std::vector<image_view>& get_image_views() const noexcept {
+            return this->_image_views;
+        }
+
     private:
         /// The logical device
         device& _device;

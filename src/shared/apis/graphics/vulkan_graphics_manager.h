@@ -14,6 +14,7 @@
 #include "vulkan/command_pool.h"
 #include "vulkan/swap_chain.h"
 #include "vulkan/render_pass.h"
+#include "vulkan/framebuffer.h"
 
 #include <memory>
 #include <string>
@@ -118,5 +119,8 @@ namespace pbr::shared::apis::graphics {
 
         /// The render pass
         std::unique_ptr<vulkan::render_pass> _render_pass;
+
+        /// The framebuffer
+        std::unique_ptr<vulkan::framebuffer> _framebuffer;
     };
 }

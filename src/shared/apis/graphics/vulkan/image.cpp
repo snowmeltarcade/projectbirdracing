@@ -1,4 +1,5 @@
 #include "image.h"
+#include "command_buffer.h"
 
 #define FATAL_ERROR(message) \
     this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
@@ -103,22 +104,14 @@ namespace pbr::shared::apis::graphics::vulkan {
         return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
-    bool image::transition_layout(VkImageLayout old_layout, VkImageLayout new_layout) noexcept {
-        VkImageMemoryBarrier barrier {};
-        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.oldLayout = old_layout;
-        barrier.newLayout = new_layout;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = this->_image;
-        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = this->_mip_levels;
-        barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount = 1;
-
+    bool image::transition_layout(VkImageLayout old_layout,
+                                  VkImageLayout new_layout,
+                                  const command_pool& command_pool,
+                                  const queue& graphics_queue) noexcept {
         VkPipelineStageFlags source_stage;
         VkPipelineStageFlags destination_stage;
+
+        auto barrier = this->create_memory_barrier(old_layout, new_layout);
 
         if (new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
             barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -158,19 +151,38 @@ namespace pbr::shared::apis::graphics::vulkan {
             return false;
         }
 
-        VkCommandBuffer command_buffer = beginSingleTimeCommands();
+        command_buffer buffer(this->_device, command_pool);
+        buffer.begin_one_time_usage();
 
         vkCmdPipelineBarrier(
-            commandBuffer,
-            sourceStage, destinationStage,
+            buffer.get_native_handle(),
+            source_stage, destination_stage,
             0,
             0, nullptr,
             0, nullptr,
             1, &barrier
         );
 
-        endSingleTimeCommands(commandBuffer);
+        buffer.end_one_time_usage(graphics_queue);
 
         return true;
+    }
+
+    VkImageMemoryBarrier image::create_memory_barrier(VkImageLayout old_layout,
+                                                      VkImageLayout new_layout) const noexcept {
+        VkImageMemoryBarrier barrier {};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.oldLayout = old_layout;
+        barrier.newLayout = new_layout;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = this->_image;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = this->_mip_levels;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+
+        return barrier;
     }
 }

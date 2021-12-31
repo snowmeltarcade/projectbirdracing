@@ -1,6 +1,7 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        command_buffer.h
         command_pool.h
         debug_messenger.h
         device.h
@@ -15,6 +16,7 @@ target_sources(
         window_surface.h
         vma.h
     PRIVATE
+        command_buffer.cpp
         command_pool.cpp
         debug_messenger.cpp
         device.cpp

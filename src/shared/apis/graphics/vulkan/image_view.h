@@ -26,6 +26,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Destroys this image view
         ~image_view();
 
+        /// Returns the native handle to this image view
+        /// \returns The native handle to this image view
+        [[nodiscard]]
+        VkImageView get_native_handle() const noexcept {
+            return this->_view;
+        }
+
     private:
         /// The logical device
         const device& _device;

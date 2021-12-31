@@ -135,6 +135,8 @@ namespace pbr::shared::apis::graphics {
                                                                    this->_performance_settings,
                                                                    this->_log_manager);
 
+        this->_framebuffer = std::make_unique<vulkan::framebuffer>();
+
         return true;
     }
 
@@ -168,6 +170,8 @@ namespace pbr::shared::apis::graphics {
         this->_log_manager->log_message("Cleaning up graphics resources...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        this->_framebuffer.reset();
 
         this->_render_pass.reset();
 

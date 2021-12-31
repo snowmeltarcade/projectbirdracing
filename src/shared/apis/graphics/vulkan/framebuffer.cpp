@@ -5,48 +5,60 @@
     throw std::runtime_error(message);
 
 namespace pbr::shared::apis::graphics::vulkan {
-    /// Creates a framebuffer create info struct
-    /// \param render_pass The render pass to base this framebuffer on
-    /// \param swap_chain_extent The size (extent) of the swap chain images
-    /// \returns The framebuffer create info struct
-    VkFramebufferCreateInfo create_framebuffer_create_info(const render_pass& render_pass,
-                                                           VkExtent2D swap_chain_extent) {
+    VkFramebufferCreateInfo framebuffer::create_framebuffer_create_info(const image_view& view) const noexcept {
+        std::array<VkImageView, 3> attachments {
+            view.get_native_handle(),
+            this->_color_samples_image->get_view_native_handle(),
+            this->_depth_image->get_view_native_handle(),
+        };
+
         VkFramebufferCreateInfo create_info {};
         create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        create_info.renderPass = render_pass.get_native_handle();
+        create_info.renderPass = this->_render_pass.get_native_handle();
         create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
         create_info.pAttachments = attachments.data();
-        create_info.width = swap_chain_extent.width;
-        create_info.height = swap_chain_extent.height;
+        create_info.width = this->_swap_chain.get_extent().width;
+        create_info.height = this->_swap_chain.get_extent().height;
         create_info.layers = 1;
+
+        return create_info;
     }
 
     framebuffer::framebuffer(const device& device,
                              const vma& vma,
                              const render_pass& render_pass,
                              const swap_chain& swap_chain,
-                std::shared_ptr<logging::ilog_manager> log_manager)
+                             const command_pool& command_pool,
+                             const queue& graphics_queue,
+                             std::shared_ptr<logging::ilog_manager> log_manager)
         : _device(device),
             _vma(vma),
             _render_pass(render_pass),
             _swap_chain(swap_chain),
+            _command_pool(command_pool),
+            _graphics_queue(graphics_queue),
             _log_manager(log_manager) {
         this->_log_manager->log_message("Creating framebuffer...",
                                         logging::log_levels::info,
                                         "Vulkan");
 
-        auto create_info = create_framebuffer_create_info(render_pass,
-                                                          swap_chain.get_extent());
-
         if (!this->create_images()) {
             FATAL_ERROR("Failed to create images.")
         }
 
-        if (vkCreateFramebuffer(this->_device.get_native_handle(),
-                                &create_info,
-                                nullptr,
-                                &this->_framebuffer) != VK_SUCCESS) {
-            FATAL_ERROR("Failed to create frame buffer.")
+        for (const auto& swap_chain_image_view : this->_swap_chain.get_image_views()) {
+            auto create_info = this->create_framebuffer_create_info(swap_chain_image_view);
+
+            VkFramebuffer buffer {VK_NULL_HANDLE};
+
+            if (vkCreateFramebuffer(this->_device.get_native_handle(),
+                                    &create_info,
+                                    nullptr,
+                                    &buffer) != VK_SUCCESS) {
+                FATAL_ERROR("Failed to create frame buffer.")
+            }
+
+            this->_framebuffers.push_back(buffer);
         }
 
         this->_log_manager->log_message("Created framebuffer.",
@@ -55,15 +67,34 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     framebuffer::~framebuffer() {
-        if (this->_framebuffer) {
+        for (const auto& framebuffer : this->_framebuffers) {
             vkDestroyFramebuffer(this->_device.get_native_handle(),
-                                 this->_framebuffer,
+                                 framebuffer,
                                  nullptr);
-            this->_framebuffer = nullptr;
         }
+
+        this->_framebuffers.clear();
     }
 
     bool framebuffer::create_images() noexcept {
+        if (!this->create_depth_image()) {
+            this->_log_manager->log_message("Failed to create depth image.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        if (!this->create_color_samples_image()) {
+            this->_log_manager->log_message("Failed to create color samples image.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool framebuffer::create_depth_image() noexcept {
         this->_depth_image = std::make_unique<image>(this->_device,
                                                      this->_vma,
                                                      this->_swap_chain.get_extent().width,
@@ -77,10 +108,29 @@ namespace pbr::shared::apis::graphics::vulkan {
                                                      VMA_MEMORY_USAGE_GPU_ONLY,
                                                      this->_log_manager);
 
-        this->_depth_image.transition_layout(VK_IMAGE_LAYOUT_UNDEFINED,
-                                             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        if (!this->_depth_image->transition_layout(VK_IMAGE_LAYOUT_UNDEFINED,
+                                                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                                                   this->_command_pool,
+                                                   this->_graphics_queue)) {
+            this->_log_manager->log_message("Failed to transition depth image.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+        }
+    }
 
-        transitionImageLayout(this->_depth_image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+    bool framebuffer::create_color_samples_image() noexcept {
+        this->_color_samples_image = std::make_unique<image>(this->_device,
+                                                             this->_vma,
+                                                             this->_swap_chain.get_extent().width,
+                                                             this->_swap_chain.get_extent().height,
+                                                             1,
+                                                             this->_render_pass.get_msaa_samples(),
+                                                             this->_swap_chain.get_image_format(),
+                                                             VK_IMAGE_ASPECT_COLOR_BIT,
+                                                             VK_IMAGE_TILING_OPTIMAL,
+                                                             VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                                             VMA_MEMORY_USAGE_GPU_ONLY,
+                                                             this->_log_manager);
 
         return true;
     }

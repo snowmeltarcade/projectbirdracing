@@ -3,6 +3,8 @@
 #include "device.h"
 #include "vma.h"
 #include "image_view.h"
+#include "command_pool.h"
+#include "queue.h"
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -44,9 +46,21 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Transitions this image from the old layout to the new layout
         /// \param old_layout The old image layout
         /// \param new_layout The new image layout
+        /// \param command_pool The command pool
+        /// \param graphics_queue The graphics queue to submit the transition commands to
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
-        bool transition_layout(VkImageLayout old_layout, VkImageLayout new_layout) noexcept;
+        bool transition_layout(VkImageLayout old_layout,
+                               VkImageLayout new_layout,
+                               const command_pool& command_pool,
+                               const queue& graphics_queue) noexcept;
+
+        /// Returns the native handle to this image's view
+        /// \returns The native handle to this image's view
+        [[nodiscard]]
+        VkImageView get_view_native_handle() const noexcept {
+            return this->_view->get_native_handle();
+        }
 
     private:
         /// The logical device
@@ -72,5 +86,12 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         /// The log manager to use
         std::shared_ptr<logging::ilog_manager> _log_manager;
+
+        /// Creates a memory barrier struct
+        /// \param old_layout The old image layout
+        /// \param new_layout The new image layout
+        /// \returns The memory barrier struct
+        VkImageMemoryBarrier create_memory_barrier(VkImageLayout old_layout,
+                                                   VkImageLayout new_layout) const noexcept;
     };
 }
