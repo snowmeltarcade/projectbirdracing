@@ -19,8 +19,8 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// \param image_format The image format of the attachments
         /// \param performance_settings The performance settings to use
         /// \param log_manager The log manager to use
-        render_pass(device& device,
-                    physical_device& physical_device,
+        render_pass(const device& device,
+                    const physical_device& physical_device,
                     VkFormat image_format,
                     performance_settings performance_settings,
                     std::shared_ptr<logging::ilog_manager> log_manager);
@@ -51,7 +51,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     private:
         /// The logical device
-        device& _device;
+        const device& _device;
 
         /// The render pass
         VkRenderPass _render_pass {VK_NULL_HANDLE};
@@ -67,7 +67,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         /// Returns the image format for the depth attachment
         /// \param physical_device The physical device to query
-        /// \returns The image format for the depth attachment
-        VkFormat get_depth_format(physical_device& physical_device);
+        /// \returns The image format for the depth attachment if found, else empty
+        std::optional<VkFormat> get_depth_format(const physical_device& physical_device) const noexcept;
     };
 }

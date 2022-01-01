@@ -98,8 +98,8 @@ namespace pbr::shared::apis::graphics::vulkan {
         return render_pass_create_info;
     }
 
-    render_pass::render_pass(device& device,
-                             physical_device& physical_device,
+    render_pass::render_pass(const device& device,
+                             const physical_device& physical_device,
                              VkFormat image_format,
                              performance_settings performance_settings,
                              std::shared_ptr<logging::ilog_manager> log_manager)
@@ -107,7 +107,8 @@ namespace pbr::shared::apis::graphics::vulkan {
             _log_manager(log_manager) {
         this->_log_manager->log_message("Creating render pass...", logging::log_levels::info);
 
-        this->_msaa_samples = get_msaa_samples(performance_settings);
+        this->_msaa_samples = graphics::get_msaa_samples(performance_settings,
+                                                         physical_device.get_max_msaa_samples());
 
         // color
         auto color_attachment_create_info = create_attachment_description(image_format,
@@ -126,7 +127,12 @@ namespace pbr::shared::apis::graphics::vulkan {
                                                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         // depth
-        this->_depth_format = this->get_depth_format(physical_device);
+        auto depth_format = this->get_depth_format(physical_device);
+        if (!depth_format) {
+            FATAL_ERROR("Failed to get depth format.")
+        }
+
+        this->_depth_format = *depth_format;
 
         auto depth_attachment_create_info = create_attachment_description(this->_depth_format,
                                                                           this->_msaa_samples,
@@ -161,20 +167,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         this->_log_manager->log_message("Created render pass.", logging::log_levels::info);
     }
 
-    /// Returns the image format for the depth attachment
-    /// \param physical_device The physical device to query
-    /// \returns The image format for the depth attachment
-    VkFormat render_pass::get_depth_format(physical_device& physical_device) {
+    std::optional<VkFormat> render_pass::get_depth_format(const physical_device& physical_device) const noexcept {
         auto format = physical_device.query_supported_image_tiling_format(
             { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
-        if (!format) {
-            FATAL_ERROR("Failed to find supported depth attachment format.")
-        }
-
-        return *format;
+        return format;
     }
 
     render_pass::~render_pass() {

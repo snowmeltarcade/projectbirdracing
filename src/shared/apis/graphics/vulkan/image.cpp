@@ -85,7 +85,7 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     image::~image() {
-        this->_view.release();
+        this->_view.reset();
 
         if (this->_allocation && this->_image) {
             vmaDestroyImage(this->_vma.get_native_handle(),

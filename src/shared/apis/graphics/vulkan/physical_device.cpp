@@ -214,7 +214,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     std::optional<VkFormat> physical_device::query_supported_image_tiling_format(const std::vector<VkFormat>& candidates,
                                                                                  VkImageTiling tiling,
-                                                                                 VkFormatFeatureFlags features) {
+                                                                                 VkFormatFeatureFlags features) const noexcept {
         for (VkFormat format : candidates) {
             VkFormatProperties props;
             vkGetPhysicalDeviceFormatProperties(this->_physical_device, format, &props);

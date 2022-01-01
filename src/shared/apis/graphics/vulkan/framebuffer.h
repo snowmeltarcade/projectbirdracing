@@ -83,8 +83,10 @@ namespace pbr::shared::apis::graphics::vulkan {
         bool create_color_samples_image() noexcept;
 
         /// Creates a framebuffer create info struct
+        /// \param attachments Array to store the attachments
         /// \param view The swap chain image view to create this framebuffer for
         /// \returns The framebuffer create info struct
-        VkFramebufferCreateInfo create_framebuffer_create_info(const image_view& view) const noexcept;
+        VkFramebufferCreateInfo create_framebuffer_create_info(std::array<VkImageView, 3>& attachments,
+                                                               const image_view& view) const noexcept;
     };
 }

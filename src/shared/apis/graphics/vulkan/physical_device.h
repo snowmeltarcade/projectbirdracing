@@ -57,7 +57,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// \returns The selected format, or empty if a format was not found
         std::optional<VkFormat> query_supported_image_tiling_format(const std::vector<VkFormat>& candidates,
                                                                     VkImageTiling tiling,
-                                                                    VkFormatFeatureFlags features);
+                                                                    VkFormatFeatureFlags features) const noexcept;
 
     private:
         /// The Vulkan instance

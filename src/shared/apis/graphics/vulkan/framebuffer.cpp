@@ -5,12 +5,12 @@
     throw std::runtime_error(message);
 
 namespace pbr::shared::apis::graphics::vulkan {
-    VkFramebufferCreateInfo framebuffer::create_framebuffer_create_info(const image_view& view) const noexcept {
-        std::array<VkImageView, 3> attachments {
-            view.get_native_handle(),
-            this->_color_samples_image->get_view_native_handle(),
-            this->_depth_image->get_view_native_handle(),
-        };
+    VkFramebufferCreateInfo framebuffer::create_framebuffer_create_info(std::array<VkImageView, 3>& attachments,
+                                                                        const image_view& view) const noexcept {
+        // this order matches the order set out in the render pass
+        attachments[0] = this->_color_samples_image->get_view_native_handle();
+        attachments[1] = view.get_native_handle();
+        attachments[2] = this->_depth_image->get_view_native_handle();
 
         VkFramebufferCreateInfo create_info {};
         create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -47,7 +47,9 @@ namespace pbr::shared::apis::graphics::vulkan {
         }
 
         for (const auto& swap_chain_image_view : this->_swap_chain.get_image_views()) {
-            auto create_info = this->create_framebuffer_create_info(swap_chain_image_view);
+            std::array<VkImageView, 3> attachments;
+            auto create_info = this->create_framebuffer_create_info(attachments,
+                                                                    swap_chain_image_view);
 
             VkFramebuffer buffer {VK_NULL_HANDLE};
 
@@ -67,6 +69,10 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     framebuffer::~framebuffer() {
+        this->_depth_image.reset();
+
+        this->_color_samples_image.reset();
+
         for (const auto& framebuffer : this->_framebuffers) {
             vkDestroyFramebuffer(this->_device.get_native_handle(),
                                  framebuffer,
@@ -95,13 +101,16 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     bool framebuffer::create_depth_image() noexcept {
+        auto format = this->_render_pass.get_depth_format();
+
         this->_depth_image = std::make_unique<image>(this->_device,
                                                      this->_vma,
                                                      this->_swap_chain.get_extent().width,
                                                      this->_swap_chain.get_extent().height,
                                                      1,
                                                      this->_render_pass.get_msaa_samples(),
-                                                     this->_render_pass.get_depth_format(),
+                                                     //this->_render_pass.get_depth_format(),
+                                                     format,
                                                      VK_IMAGE_ASPECT_DEPTH_BIT,
                                                      VK_IMAGE_TILING_OPTIMAL,
                                                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -115,7 +124,11 @@ namespace pbr::shared::apis::graphics::vulkan {
             this->_log_manager->log_message("Failed to transition depth image.",
                                             logging::log_levels::error,
                                             "Vulkan");
+
+            return false;
         }
+
+        return true;
     }
 
     bool framebuffer::create_color_samples_image() noexcept {

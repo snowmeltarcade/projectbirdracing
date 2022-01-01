@@ -1,7 +1,8 @@
 #include "vulkan_performance_settings.h"
 
 namespace pbr::shared::apis::graphics {
-    VkSampleCountFlagBits get_msaa_samples(const performance_settings& settings) {
+    VkSampleCountFlagBits get_msaa_samples(const performance_settings& settings,
+                                           VkSampleCountFlagBits max_samples) {
         VkSampleCountFlagBits samples {VK_SAMPLE_COUNT_1_BIT};
 
         if (settings.msaa_samples >= 0 && settings.msaa_samples <= 1) {
@@ -18,6 +19,10 @@ namespace pbr::shared::apis::graphics {
             samples = VK_SAMPLE_COUNT_32_BIT;
         } else if (settings.msaa_samples <= 64) {
             samples = VK_SAMPLE_COUNT_64_BIT;
+        }
+
+        if (samples > max_samples) {
+            samples = max_samples;
         }
 
         return samples;

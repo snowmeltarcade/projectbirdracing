@@ -16,9 +16,9 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// \param physical_device The physical device
         /// \param device The logical device
         /// \param log_manager The log manager to use
-        vma(instance& instance,
-            physical_device& physical_device,
-            device& device,
+        vma(const instance& instance,
+            const physical_device& physical_device,
+            const device& device,
             std::shared_ptr<logging::ilog_manager> log_manager);
 
         /// Destroys this allocator

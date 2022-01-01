@@ -135,7 +135,13 @@ namespace pbr::shared::apis::graphics {
                                                                    this->_performance_settings,
                                                                    this->_log_manager);
 
-        this->_framebuffer = std::make_unique<vulkan::framebuffer>();
+        this->_framebuffer = std::make_unique<vulkan::framebuffer>(*this->_device,
+                                                                   *this->_vma,
+                                                                   *this->_render_pass,
+                                                                   *this->_swap_chain,
+                                                                   *this->_command_pool,
+                                                                   *this->_graphics_queue,
+                                                                   this->_log_manager);
 
         return true;
     }
