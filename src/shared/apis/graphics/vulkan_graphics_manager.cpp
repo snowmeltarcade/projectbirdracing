@@ -280,13 +280,64 @@ namespace pbr::shared::apis::graphics {
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
         };
 
+        // this is to stop a warning from being logged about the framebuffer image being in the wrong format
+        // when actual rendering code starts, this can be removed
+        VkCommandBuffer buffer { VK_NULL_HANDLE };
+        {
+            VkCommandBufferAllocateInfo command_buffer_allocate_info {};
+            command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            command_buffer_allocate_info.commandPool = this->_command_pool->get_native_handle();
+            command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            command_buffer_allocate_info.commandBufferCount = 1;
+
+            if (vkAllocateCommandBuffers(this->_device->get_native_handle(), &command_buffer_allocate_info, &buffer) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to create command buffers.", apis::logging::log_levels::error);
+                return;
+            }
+
+            VkCommandBufferBeginInfo begin_info {};
+            begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            begin_info.flags = 0;
+            begin_info.pInheritanceInfo = nullptr;
+
+            if (vkBeginCommandBuffer(buffer, &begin_info) != VK_SUCCESS) {
+                this->_log_manager->log_message("Failed to begin command buffer: " + std::to_string(0),
+                                                apis::logging::log_levels::error);
+                return;
+            }
+
+            VkRenderPassBeginInfo render_pass_info {};
+            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            render_pass_info.renderPass = this->_render_pass->get_native_handle();
+            render_pass_info.framebuffer = this->_framebuffer->get_native_handle(image_index);
+            render_pass_info.renderArea.offset = { 0, 0 };
+            render_pass_info.renderArea.extent = this->_swap_chain->get_extent();
+
+            std::array<VkClearValue, 3> clearValues {};
+            // this must be in the same order as the attachments in the framebuffer & render pass
+            clearValues[0].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
+            clearValues[1].depthStencil = { 1.0f, 0 };
+            clearValues[2].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
+
+            render_pass_info.clearValueCount = static_cast<uint32_t>(clearValues.size());
+            render_pass_info.pClearValues = clearValues.data();
+
+            vkCmdBeginRenderPass(buffer,
+                                 &render_pass_info,
+                                 VK_SUBPASS_CONTENTS_INLINE);
+
+            vkCmdEndRenderPass(buffer);
+
+            vkEndCommandBuffer(buffer);
+        }
+
         submit_info.waitSemaphoreCount = 1;
         submit_info.pWaitSemaphores = wait_semaphores;
         submit_info.pWaitDstStageMask = wait_stages;
 //        submit_info.commandBufferCount = 1;
 //        submit_info.pCommandBuffers = &this->_command_buffers[image_index];
-        submit_info.commandBufferCount = 0;
-        submit_info.pCommandBuffers = nullptr;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers = &buffer;
 
         VkSemaphore signal_semaphores[] {
             this->_render_finished_semaphores[this->_current_frame].get_native_handle(),
