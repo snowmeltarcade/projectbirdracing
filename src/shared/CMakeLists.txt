@@ -14,6 +14,7 @@ target_include_directories(
         ${SDL2_INCLUDE_DIRS}
         ${SDL2_IMG_INCLUDE_DIRS}
         ${Vulkan_INCLUDE_DIRS}
+        ${VMA_INCLUDE_DIRS}
 )
 
 add_subdirectory("apis")
