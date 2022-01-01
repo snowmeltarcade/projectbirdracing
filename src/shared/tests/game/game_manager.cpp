@@ -84,7 +84,10 @@ public:
 
     bool refresh_resources() noexcept override {
         return true;
-    };
+    }
+
+    void submit_frame_for_render() noexcept override {
+    }
 };
 
 class test_scene_manager : public scene::iscene_manager {

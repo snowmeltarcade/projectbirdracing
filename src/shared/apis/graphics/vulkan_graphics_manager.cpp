@@ -101,6 +101,14 @@ namespace pbr::shared::apis::graphics {
             return false;
         }
 
+        // this requires a valid swap chain, which is crated in `refresh_resources()`
+        if (!this->create_swap_chain_synchronization_objects()) {
+            this->_log_manager->log_message("Failed to create swap chain synchronization objects.",
+                                            apis::logging::log_levels::error,
+                                            "Graphics");
+            return false;
+        }
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -109,7 +117,7 @@ namespace pbr::shared::apis::graphics {
     }
 
     bool vulkan_graphics_manager::refresh_resources() noexcept {
-        // wait until Vulkan has finished using everything
+        // wait until the driver has finished using everything
         vkDeviceWaitIdle(this->_device->get_native_handle());
 
         VkSwapchainKHR old_swap_chain_handle = {VK_NULL_HANDLE};
@@ -151,11 +159,17 @@ namespace pbr::shared::apis::graphics {
                                         apis::logging::log_levels::info,
                                         "Graphics");
 
+        vkDeviceWaitIdle(this->_device->get_native_handle());
+
         this->cleanup_resources();
 
         this->_command_pool.reset();
 
         this->_vma.reset();
+
+        this->_image_available_semaphores.clear();
+        this->_render_finished_semaphores.clear();
+        this->_in_flight_fences.clear();
 
         this->_device.reset();
 
@@ -186,5 +200,152 @@ namespace pbr::shared::apis::graphics {
         this->_log_manager->log_message("Cleaned up graphics resources.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+    }
+
+    bool vulkan_graphics_manager::create_swap_chain_synchronization_objects() noexcept {
+        auto max_frames = this->_performance_settings.max_frames_in_flight;
+        this->_image_available_semaphores.reserve(max_frames);
+        this->_render_finished_semaphores.reserve(max_frames);
+        this->_in_flight_fences.reserve(max_frames);
+
+        for (auto i {0u}; i < max_frames; ++i) {
+            this->_image_available_semaphores.emplace_back(*this->_device, this->_log_manager);
+            this->_render_finished_semaphores.emplace_back(*this->_device, this->_log_manager);
+            this->_in_flight_fences.emplace_back(*this->_device, this->_log_manager);
+        }
+
+        auto swap_chain_images_count = this->_swap_chain->get_image_views().size();
+        this->_images_in_flight.resize(swap_chain_images_count, VK_NULL_HANDLE);
+
+        return true;
+    }
+
+    void vulkan_graphics_manager::submit_frame_for_render() noexcept {
+        // wait until any blocking actions to finish, so we can start a render request
+        auto in_flight_fence = this->_in_flight_fences[this->_current_frame].get_native_handle();
+
+        vkWaitForFences(this->_device->get_native_handle(),
+                        1,
+                        &in_flight_fence,
+                        VK_TRUE,
+                        UINT64_MAX);
+
+        // get the next image to render into
+        auto image_index {0u};
+        auto result = vkAcquireNextImageKHR(this->_device->get_native_handle(),
+                                            this->_swap_chain->get_native_handle(),
+                                            UINT64_MAX,
+                                            this->_image_available_semaphores[this->_current_frame].get_native_handle(),
+                                            VK_NULL_HANDLE,
+                                            &image_index);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            if (!this->refresh_resources()) {
+                this->_log_manager->log_message("Failed to refresh resources.",
+                                                apis::logging::log_levels::error,
+                                                "Vulkan");
+                return;
+            }
+        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            this->_log_manager->log_message("Failed to acquire next image.",
+                                            apis::logging::log_levels::error,
+                                            "Vulkan");
+            return;
+        }
+
+        // check if a previous frame is using this image (i.e. there is its fence to wait on)
+        if (this->_images_in_flight[image_index] != VK_NULL_HANDLE) {
+            vkWaitForFences(this->_device->get_native_handle(),
+                            1,
+                            &this->_images_in_flight[image_index],
+                            VK_TRUE,
+                            UINT64_MAX);
+        }
+
+        // mark the image as now being in use by this frame
+        this->_images_in_flight[image_index] = this->_in_flight_fences[this->_current_frame].get_native_handle();
+
+//        this->update_uniform_buffer(image_index);
+
+        // submit the frame
+        VkSubmitInfo submit_info;
+        memset(&submit_info, 0, sizeof(submit_info));
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+        VkSemaphore wait_semaphores[] {
+            this->_image_available_semaphores[this->_current_frame].get_native_handle(),
+        };
+
+        VkPipelineStageFlags wait_stages[] {
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+        };
+
+        submit_info.waitSemaphoreCount = 1;
+        submit_info.pWaitSemaphores = wait_semaphores;
+        submit_info.pWaitDstStageMask = wait_stages;
+//        submit_info.commandBufferCount = 1;
+//        submit_info.pCommandBuffers = &this->_command_buffers[image_index];
+        submit_info.commandBufferCount = 0;
+        submit_info.pCommandBuffers = nullptr;
+
+        VkSemaphore signal_semaphores[] {
+            this->_render_finished_semaphores[this->_current_frame].get_native_handle(),
+        };
+
+        submit_info.signalSemaphoreCount = 1;
+        submit_info.pSignalSemaphores = signal_semaphores;
+
+        auto fence_to_reset = this->_in_flight_fences[this->_current_frame].get_native_handle();
+
+        vkResetFences(this->_device->get_native_handle(),
+                      1,
+                      &fence_to_reset);
+
+        // submit to the graphics queue
+        if (vkQueueSubmit(this->_graphics_queue->get_native_handle(),
+                          1,
+                          &submit_info,
+                          this->_in_flight_fences[this->_current_frame].get_native_handle()) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to submit to graphics queue.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return;
+        }
+
+        VkPresentInfoKHR present_info {};
+        present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        present_info.waitSemaphoreCount = 1;
+        present_info.pWaitSemaphores = signal_semaphores;
+
+        VkSwapchainKHR swap_chains[] {
+            this->_swap_chain->get_native_handle(),
+        };
+
+        present_info.swapchainCount = 1;
+        present_info.pSwapchains = swap_chains;
+        present_info.pImageIndices = &image_index;
+        present_info.pResults = nullptr;
+
+        result = vkQueuePresentKHR(this->_present_queue->get_native_handle(),
+                                   &present_info);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR ||
+            result == VK_SUBOPTIMAL_KHR ||
+            this->_signal_swap_chain_out_of_date) {
+            if (!this->refresh_resources()) {
+                this->_log_manager->log_message("Failed to refresh resources.",
+                                                apis::logging::log_levels::error,
+                                                "Vulkan");
+                return;
+            }
+        } else if (result != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to present queue.",
+                                            apis::logging::log_levels::error,
+                                            "Vulkan");
+            return;
+        }
+
+        // advance to the next frame to render
+        this->_current_frame = (this->_current_frame + 1) % this->_performance_settings.max_frames_in_flight;
     }
 }

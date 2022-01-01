@@ -29,5 +29,8 @@ namespace pbr::shared::apis::graphics {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         virtual bool refresh_resources() noexcept = 0;
+
+        /// Submits a frame for rendering
+        virtual void submit_frame_for_render() noexcept = 0;
     };
 }

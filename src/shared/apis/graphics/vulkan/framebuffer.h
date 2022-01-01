@@ -36,6 +36,15 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Destroys this framebuffer
         ~framebuffer();
 
+        /// Returns the native handle to this framebuffer
+        /// \param index The index of the framebuffer to return
+        /// \returns The native handle to this framebuffer
+        [[nodiscard]]
+        VkFramebuffer get_native_handle(uint32_t index) const noexcept {
+            assert((index < this->_framebuffers.size()));
+            return this->_framebuffers[index];
+        }
+
     private:
         /// The logical device
         const device& _device;

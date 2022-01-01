@@ -5,6 +5,7 @@ target_sources(
         command_pool.h
         debug_messenger.h
         device.h
+        fence.h
         framebuffer.h
         image.h
         image_view.h
@@ -12,6 +13,7 @@ target_sources(
         render_pass.h
         physical_device.h
         queue.h
+        semaphore.h
         swap_chain.h
         window_surface.h
         vma.h
@@ -20,6 +22,7 @@ target_sources(
         command_pool.cpp
         debug_messenger.cpp
         device.cpp
+        fence.cpp
         framebuffer.cpp
         image.cpp
         image_view.cpp
@@ -27,6 +30,7 @@ target_sources(
         render_pass.cpp
         physical_device.cpp
         queue.cpp
+        semaphore.cpp
         swap_chain.cpp
         vma.cpp
         vma_implementation.cpp

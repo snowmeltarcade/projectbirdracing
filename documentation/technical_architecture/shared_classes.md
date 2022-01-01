@@ -8,6 +8,7 @@
     - [Network Thread](#network-thread)
     - [Logic Thread](#logic-thread)
   - [Log Manager](#log-manager)
+    - [Graphics Logging](#graphics-logging)
   - [Data Manager](#data-manager)
   - [File Manager](#file-manager)
   - [Graphics Manager](#graphics-manager)
@@ -90,6 +91,10 @@ The following log levels are provided:
 | `fatal` | For unrecoverable errors that require a system halt. It is the responsibility of the caller to halt the system |
 
 This will be thread safe. Logs can pass in an ID identifying the thread the message is associated with.
+
+### Graphics Logging
+
+Graphics logs will be logged to `./graphics.log.txt` in the directory of the executable.
 
 ## Data Manager
 
