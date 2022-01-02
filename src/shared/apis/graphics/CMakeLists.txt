@@ -7,10 +7,12 @@ target_sources(
         performance_settings.h
         renderable_entities.h
         renderable_entity_2d.h
+        render_system_screen_aligned_2d.h
         vulkan_graphics_manager.h
         vulkan_performance_settings.h
     PRIVATE
         renderable_entities.cpp
+        render_system_screen_aligned_2d.cpp
         vulkan_graphics_manager.cpp
         vulkan_performance_settings.cpp
 )

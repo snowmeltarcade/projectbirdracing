@@ -102,6 +102,7 @@ namespace pbr::shared::apis::graphics {
         }
 
         auto number_of_swap_chain_views = this->_swap_chain->get_image_views().size();
+
         this->_command_buffers.reserve(number_of_swap_chain_views);
         for (auto i {0u}; i < number_of_swap_chain_views; ++i) {
             this->_command_buffers.emplace_back(*this->_device,
@@ -116,6 +117,11 @@ namespace pbr::shared::apis::graphics {
                                             "Graphics");
             return false;
         }
+
+        this->_render_system_screen_aligned_2d = std::make_unique<render_system_screen_aligned_2d>(*this->_device,
+                                                                                                   *this->_vma,
+                                                                                                   number_of_swap_chain_views,
+                                                                                                   this->_log_manager);
 
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
@@ -170,6 +176,8 @@ namespace pbr::shared::apis::graphics {
         vkDeviceWaitIdle(this->_device->get_native_handle());
 
         this->cleanup_resources();
+
+        this->_render_system_screen_aligned_2d.reset();
 
         this->_command_buffers.clear();
 

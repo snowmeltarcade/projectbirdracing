@@ -18,6 +18,7 @@
 #include "vulkan/framebuffer.h"
 #include "vulkan/semaphore.h"
 #include "vulkan/fence.h"
+#include "render_system_screen_aligned_2d.h"
 
 #include <memory>
 #include <string>
@@ -157,6 +158,9 @@ namespace pbr::shared::apis::graphics {
 
         /// The entities to render
         renderable_entities _renderable_entities;
+
+        /// The screen aligned 2d render system
+        std::unique_ptr<render_system_screen_aligned_2d> _render_system_screen_aligned_2d;
 
         /// Sets the needed environment variables for Vulkan if they are not already set by the developer
         /// \param executable_path The path of the main executable
