@@ -8,17 +8,21 @@ namespace pbr::shared::apis::graphics::vulkan {
                                    std::shared_ptr<logging::ilog_manager> log_manager)
        : _instance(instance),
         _log_manager(log_manager) {
-        this->_log_manager->log_message("Creating surface...", logging::log_levels::info);
+        this->_log_manager->log_message("Creating surface...",
+                                        logging::log_levels::info,
+                                        "Vulkan");
 
         if (!SDL_Vulkan_CreateSurface(window->get_native_handle(),
                                       this->_instance.get_native_handle(),
                                       &this->_surface)) {
             auto message = std::string("Failed to create surface with error: ") + SDL_GetError();
-            this->_log_manager->log_message(message, logging::log_levels::fatal);
+            this->_log_manager->log_message(message, logging::log_levels::fatal, "Vulkan");
             throw std::runtime_error(message);
         }
 
-        this->_log_manager->log_message("Created surface.", logging::log_levels::info);
+        this->_log_manager->log_message("Created surface.",
+                                        logging::log_levels::info,
+                                        "Vulkan");
     }
 
     window_surface::~window_surface() {

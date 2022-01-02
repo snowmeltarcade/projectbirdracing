@@ -46,6 +46,11 @@ namespace pbr::shared::apis::windowing {
             return this->_window;
         }
 
+        /// Returns the window size
+        /// \returns The window size
+        [[nodiscard]]
+        window_size get_window_size() const noexcept override;
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;

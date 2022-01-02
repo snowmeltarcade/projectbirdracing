@@ -6,7 +6,8 @@ namespace pbr::shared::apis::graphics::vulkan {
                  std::shared_ptr<logging::ilog_manager> log_manager)
         : _log_manager(log_manager) {
         this->_log_manager->log_message("Creating a queue with family index: " + std::to_string(index),
-                                        logging::log_levels::info);
+                                        logging::log_levels::info,
+                                        "Vulkan");
 
         vkGetDeviceQueue(device.get_native_handle(),
                          index,
@@ -14,7 +15,8 @@ namespace pbr::shared::apis::graphics::vulkan {
                          &this->_queue);
 
         this->_log_manager->log_message("Created a queue with family index: " + std::to_string(index),
-                                        logging::log_levels::info);
+                                        logging::log_levels::info,
+                                        "Vulkan");
     }
 
     queue::~queue() {

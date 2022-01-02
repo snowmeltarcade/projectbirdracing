@@ -3,6 +3,8 @@
 #include "shared/apis/logging/ilog_manager.h"
 #include "device.h"
 
+#include <mutex>
+#include <vector>
 #include <memory>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -15,7 +17,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// \param device The logical device
         /// \param queue_index The queue for this command pool
         /// \param log_manager The log manager to use
-        command_pool(device& device,
+        command_pool(const device& device,
                      uint32_t queue_index,
                      std::shared_ptr<logging::ilog_manager> log_manager);
 
@@ -31,7 +33,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     private:
         /// The logical device
-        device& _device;
+        const device& _device;
 
         /// The command pool
         VkCommandPool _command_pool {VK_NULL_HANDLE};

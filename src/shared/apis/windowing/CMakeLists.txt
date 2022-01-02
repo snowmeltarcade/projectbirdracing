@@ -2,11 +2,13 @@ target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
         application_window.h
+        console_window.h
         iapplication_window.h
         iconsole_window.h
         iwindow_manager.h
-        console_window.h
+        types.h
         window_manager.h
+        window_size.h
     PRIVATE
         application_window.cpp
         console_window.cpp

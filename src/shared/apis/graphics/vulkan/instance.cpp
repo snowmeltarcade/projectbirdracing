@@ -86,7 +86,9 @@ namespace pbr::shared::apis::graphics::vulkan {
                                              &debug_messenger_create_info,
                                              nullptr,
                                              &this->_debug_messenger) != VK_SUCCESS) {
-            this->_log_manager->log_message("Failed to create debug messenger.", apis::logging::log_levels::error);
+            this->_log_manager->log_message("Failed to create debug messenger.",
+                                            apis::logging::log_levels::error,
+                                            "Vulkan");
             return false;
         }
 #endif
@@ -107,7 +109,7 @@ namespace pbr::shared::apis::graphics::vulkan {
                                                     application_information._version_build, 0);
         ai.pEngineName = std::string(application_information._engine_name).c_str();
         ai.engineVersion = ai.applicationVersion;
-        ai.apiVersion = VK_API_VERSION_1_1;
+        ai.apiVersion = this->get_api_version();
 
         return ai;
     }

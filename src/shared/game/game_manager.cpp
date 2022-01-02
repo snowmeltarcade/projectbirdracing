@@ -66,6 +66,9 @@ namespace pbr::shared::game {
                                                 "Game");
                 return false;
             }
+
+            // this will be moved to another thread soon
+            this->_graphics_manager->submit_frame_for_render();
         }
 
         this->_log_manager->log_message("Finished running the game manager.",

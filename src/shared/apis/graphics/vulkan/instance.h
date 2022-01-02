@@ -50,6 +50,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_instance;
         }
 
+        /// Returns the version of Vulkan to use
+        /// \returns The version of Vulkan to use
+        [[nodiscard]]
+        uint32_t get_api_version() const noexcept {
+            return VK_API_VERSION_1_1;
+        }
+
         /// Returns the validation layers this instance requested
         /// \returns The validation layers this instance requested
         [[nodiscard]]
