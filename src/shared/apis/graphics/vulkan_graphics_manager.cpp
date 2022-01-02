@@ -101,6 +101,14 @@ namespace pbr::shared::apis::graphics {
             return false;
         }
 
+        auto number_of_swap_chain_views = this->_swap_chain->get_image_views().size();
+        this->_command_buffers.reserve(number_of_swap_chain_views);
+        for (auto i {0u}; i < number_of_swap_chain_views; ++i) {
+            this->_command_buffers.emplace_back(*this->_device,
+                                                *this->_command_pool,
+                                                this->_log_manager);
+        }
+
         // this requires a valid swap chain, which is crated in `refresh_resources()`
         if (!this->create_swap_chain_synchronization_objects()) {
             this->_log_manager->log_message("Failed to create swap chain synchronization objects.",
@@ -163,6 +171,8 @@ namespace pbr::shared::apis::graphics {
 
         this->cleanup_resources();
 
+        this->_command_buffers.clear();
+
         this->_command_pool.reset();
 
         this->_vma.reset();
@@ -220,6 +230,12 @@ namespace pbr::shared::apis::graphics {
         return true;
     }
 
+    void vulkan_graphics_manager::submit_renderable_entities(renderable_entities renderable_entities) noexcept {
+        std::scoped_lock<std::mutex> lock(this->_submit_renderable_entities_mutex);
+
+        this->_renderable_entities = renderable_entities;
+    }
+
     void vulkan_graphics_manager::submit_frame_for_render() noexcept {
         // wait until any blocking actions to finish, so we can start a render request
         auto in_flight_fence = this->_in_flight_fences[this->_current_frame].get_native_handle();
@@ -267,11 +283,6 @@ namespace pbr::shared::apis::graphics {
 
 //        this->update_uniform_buffer(image_index);
 
-        // submit the frame
-        VkSubmitInfo submit_info;
-        memset(&submit_info, 0, sizeof(submit_info));
-        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
         VkSemaphore wait_semaphores[] {
             this->_image_available_semaphores[this->_current_frame].get_native_handle(),
         };
@@ -280,64 +291,24 @@ namespace pbr::shared::apis::graphics {
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
         };
 
-        // this is to stop a warning from being logged about the framebuffer image being in the wrong format
-        // when actual rendering code starts, this can be removed
-        VkCommandBuffer buffer { VK_NULL_HANDLE };
-        {
-            VkCommandBufferAllocateInfo command_buffer_allocate_info {};
-            command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            command_buffer_allocate_info.commandPool = this->_command_pool->get_native_handle();
-            command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            command_buffer_allocate_info.commandBufferCount = 1;
-
-            if (vkAllocateCommandBuffers(this->_device->get_native_handle(), &command_buffer_allocate_info, &buffer) != VK_SUCCESS) {
-                this->_log_manager->log_message("Failed to create command buffers.", apis::logging::log_levels::error);
-                return;
-            }
-
-            VkCommandBufferBeginInfo begin_info {};
-            begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            begin_info.flags = 0;
-            begin_info.pInheritanceInfo = nullptr;
-
-            if (vkBeginCommandBuffer(buffer, &begin_info) != VK_SUCCESS) {
-                this->_log_manager->log_message("Failed to begin command buffer: " + std::to_string(0),
-                                                apis::logging::log_levels::error);
-                return;
-            }
-
-            VkRenderPassBeginInfo render_pass_info {};
-            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            render_pass_info.renderPass = this->_render_pass->get_native_handle();
-            render_pass_info.framebuffer = this->_framebuffer->get_native_handle(image_index);
-            render_pass_info.renderArea.offset = { 0, 0 };
-            render_pass_info.renderArea.extent = this->_swap_chain->get_extent();
-
-            std::array<VkClearValue, 3> clearValues {};
-            // this must be in the same order as the attachments in the framebuffer & render pass
-            clearValues[0].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
-            clearValues[1].depthStencil = { 1.0f, 0 };
-            clearValues[2].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
-
-            render_pass_info.clearValueCount = static_cast<uint32_t>(clearValues.size());
-            render_pass_info.pClearValues = clearValues.data();
-
-            vkCmdBeginRenderPass(buffer,
-                                 &render_pass_info,
-                                 VK_SUBPASS_CONTENTS_INLINE);
-
-            vkCmdEndRenderPass(buffer);
-
-            vkEndCommandBuffer(buffer);
+        if (!this->create_render_entities_command_buffers(image_index)) {
+            this->_log_manager->log_message("Failed to create render entities command buffers.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return;
         }
 
+        auto command_buffer_to_submit = this->_command_buffers[image_index].get_native_handle();
+
+        // submit the frame
+        VkSubmitInfo submit_info;
+        memset(&submit_info, 0, sizeof(submit_info));
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submit_info.waitSemaphoreCount = 1;
         submit_info.pWaitSemaphores = wait_semaphores;
         submit_info.pWaitDstStageMask = wait_stages;
-//        submit_info.commandBufferCount = 1;
-//        submit_info.pCommandBuffers = &this->_command_buffers[image_index];
         submit_info.commandBufferCount = 1;
-        submit_info.pCommandBuffers = &buffer;
+        submit_info.pCommandBuffers = &command_buffer_to_submit;
 
         VkSemaphore signal_semaphores[] {
             this->_render_finished_semaphores[this->_current_frame].get_native_handle(),
@@ -398,5 +369,56 @@ namespace pbr::shared::apis::graphics {
 
         // advance to the next frame to render
         this->_current_frame = (this->_current_frame + 1) % this->_performance_settings.max_frames_in_flight;
+    }
+
+    bool vulkan_graphics_manager::create_render_entities_command_buffers(uint32_t image_index) noexcept {
+        // copy the data to avoid keeping the lock longer than needed
+        renderable_entities renderable_entities;
+        {
+            std::scoped_lock<std::mutex> lock(this->_submit_renderable_entities_mutex);
+            renderable_entities = this->_renderable_entities;
+        }
+
+        auto& buffer = this->_command_buffers[image_index];
+
+        // this is to stop a warning from being logged about the framebuffer image being in the wrong format
+        // when actual rendering code starts, this can be removed
+        if (!buffer.begin_record()) {
+            this->_log_manager->log_message("Failed to begin command buffer record.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        VkRenderPassBeginInfo render_pass_info {};
+        render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        render_pass_info.renderPass = this->_render_pass->get_native_handle();
+        render_pass_info.framebuffer = this->_framebuffer->get_native_handle(image_index);
+        render_pass_info.renderArea.offset = { 0, 0 };
+        render_pass_info.renderArea.extent = this->_swap_chain->get_extent();
+
+        std::array<VkClearValue, 3> clearValues {};
+        // this must be in the same order as the attachments in the framebuffer & render pass
+        clearValues[0].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
+        clearValues[1].depthStencil = { 1.0f, 0 };
+        clearValues[2].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
+
+        render_pass_info.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        render_pass_info.pClearValues = clearValues.data();
+
+        vkCmdBeginRenderPass(buffer.get_native_handle(),
+                             &render_pass_info,
+                             VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdEndRenderPass(buffer.get_native_handle());
+
+        if (!buffer.end_record()) {
+            this->_log_manager->log_message("Failed to end command buffer record.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        return true;
     }
 }

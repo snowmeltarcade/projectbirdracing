@@ -13,8 +13,10 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// Creates this command buffer
         /// \param device The logical device
         /// \param command_pool The command buffer to create from
+        /// \param log_manager The log manager to use
         command_buffer(const device& device,
-                       const command_pool& command_pool);
+                       const command_pool& command_pool,
+                       std::shared_ptr<logging::ilog_manager> log_manager);
 
         /// Destructs this command buffer
         ~command_buffer();
@@ -27,11 +29,30 @@ namespace pbr::shared::apis::graphics::vulkan {
         }
 
         /// Sets up this buffer to accept commands to be executed just once
-        void begin_one_time_usage() noexcept;
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool begin_one_time_usage() noexcept;
 
         /// Submits commands. Assumes this call was preceded by `begin_one_time_usage()`
         /// \param graphics_queue The graphics queue to submit these commands to
-        void end_one_time_usage(const queue& graphics_queue) noexcept;
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool end_one_time_usage(const queue& graphics_queue) noexcept;
+
+        /// Sets up this buffer to record for multiple executions
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool begin_record() noexcept;
+
+        /// Ends the buffer recording
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool end_record() noexcept;
+
+        /// Resets this command buffer
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool reset() noexcept;
 
     private:
         /// The logical device
@@ -42,6 +63,9 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         /// The command buffer
         VkCommandBuffer _buffer {VK_NULL_HANDLE};
+
+        /// The log manager to use
+        std::shared_ptr<logging::ilog_manager> _log_manager;
 
         /// Creates a command buffer allocate info struct
         /// \returns The command buffer allocate info struct

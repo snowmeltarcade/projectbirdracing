@@ -1,4 +1,5 @@
 #include "command_pool.h"
+#include "command_buffer.h"
 
 #define FATAL_ERROR(message) \
     this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
@@ -9,12 +10,12 @@ namespace pbr::shared::apis::graphics::vulkan {
         VkCommandPoolCreateInfo create_info {};
         create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         create_info.queueFamilyIndex = queue_index;
-        create_info.flags = 0;
+        create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
         return create_info;
     }
 
-    command_pool::command_pool(device& device,
+    command_pool::command_pool(const device& device,
                                uint32_t queue_index,
                                std::shared_ptr<logging::ilog_manager> log_manager)
        : _device(device),

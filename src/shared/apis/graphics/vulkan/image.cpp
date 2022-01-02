@@ -151,8 +151,16 @@ namespace pbr::shared::apis::graphics::vulkan {
             return false;
         }
 
-        command_buffer buffer(this->_device, command_pool);
-        buffer.begin_one_time_usage();
+        command_buffer buffer(this->_device,
+                              command_pool,
+                              this->_log_manager);
+
+        if (!buffer.begin_one_time_usage()) {
+            this->_log_manager->log_message("Failed to begin command buffer one time usage.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
 
         vkCmdPipelineBarrier(
             buffer.get_native_handle(),
@@ -163,7 +171,12 @@ namespace pbr::shared::apis::graphics::vulkan {
             1, &barrier
         );
 
-        buffer.end_one_time_usage(graphics_queue);
+        if (!buffer.end_one_time_usage(graphics_queue)) {
+            this->_log_manager->log_message("Failed to end command buffer one time usage.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
 
         return true;
     }

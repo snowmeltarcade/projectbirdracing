@@ -2,6 +2,8 @@
 
 #include <filesystem>
 
+#include "renderable_entities.h"
+
 namespace pbr::shared::apis::graphics {
     /// Provides an interface to the graphics manager. This manages the graphics API instance and rendering
     /// processes.
@@ -29,6 +31,10 @@ namespace pbr::shared::apis::graphics {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         virtual bool refresh_resources() noexcept = 0;
+
+        /// Submits the passed entities to be rendered by this frame
+        /// \param renderable_entities The entities to render
+        virtual void submit_renderable_entities(renderable_entities renderable_entities) noexcept = 0;
 
         /// Submits a frame for rendering
         virtual void submit_frame_for_render() noexcept = 0;

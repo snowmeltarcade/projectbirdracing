@@ -1,5 +1,9 @@
 #include "command_buffer.h"
 
+#define FATAL_ERROR(message) \
+    this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
+    throw std::runtime_error(message);
+
 namespace pbr::shared::apis::graphics::vulkan {
     VkCommandBufferAllocateInfo command_buffer::create_command_buffer_allocate_info() const noexcept {
         VkCommandBufferAllocateInfo allocate_info {};
@@ -12,14 +16,18 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     command_buffer::command_buffer(const device& device,
-                                   const command_pool &command_pool)
+                                   const command_pool &command_pool,
+                                   std::shared_ptr<logging::ilog_manager> log_manager)
         : _device(device),
-            _command_pool(command_pool) {
+            _command_pool(command_pool),
+            _log_manager(log_manager) {
         auto allocate_info = create_command_buffer_allocate_info();
 
-        vkAllocateCommandBuffers(this->_device.get_native_handle(),
-                                 &allocate_info,
-                                 &this->_buffer);
+        if (vkAllocateCommandBuffers(this->_device.get_native_handle(),
+                                     &allocate_info,
+                                     &this->_buffer) != VK_SUCCESS) {
+            FATAL_ERROR("Failed to allocate command buffer.")
+        }
     }
 
     command_buffer::~command_buffer() {
@@ -42,23 +50,82 @@ namespace pbr::shared::apis::graphics::vulkan {
         return begin_info;
     }
 
-    void command_buffer::begin_one_time_usage() noexcept {
+    bool command_buffer::begin_one_time_usage() noexcept {
         auto begin_info = create_begin_info();
 
-        vkBeginCommandBuffer(this->_buffer, &begin_info);
+        if (vkBeginCommandBuffer(this->_buffer, &begin_info) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to begin command buffer one time usage.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        return true;
     }
 
-    void command_buffer::end_one_time_usage(const queue& graphics_queue) noexcept {
-        vkEndCommandBuffer(this->_buffer);
+    bool command_buffer::end_one_time_usage(const queue& graphics_queue) noexcept {
+        if (vkEndCommandBuffer(this->_buffer) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to end command buffer one time usage.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
 
         auto submit_info = this->create_submit_info();
 
-        vkQueueSubmit(graphics_queue.get_native_handle(),
-                      1,
-                      &submit_info,
-                      VK_NULL_HANDLE);
+        if (vkQueueSubmit(graphics_queue.get_native_handle(),
+                          1,
+                          &submit_info,
+                          VK_NULL_HANDLE) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to submit command buffer to queue.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
 
-        vkQueueWaitIdle(graphics_queue.get_native_handle());
+        if (vkQueueWaitIdle(graphics_queue.get_native_handle()) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to wait for graphics queue to become idle.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool command_buffer::begin_record() noexcept {
+        auto begin_info = create_begin_info();
+
+        if (vkBeginCommandBuffer(this->_buffer, &begin_info) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to begin command buffer record.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool command_buffer::end_record() noexcept {
+        if (vkEndCommandBuffer(this->_buffer) != VK_SUCCESS) {
+            this->_log_manager->log_message("Failed to end command buffer record.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool command_buffer::reset() noexcept {
+        if (!vkResetCommandBuffer(this->_buffer, 0)) {
+            this->_log_manager->log_message("Failed to reset command buffer.",
+                                            logging::log_levels::error,
+                                            "Vulkan");
+            return false;
+        }
+
+        return true;
     }
 
     VkSubmitInfo command_buffer::create_submit_info() const noexcept {

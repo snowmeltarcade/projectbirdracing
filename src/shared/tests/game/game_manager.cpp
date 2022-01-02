@@ -4,6 +4,7 @@
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
 #include "shared/apis/graphics/igraphics_manager.h"
+#include "shared/apis/graphics/renderable_entities.h"
 #include "shared/apis/windowing/iconsole_window.h"
 #include "shared/apis/windowing/window_size.h"
 #include "shared/scene/iscene_manager.h"
@@ -87,6 +88,9 @@ public:
     }
 
     void submit_frame_for_render() noexcept override {
+    }
+
+    void submit_renderable_entities(apis::graphics::renderable_entities) noexcept override {
     }
 };
 

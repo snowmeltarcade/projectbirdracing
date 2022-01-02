@@ -12,6 +12,7 @@
 #include "vulkan/vma.h"
 #include "vulkan/queue.h"
 #include "vulkan/command_pool.h"
+#include "vulkan/command_buffer.h"
 #include "vulkan/swap_chain.h"
 #include "vulkan/render_pass.h"
 #include "vulkan/framebuffer.h"
@@ -20,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <mutex>
 
 namespace pbr::shared::apis::graphics {
     /// Handles the Vulkan graphics API and rendering processes
@@ -66,10 +68,16 @@ namespace pbr::shared::apis::graphics {
         [[nodiscard]]
         bool refresh_resources() noexcept override;
 
+        /// Submits the passed entities to be rendered by this frame
+        /// \param renderable_entities The entities to render
+        void submit_renderable_entities(renderable_entities renderable_entities) noexcept override;
+
         /// Submits a frame for rendering. In Vulkan, this simply submits a request for
         /// the frame to be rendered, the frame itself will be rendered when the driver
         /// is ready. If no color frames are free to submit a render request to, the thread
-        /// will block waiting for an image to become free
+        /// will block waiting for an image to become free.
+        /// All previously submitted renderable entities will be cleared after this frame is
+        /// submitted
         void submit_frame_for_render() noexcept override;
 
     private:
@@ -138,8 +146,17 @@ namespace pbr::shared::apis::graphics {
         /// of these handles is managed by `_in_flight_fences`
         std::vector<VkFence> _images_in_flight;
 
+        /// The command buffers to use, one for each frame submitted
+        std::vector<vulkan::command_buffer> _command_buffers;
+
         /// Do we need to rebuild the swap chain, for instance, if the viewport changed in size
         bool _signal_swap_chain_out_of_date {false};
+
+        /// Synchronizes submitting renderable entities
+        std::mutex _submit_renderable_entities_mutex;
+
+        /// The entities to render
+        renderable_entities _renderable_entities;
 
         /// Sets the needed environment variables for Vulkan if they are not already set by the developer
         /// \param executable_path The path of the main executable
@@ -156,5 +173,11 @@ namespace pbr::shared::apis::graphics {
         /// Creates the synchronization objects needed for presenting swap chain images
         [[nodiscard]]
         bool create_swap_chain_synchronization_objects() noexcept;
+
+        /// Creates the command buffers needed to render the submitted entities
+        /// \param image_index The index of the image being rendered to in the swap chain
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool create_render_entities_command_buffers(uint32_t image_index) noexcept;
     };
 }
