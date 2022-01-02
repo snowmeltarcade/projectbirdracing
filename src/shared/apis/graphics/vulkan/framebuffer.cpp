@@ -101,16 +101,13 @@ namespace pbr::shared::apis::graphics::vulkan {
     }
 
     bool framebuffer::create_depth_image() noexcept {
-        auto format = this->_render_pass.get_depth_format();
-
         this->_depth_image = std::make_unique<image>(this->_device,
                                                      this->_vma,
                                                      this->_swap_chain.get_extent().width,
                                                      this->_swap_chain.get_extent().height,
                                                      1,
                                                      this->_render_pass.get_msaa_samples(),
-                                                     //this->_render_pass.get_depth_format(),
-                                                     format,
+                                                     this->_render_pass.get_depth_format(),
                                                      VK_IMAGE_ASPECT_DEPTH_BIT,
                                                      VK_IMAGE_TILING_OPTIMAL,
                                                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
