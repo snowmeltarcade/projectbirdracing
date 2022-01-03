@@ -119,6 +119,9 @@ namespace pbr::shared::apis::graphics {
             { { 0.0, -0.5, } },
             { { 0.5, 0.5, } },
             { { -0.5, 0.5, } },
+            { { 0.1, -0.6, } },
+            { { 0.6, 0.6, } },
+            { { -0.6, 0.6, } },
         };
 
         this->create_vertex_buffer(vertices, command_pool, graphics_queue);
@@ -190,7 +193,7 @@ namespace pbr::shared::apis::graphics {
                                 0,
                                 nullptr);
 
-        vkCmdDraw(buffer.get_native_handle(), 3, 1, 0, 0);
+        vkCmdDraw(buffer.get_native_handle(), 6, 1, 0, 0);
     }
 
     std::vector<char> read_all_bytes(const std::filesystem::path& path) {
