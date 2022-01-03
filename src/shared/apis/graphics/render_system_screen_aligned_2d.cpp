@@ -156,40 +156,39 @@ namespace pbr::shared::apis::graphics {
         }
     }
 
-    void render_system_screen_aligned_2d::build_render_commands(vulkan::command_buffer& buffer, uint32_t /*image_index*/) {
-//        ubo ubo{};
-//        ubo.color = {1,0,0,1};
-//
-//        void* data;
-//        vmaMapMemory(this->_vma.get_native_handle(),
-//                     this->_ubo_buffers[image_index].get_native_allocation_handle(),
-//                     &data);
-//        memcpy(data, &ubo, sizeof(ubo));
-//        vmaUnmapMemory(this->_vma.get_native_handle(),
-//                       this->_ubo_buffers[image_index].get_native_allocation_handle());
-//
+    void render_system_screen_aligned_2d::build_render_commands(vulkan::command_buffer& buffer, uint32_t image_index) {
+        ubo ubo{};
+        ubo.color = {1,0,0,0.7};
+
+        void* data;
+        vmaMapMemory(this->_vma.get_native_handle(),
+                     this->_ubo_buffers[image_index].get_native_allocation_handle(),
+                     &data);
+        memcpy(data, &ubo, sizeof(ubo));
+        vmaUnmapMemory(this->_vma.get_native_handle(),
+                       this->_ubo_buffers[image_index].get_native_allocation_handle());
+
         vkCmdBindPipeline(buffer.get_native_handle(),
                           VK_PIPELINE_BIND_POINT_GRAPHICS,
                           this->_graphics_pipeline);
 
-//        std::array<VkBuffer, 1> vertex_buffers {this->_vertex_buffer->get_native_handle()};
-//        VkDeviceSize offsets[] {0};
+        std::array<VkBuffer, 1> vertex_buffers {this->_vertex_buffer->get_native_handle()};
+        VkDeviceSize offsets[] {0};
 
-        // the squares
-//        vkCmdBindVertexBuffers(buffer.get_native_handle(),
-//                               0,
-//                               1,
-//                               &vertex_buffers[0],
-//                               offsets);
+        vkCmdBindVertexBuffers(buffer.get_native_handle(),
+                               0,
+                               1,
+                               &vertex_buffers[0],
+                               offsets);
 
-//        vkCmdBindDescriptorSets(buffer.get_native_handle(),
-//                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-//                                this->_pipeline_layout,
-//                                0,
-//                                1,
-//                                &this->_descriptor_sets[image_index],
-//                                0,
-//                                nullptr);
+        vkCmdBindDescriptorSets(buffer.get_native_handle(),
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                this->_pipeline_layout,
+                                0,
+                                1,
+                                &this->_descriptor_sets[image_index],
+                                0,
+                                nullptr);
 
         vkCmdDraw(buffer.get_native_handle(), 3, 1, 0, 0);
     }
@@ -269,14 +268,14 @@ namespace pbr::shared::apis::graphics {
 
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info {};
         vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-//        vertex_input_state_create_info.vertexBindingDescriptionCount = 1;
-//        vertex_input_state_create_info.pVertexBindingDescriptions = &binding_description;
-//        vertex_input_state_create_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
-//        vertex_input_state_create_info.pVertexAttributeDescriptions = attribute_descriptions.data();
-        vertex_input_state_create_info.vertexBindingDescriptionCount = 0;
-        vertex_input_state_create_info.pVertexBindingDescriptions = nullptr;
-        vertex_input_state_create_info.vertexAttributeDescriptionCount = 0;
-        vertex_input_state_create_info.pVertexAttributeDescriptions = nullptr;
+        vertex_input_state_create_info.vertexBindingDescriptionCount = 1;
+        vertex_input_state_create_info.pVertexBindingDescriptions = &binding_description;
+        vertex_input_state_create_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+        vertex_input_state_create_info.pVertexAttributeDescriptions = attribute_descriptions.data();
+//        vertex_input_state_create_info.vertexBindingDescriptionCount = 0;
+//        vertex_input_state_create_info.pVertexBindingDescriptions = nullptr;
+//        vertex_input_state_create_info.vertexAttributeDescriptionCount = 0;
+//        vertex_input_state_create_info.pVertexAttributeDescriptions = nullptr;
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly_state_create_info {};
         input_assembly_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -350,14 +349,14 @@ namespace pbr::shared::apis::graphics {
 
         VkPipelineLayoutCreateInfo pipeline_layout_info {};
         pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-//        pipeline_layout_info.setLayoutCount = 1;
-//        pipeline_layout_info.pSetLayouts = &this->_descriptor_set_layout;
-//        pipeline_layout_info.pushConstantRangeCount = 0;
-//        pipeline_layout_info.pPushConstantRanges = nullptr;
-        pipeline_layout_info.setLayoutCount = 0;
-        pipeline_layout_info.pSetLayouts = nullptr;
+        pipeline_layout_info.setLayoutCount = 1;
+        pipeline_layout_info.pSetLayouts = &this->_descriptor_set_layout;
         pipeline_layout_info.pushConstantRangeCount = 0;
         pipeline_layout_info.pPushConstantRanges = nullptr;
+//        pipeline_layout_info.setLayoutCount = 0;
+//        pipeline_layout_info.pSetLayouts = nullptr;
+//        pipeline_layout_info.pushConstantRangeCount = 0;
+//        pipeline_layout_info.pPushConstantRanges = nullptr;
 
         if (vkCreatePipelineLayout(this->_device.get_native_handle(),
                                    &pipeline_layout_info,
