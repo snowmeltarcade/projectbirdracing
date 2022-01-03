@@ -401,31 +401,29 @@ namespace pbr::shared::apis::graphics {
 
         // this is to stop a warning from being logged about the framebuffer image being in the wrong format
         // when actual rendering code starts, this can be removed
-        {
-            VkRenderPassBeginInfo render_pass_info {};
-            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            render_pass_info.renderPass = this->_render_pass->get_native_handle();
-            render_pass_info.framebuffer = this->_framebuffer->get_native_handle(image_index);
-            render_pass_info.renderArea.offset = { 0, 0 };
-            render_pass_info.renderArea.extent = this->_swap_chain->get_extent();
+        VkRenderPassBeginInfo render_pass_info {};
+        render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        render_pass_info.renderPass = this->_render_pass->get_native_handle();
+        render_pass_info.framebuffer = this->_framebuffer->get_native_handle(image_index);
+        render_pass_info.renderArea.offset = { 0, 0 };
+        render_pass_info.renderArea.extent = this->_swap_chain->get_extent();
 
-            std::array<VkClearValue, 3> clearValues {};
-            // this must be in the same order as the attachments in the framebuffer & render pass
-            clearValues[0].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
-            clearValues[1].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
-            clearValues[2].depthStencil = { 1.0f, 0 };
+        std::array<VkClearValue, 3> clearValues {};
+        // this must be in the same order as the attachments in the framebuffer & render pass
+        clearValues[0].color = {{ 1.0f, 1.0f, 0.0f, 1.0f }};
+        clearValues[1].color = {{ 1.0f, 1.0f, 0.0f, 1.0f }};
+        clearValues[2].depthStencil = { 1.0f, 0 };
 
-            render_pass_info.clearValueCount = static_cast<uint32_t>(clearValues.size());
-            render_pass_info.pClearValues = clearValues.data();
+        render_pass_info.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        render_pass_info.pClearValues = clearValues.data();
 
-            vkCmdBeginRenderPass(buffer.get_native_handle(),
-                                 &render_pass_info,
-                                 VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(buffer.get_native_handle(),
+                             &render_pass_info,
+                             VK_SUBPASS_CONTENTS_INLINE);
 
-            this->_render_system_screen_aligned_2d->build_render_commands(buffer, image_index);
+        this->_render_system_screen_aligned_2d->build_render_commands(buffer, image_index);
 
-            vkCmdEndRenderPass(buffer.get_native_handle());
-        }
+        vkCmdEndRenderPass(buffer.get_native_handle());
 
         if (!buffer.end_record()) {
             this->_log_manager->log_message("Failed to end command buffer record.",
