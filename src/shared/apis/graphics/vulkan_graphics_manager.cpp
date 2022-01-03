@@ -118,11 +118,6 @@ namespace pbr::shared::apis::graphics {
             return false;
         }
 
-        this->_render_system_screen_aligned_2d = std::make_unique<render_system_screen_aligned_2d>(*this->_device,
-                                                                                                   *this->_vma,
-                                                                                                   number_of_swap_chain_views,
-                                                                                                   this->_log_manager);
-
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -165,6 +160,16 @@ namespace pbr::shared::apis::graphics {
                                                                    *this->_graphics_queue,
                                                                    this->_log_manager);
 
+        this->_render_system_screen_aligned_2d = std::make_unique<render_system_screen_aligned_2d>(*this->_device,
+                                                                                                   *this->_vma,
+                                                                                                   *this->_render_pass,
+                                                                                                   *this->_command_pool,
+                                                                                                   *this->_graphics_queue,
+                                                                                                   this->_swap_chain->get_extent(),
+                                                                                                   this->_swap_chain->get_image_views().size(),
+                                                                                                   this->_render_pass->get_msaa_samples(),
+                                                                                                   this->_log_manager);
+
         return true;
     }
 
@@ -176,8 +181,6 @@ namespace pbr::shared::apis::graphics {
         vkDeviceWaitIdle(this->_device->get_native_handle());
 
         this->cleanup_resources();
-
-        this->_render_system_screen_aligned_2d.reset();
 
         this->_command_buffers.clear();
 
@@ -214,6 +217,8 @@ namespace pbr::shared::apis::graphics {
         this->_render_pass.reset();
 
         this->_swap_chain.reset();
+
+        this->_render_system_screen_aligned_2d.reset();
 
         this->_log_manager->log_message("Cleaned up graphics resources.",
                                         apis::logging::log_levels::info,
@@ -288,8 +293,6 @@ namespace pbr::shared::apis::graphics {
 
         // mark the image as now being in use by this frame
         this->_images_in_flight[image_index] = this->_in_flight_fences[this->_current_frame].get_native_handle();
-
-//        this->update_uniform_buffer(image_index);
 
         VkSemaphore wait_semaphores[] {
             this->_image_available_semaphores[this->_current_frame].get_native_handle(),
@@ -399,7 +402,7 @@ namespace pbr::shared::apis::graphics {
         // this is to stop a warning from being logged about the framebuffer image being in the wrong format
         // when actual rendering code starts, this can be removed
         {
-            VkRenderPassBeginInfo render_pass_info { };
+            VkRenderPassBeginInfo render_pass_info {};
             render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             render_pass_info.renderPass = this->_render_pass->get_native_handle();
             render_pass_info.framebuffer = this->_framebuffer->get_native_handle(image_index);
@@ -418,6 +421,8 @@ namespace pbr::shared::apis::graphics {
             vkCmdBeginRenderPass(buffer.get_native_handle(),
                                  &render_pass_info,
                                  VK_SUBPASS_CONTENTS_INLINE);
+
+            this->_render_system_screen_aligned_2d->build_render_commands(buffer, image_index);
 
             vkCmdEndRenderPass(buffer.get_native_handle());
         }

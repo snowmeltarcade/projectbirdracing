@@ -3,6 +3,10 @@
 #include "vulkan/device.h"
 #include "vulkan/vma.h"
 #include "vulkan/buffer.h"
+#include "vulkan/render_pass.h"
+#include "vulkan/command_buffer.h"
+#include "vulkan/command_pool.h"
+#include "vulkan/queue.h"
 #include "shared/apis/logging/ilog_manager.h"
 
 #include <vector>
@@ -15,15 +19,26 @@ namespace pbr::shared::apis::graphics {
         alignas(4) glm::vec4 color;
     };
 
+    struct vertex {
+        glm::vec2 pos;
+    };
+
     /// Handles rendering 2d entities that are screen aligned. The top left of the screen
     /// will be treated as position, and the bottom right will be treated as 1,1.
     class render_system_screen_aligned_2d {
     public:
         render_system_screen_aligned_2d(const vulkan::device& device,
                                         const vulkan::vma& vma,
+                                        const vulkan::render_pass& render_pass,
+                                        const vulkan::command_pool& command_pool,
+                                        const vulkan::queue& graphics_queue,
+                                        VkExtent2D swap_chain_extent,
                                         uint32_t number_of_swap_chain_images,
+                                        VkSampleCountFlagBits msaa_samples,
                                         std::shared_ptr<logging::ilog_manager> log_manager);
         ~render_system_screen_aligned_2d();
+
+        void build_render_commands(vulkan::command_buffer& buffer, uint32_t image_index);
 
     private:
         const vulkan::device& _device;
@@ -34,8 +49,21 @@ namespace pbr::shared::apis::graphics {
 
         std::vector<vulkan::buffer> _ubo_buffers;
 
+        std::unique_ptr<vulkan::buffer> _vertex_buffer;
+
         VkDescriptorSetLayout _descriptor_set_layout {VK_NULL_HANDLE};
         VkDescriptorPool _descriptor_pool {VK_NULL_HANDLE};
         std::vector<VkDescriptorSet> _descriptor_sets;
+
+        VkPipelineLayout _pipeline_layout {VK_NULL_HANDLE};
+        VkPipeline _graphics_pipeline {VK_NULL_HANDLE};
+
+        void create_pipeline(VkExtent2D swap_chain_extent,
+                             VkSampleCountFlagBits msaa_samples,
+                             const vulkan::render_pass& render_pass);
+
+        void create_vertex_buffer(const std::vector<vertex>& vertices,
+                                  const vulkan::command_pool& command_pool,
+                                  const vulkan::queue& graphics_queue);
     };
 }

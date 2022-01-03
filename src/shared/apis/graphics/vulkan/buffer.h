@@ -31,6 +31,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             return this->_buffer;
         }
 
+        /// Returns the native handle to this buffer's vma allocation
+        /// \returns The native handle to this buffer's vma allocation
+        [[nodiscard]]
+        VmaAllocation get_native_allocation_handle() const noexcept {
+            return this->_allocation;
+        }
+
     private:
         /// The Vulkan Memory Allocator
         const vma& _vma;
