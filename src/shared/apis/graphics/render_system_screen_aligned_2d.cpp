@@ -115,13 +115,18 @@ namespace pbr::shared::apis::graphics {
 
         this->create_pipeline(swap_chain_extent, msaa_samples, render_pass);
 
+        // store square center positions here, then add offsets in the shader...
+        // Try 6 positions first, then try 4 - I'm not sure if the number of vertices needs to be % 3
+        // as we are rendering a triangle strip - perhaps we could use an index buffer or a different geometry mode?
+        // +Z is further back
         std::vector<vertex> vertices {
-            { { 0.0, -0.5, } },
-            { { 0.5, 0.5, } },
-            { { -0.5, 0.5, } },
-            { { 0.1, -0.6, } },
-            { { 0.6, 0.6, } },
-            { { -0.6, 0.6, } },
+            { { 0.1, -0.6, 0.1f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
+            { { 0.6, 0.6, 0.1f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
+            { { -0.6, 0.6, 0.1f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
+
+            { { 0.0, -0.5, 0.0f, }, { 1.0f, 1.0f, 1.0f, 0.8f, } },
+            { { 0.5, 0.5, 0.0f, }, { 1.0f, 1.0f, 1.0f, 0.8f, } },
+            { { -0.5, 0.5, 0.0f, }, { 1.0f, 1.0f, 1.0f, 0.8f, } },
         };
 
         this->create_vertex_buffer(vertices, command_pool, graphics_queue);
@@ -161,7 +166,7 @@ namespace pbr::shared::apis::graphics {
 
     void render_system_screen_aligned_2d::build_render_commands(vulkan::command_buffer& buffer, uint32_t image_index) {
         ubo ubo{};
-        ubo.color = {1,0,0,0.7};
+        ubo.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
         void* data;
         vmaMapMemory(this->_vma.get_native_handle(),
@@ -262,12 +267,17 @@ namespace pbr::shared::apis::graphics {
         binding_description.stride = sizeof(vertex);
         binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-        std::array<VkVertexInputAttributeDescription, 1> attribute_descriptions {};
+        std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions {};
 
         attribute_descriptions[0].binding = 0;
         attribute_descriptions[0].location = 0;
-        attribute_descriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attribute_descriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         attribute_descriptions[0].offset = offsetof(vertex, pos);
+
+        attribute_descriptions[1].binding = 0;
+        attribute_descriptions[1].location = 1;
+        attribute_descriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        attribute_descriptions[1].offset = offsetof(vertex, color);
 
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info {};
         vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -275,10 +285,6 @@ namespace pbr::shared::apis::graphics {
         vertex_input_state_create_info.pVertexBindingDescriptions = &binding_description;
         vertex_input_state_create_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
         vertex_input_state_create_info.pVertexAttributeDescriptions = attribute_descriptions.data();
-//        vertex_input_state_create_info.vertexBindingDescriptionCount = 0;
-//        vertex_input_state_create_info.pVertexBindingDescriptions = nullptr;
-//        vertex_input_state_create_info.vertexAttributeDescriptionCount = 0;
-//        vertex_input_state_create_info.pVertexAttributeDescriptions = nullptr;
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly_state_create_info {};
         input_assembly_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -310,7 +316,7 @@ namespace pbr::shared::apis::graphics {
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = VK_CULL_MODE_NONE; //VK_CULL_MODE_BACK_BIT;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
         rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
         rasterizer.depthBiasConstantFactor = 0.0f;
@@ -356,10 +362,6 @@ namespace pbr::shared::apis::graphics {
         pipeline_layout_info.pSetLayouts = &this->_descriptor_set_layout;
         pipeline_layout_info.pushConstantRangeCount = 0;
         pipeline_layout_info.pPushConstantRanges = nullptr;
-//        pipeline_layout_info.setLayoutCount = 0;
-//        pipeline_layout_info.pSetLayouts = nullptr;
-//        pipeline_layout_info.pushConstantRangeCount = 0;
-//        pipeline_layout_info.pPushConstantRanges = nullptr;
 
         if (vkCreatePipelineLayout(this->_device.get_native_handle(),
                                    &pipeline_layout_info,

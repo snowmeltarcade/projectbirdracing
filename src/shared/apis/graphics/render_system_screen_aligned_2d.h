@@ -20,7 +20,8 @@ namespace pbr::shared::apis::graphics {
     };
 
     struct vertex {
-        glm::vec2 pos;
+        glm::vec3 pos;
+        glm::vec4 color;
     };
 
     /// Handles rendering 2d entities that are screen aligned. The top left of the screen
