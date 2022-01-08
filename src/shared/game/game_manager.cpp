@@ -70,21 +70,24 @@ namespace pbr::shared::game {
             apis::graphics::renderable_entities entities;
 
             entities.submit({
-                                { 0.0f, 0.0f, },
+                                { 0.0f, 0.4f, 0.0f, },
+                                0.25f, 0.2f,
                                 { 1.0f, 1.0f, },
                                 {},
                                 { 255, 255, 255, 255 },
                             });
 
             entities.submit({
-                                { 0.2f, 0.2f, },
+                                { 0.2f, 0.8f, 0.0f, },
+                                0.5f, 0.1f,
                                 { 1.0f, 1.0f, },
                                 {},
-                                { 255, 0, 255, 255 },
+                                { 255, 100, 255, 255 },
                             });
 
             entities.submit({
-                                { -0.3f, -0.3f, },
+                                { 0.3f, 0.5f, 0.0f, },
+                                0.4f, 0.3f,
                                 { 1.0f, 1.0f, },
                                 {},
                                 { 0, 0, 255, 255 },

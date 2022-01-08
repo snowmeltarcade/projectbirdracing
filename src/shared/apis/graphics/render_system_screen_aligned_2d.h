@@ -26,7 +26,7 @@ namespace pbr::shared::apis::graphics {
     };
 
     /// Handles rendering 2d entities that are screen aligned. The top left of the screen
-    /// will be treated as position, and the bottom right will be treated as 1,1.
+    /// will be treated as position 0,0, and the bottom right will be treated as 1,1.
     class render_system_screen_aligned_2d {
     public:
         render_system_screen_aligned_2d(const vulkan::device& device,
@@ -57,6 +57,7 @@ namespace pbr::shared::apis::graphics {
 
         std::vector<vulkan::buffer> _ubo_buffers;
 
+        std::vector<vertex> _vertices;
         std::unique_ptr<vulkan::buffer> _vertex_buffer;
 
         VkDescriptorSetLayout _descriptor_set_layout {VK_NULL_HANDLE};
@@ -70,8 +71,6 @@ namespace pbr::shared::apis::graphics {
                              VkSampleCountFlagBits msaa_samples,
                              const vulkan::render_pass& render_pass);
 
-        void create_vertex_buffer(const std::vector<vertex>& vertices,
-                                  const vulkan::command_pool& command_pool,
-                                  const vulkan::queue& graphics_queue);
+        void create_vertex_buffer();
     };
 }

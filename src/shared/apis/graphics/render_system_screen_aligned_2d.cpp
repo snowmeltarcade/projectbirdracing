@@ -170,8 +170,8 @@ namespace pbr::shared::apis::graphics {
                           VK_PIPELINE_BIND_POINT_GRAPHICS,
                           this->_graphics_pipeline);
 
-        std::array<VkBuffer, 1> vertex_buffers {this->_vertex_buffer->get_native_handle()};
-        VkDeviceSize offsets[] {0};
+        std::array<VkBuffer, 1> vertex_buffers { this->_vertex_buffer->get_native_handle() };
+        VkDeviceSize offsets[] { 0 };
 
         vkCmdBindVertexBuffers(buffer.get_native_handle(),
                                0,
@@ -188,7 +188,11 @@ namespace pbr::shared::apis::graphics {
                                 0,
                                 nullptr);
 
-        vkCmdDraw(buffer.get_native_handle(), 6, 1, 0, 0);
+        vkCmdDraw(buffer.get_native_handle(),
+                  this->_vertices.size(),
+                  1,
+                  0,
+                  0);
     }
 
     void render_system_screen_aligned_2d::submit_renderable_entities(const renderable_entities &renderable_entities) {
@@ -197,27 +201,46 @@ namespace pbr::shared::apis::graphics {
             return;
         }
 
-        // +Z is further back
-        std::vector<vertex> square_vertices {
-            { { 0.0, -0.5, 0.0f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
-            { { 0.5, 0.5, 0.0f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
-            { { -0.5, 0.5, 0.0f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
-        };
-
-        std::vector<vertex> vertices;
-        vertices.reserve(entities.size() * square_vertices.size());
+        this->_vertices.clear();
+        // two triangles for a square
+        this->_vertices.reserve(entities.size() * 6);
 
         for (const auto& entity : entities) {
-            vertices.push_back({ { 0.0 + entity.position.x, -0.5 + entity.position.y, 0.0f, },
-                                 { 255.0f * entity.color.r,
-                                         255.0f * entity.color.g,
-                                         255.0f * entity.color.b,
-                                         255.0f * entity.color.a } });
+            glm::vec4 color {
+                entity.color.r / 255.0f,
+                entity.color.g / 255.0f,
+                entity.color.b / 255.0f,
+                entity.color.a / 255.0f,
+            };
+
+            // the shader is expecting coordinates from -1..1, these coordinates are from 0..1
+            auto top_x = (entity.position.x * 2.0f) - 1.0f;
+            auto top_y = (entity.position.y * 2.0f) - 1.0f;
+            auto bottom_x = top_x + entity.width;
+            auto bottom_y = top_y + entity.height;
+
+            // top left triangle
+            this->_vertices.push_back({ { top_x, top_y, entity.position.z, },
+                                        color });
+
+            this->_vertices.push_back({ { bottom_x, top_y, entity.position.z, },
+                                        color });
+
+            this->_vertices.push_back({ { top_x, bottom_y, entity.position.z, },
+                                        color });
+
+            // bottom right triangle
+            this->_vertices.push_back({ { top_x, bottom_y, entity.position.z, },
+                                        color });
+
+            this->_vertices.push_back({ { bottom_x, top_y, entity.position.z, },
+                                        color });
+
+            this->_vertices.push_back({ { bottom_x, bottom_y, entity.position.z, },
+                                        color });
         }
 
-        this->create_vertex_buffer(vertices,
-                                   this->_command_pool,
-                                   this->_graphics_queue);
+        this->create_vertex_buffer();
     }
 
     std::vector<char> read_all_bytes(const std::filesystem::path& path) {
@@ -246,7 +269,10 @@ namespace pbr::shared::apis::graphics {
         create_info.pCode = reinterpret_cast<const uint32_t*>(bytes.data());
 
         VkShaderModule shader_module;
-        if (vkCreateShaderModule(device, &create_info, nullptr, &shader_module) != VK_SUCCESS) {
+        if (vkCreateShaderModule(device,
+                                 &create_info,
+                                 nullptr,
+                                 &shader_module) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create shader module.");
         }
 
@@ -432,10 +458,12 @@ namespace pbr::shared::apis::graphics {
         vkDestroyShaderModule(this->_device.get_native_handle(), fragment_shader, nullptr);
     }
 
-    void render_system_screen_aligned_2d::create_vertex_buffer(const std::vector<vertex>& vertices,
-                                                               const vulkan::command_pool& command_pool,
-                                                               const vulkan::queue& graphics_queue) {
-        VkDeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
+    void render_system_screen_aligned_2d::create_vertex_buffer() {
+        if (this->_vertices.empty()) {
+            return;
+        }
+
+        VkDeviceSize buffer_size = sizeof(this->_vertices[0]) * this->_vertices.size();
 
         // copy the vertex data from a CPU/GPU shared buffer to a GPU only high performance buffer
         // the shared buffer is technically fine to use, but not as performant
@@ -449,7 +477,7 @@ namespace pbr::shared::apis::graphics {
         vmaMapMemory(this->_vma.get_native_handle(),
                      staging_buffer.get_native_allocation_handle(),
                      &data);
-        memcpy(data, vertices.data(), (size_t)buffer_size);
+        memcpy(data, this->_vertices.data(), (size_t)buffer_size);
         vmaUnmapMemory(this->_vma.get_native_handle(),
                        staging_buffer.get_native_allocation_handle());
 
@@ -460,13 +488,14 @@ namespace pbr::shared::apis::graphics {
                                                                 this->_log_manager);
 
         vulkan::command_buffer copy_commands(this->_device,
-                                             command_pool,
+                                             this->_command_pool,
                                              this->_log_manager);
 
         if (!copy_commands.begin_one_time_usage()) {
             this->_log_manager->log_message("Failed to create copy commands.",
                                             logging::log_levels::error,
                                             "Vulkan");
+            return;
         }
 
         VkBufferCopy copy_region {};
@@ -479,10 +508,11 @@ namespace pbr::shared::apis::graphics {
                         1,
                         &copy_region);
 
-        if (!copy_commands.end_one_time_usage(graphics_queue)) {
+        if (!copy_commands.end_one_time_usage(this->_graphics_queue)) {
             this->_log_manager->log_message("Failed to end copy commands.",
                                             logging::log_levels::error,
                                             "Vulkan");
+            return;
         }
     }
 }

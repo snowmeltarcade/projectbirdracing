@@ -12,7 +12,14 @@ namespace pbr::shared::apis::graphics {
     /// A 2d entity to be rendered by the 2d render system
     struct renderable_entity_2d {
         /// The position - 0,0 is top left
-        glm::vec2 position;
+        /// +Z is further back
+        glm::vec3 position;
+
+        /// The width - 1.0f is the full width of the screen
+        float width {1.0f};
+
+        /// The height - 1.0f is the full height of the screen
+        float height {1.0f};
 
         /// The scale
         glm::vec2 scale;
