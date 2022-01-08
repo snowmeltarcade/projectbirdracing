@@ -20,6 +20,8 @@ namespace pbr::shared::apis::graphics {
                                                                      std::shared_ptr<logging::ilog_manager> log_manager)
         : _device(device),
             _vma(vma),
+            _command_pool(command_pool),
+            _graphics_queue(graphics_queue),
             _log_manager(log_manager) {
         // descriptor set layout
         VkDescriptorSetLayoutBinding ubo_layout_binding {};
@@ -114,22 +116,6 @@ namespace pbr::shared::apis::graphics {
         }
 
         this->create_pipeline(swap_chain_extent, msaa_samples, render_pass);
-
-        // store square center positions here, then add offsets in the shader...
-        // Try 6 positions first, then try 4 - I'm not sure if the number of vertices needs to be % 3
-        // as we are rendering a triangle strip - perhaps we could use an index buffer or a different geometry mode?
-        // +Z is further back
-        std::vector<vertex> vertices {
-            { { 0.1, -0.6, 0.1f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
-            { { 0.6, 0.6, 0.1f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
-            { { -0.6, 0.6, 0.1f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
-
-            { { 0.0, -0.5, 0.0f, }, { 1.0f, 1.0f, 1.0f, 0.8f, } },
-            { { 0.5, 0.5, 0.0f, }, { 1.0f, 1.0f, 1.0f, 0.8f, } },
-            { { -0.5, 0.5, 0.0f, }, { 1.0f, 1.0f, 1.0f, 0.8f, } },
-        };
-
-        this->create_vertex_buffer(vertices, command_pool, graphics_queue);
     }
 
     render_system_screen_aligned_2d::~render_system_screen_aligned_2d() {
@@ -165,6 +151,10 @@ namespace pbr::shared::apis::graphics {
     }
 
     void render_system_screen_aligned_2d::build_render_commands(vulkan::command_buffer& buffer, uint32_t image_index) {
+        if (!this->_vertex_buffer) {
+            return;
+        }
+
         ubo ubo{};
         ubo.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -199,6 +189,35 @@ namespace pbr::shared::apis::graphics {
                                 nullptr);
 
         vkCmdDraw(buffer.get_native_handle(), 6, 1, 0, 0);
+    }
+
+    void render_system_screen_aligned_2d::submit_renderable_entities(const renderable_entities &renderable_entities) {
+        auto& entities = renderable_entities.get_2d_renderable_entities();
+        if (entities.empty()) {
+            return;
+        }
+
+        // +Z is further back
+        std::vector<vertex> square_vertices {
+            { { 0.0, -0.5, 0.0f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
+            { { 0.5, 0.5, 0.0f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
+            { { -0.5, 0.5, 0.0f, }, { 1.0f, 0.0f, 1.0f, 1.0f, } },
+        };
+
+        std::vector<vertex> vertices;
+        vertices.reserve(entities.size() * square_vertices.size());
+
+        for (const auto& entity : entities) {
+            vertices.push_back({ { 0.0 + entity.position.x, -0.5 + entity.position.y, 0.0f, },
+                                 { 255.0f * entity.color.r,
+                                         255.0f * entity.color.g,
+                                         255.0f * entity.color.b,
+                                         255.0f * entity.color.a } });
+        }
+
+        this->create_vertex_buffer(vertices,
+                                   this->_command_pool,
+                                   this->_graphics_queue);
     }
 
     std::vector<char> read_all_bytes(const std::filesystem::path& path) {
@@ -450,15 +469,15 @@ namespace pbr::shared::apis::graphics {
                                             "Vulkan");
         }
 
-        VkBufferCopy copyRegion{};
-        copyRegion.srcOffset = 0;
-        copyRegion.dstOffset = 0;
-        copyRegion.size = buffer_size;
+        VkBufferCopy copy_region {};
+        copy_region.srcOffset = 0;
+        copy_region.dstOffset = 0;
+        copy_region.size = buffer_size;
         vkCmdCopyBuffer(copy_commands.get_native_handle(),
                         staging_buffer.get_native_handle(),
                         this->_vertex_buffer->get_native_handle(),
                         1,
-                        &copyRegion);
+                        &copy_region);
 
         if (!copy_commands.end_one_time_usage(graphics_queue)) {
             this->_log_manager->log_message("Failed to end copy commands.",

@@ -67,6 +67,31 @@ namespace pbr::shared::game {
                 return false;
             }
 
+            apis::graphics::renderable_entities entities;
+
+            entities.submit({
+                                { 0.0f, 0.0f, },
+                                { 1.0f, 1.0f, },
+                                {},
+                                { 255, 255, 255, 255 },
+                            });
+
+            entities.submit({
+                                { 0.2f, 0.2f, },
+                                { 1.0f, 1.0f, },
+                                {},
+                                { 255, 0, 255, 255 },
+                            });
+
+            entities.submit({
+                                { -0.3f, -0.3f, },
+                                { 1.0f, 1.0f, },
+                                {},
+                                { 0, 0, 255, 255 },
+                            });
+
+            this->_graphics_manager->submit_renderable_entities(entities);
+
             // this will be moved to another thread soon
             this->_graphics_manager->submit_frame_for_render();
         }

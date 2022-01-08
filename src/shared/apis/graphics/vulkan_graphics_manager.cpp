@@ -390,6 +390,8 @@ namespace pbr::shared::apis::graphics {
             renderable_entities = this->_renderable_entities;
         }
 
+        this->_render_system_screen_aligned_2d->submit_renderable_entities(renderable_entities);
+
         auto& buffer = this->_command_buffers[image_index];
 
         if (!buffer.begin_record()) {

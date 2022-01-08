@@ -8,6 +8,7 @@
 #include "vulkan/command_pool.h"
 #include "vulkan/queue.h"
 #include "shared/apis/logging/ilog_manager.h"
+#include "renderable_entities.h"
 
 #include <vector>
 #include <memory>
@@ -41,10 +42,16 @@ namespace pbr::shared::apis::graphics {
 
         void build_render_commands(vulkan::command_buffer& buffer, uint32_t image_index);
 
+        void submit_renderable_entities(const renderable_entities& renderable_entities);
+
     private:
         const vulkan::device& _device;
 
         const vulkan::vma& _vma;
+
+        const vulkan::command_pool& _command_pool;
+
+        const vulkan::queue& _graphics_queue;
 
         std::shared_ptr<logging::ilog_manager> _log_manager;
 
