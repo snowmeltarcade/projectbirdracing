@@ -8,6 +8,7 @@
   - [Cameras](#cameras)
     - [Tripods](#tripods)
   - [Lighting](#lighting)
+  - [Performance Settings Profiles](#performance-settings-profiles)
 
 Both 2D and 3D rendering must be supported. Rendering should take place in its own thread. Data to be rendered should be pushed into this component and not read from other components.
 
@@ -94,3 +95,25 @@ The following lighting types must be supported:
 Point and spot lights can have light cookies attached.
 
 All lights can be colored (RGB).
+
+## Performance Settings Profiles
+
+Various graphics details and performance settings are user configurable. The settings profiles will be saved in a `JSON` file in the `data/graphics/performance` folder. All settings will have defaults in code. These defaults are API and device specific, so are implementation defined. The user can select which profile to use in the graphics menu.
+
+The configurable settings are as follows:
+
+| Name | Values | Description |
+| -- | -- | -- |
+| `prefer_vsync` | `true`/`false` | If `true`, vsync will be used |
+| `msaa_samples` | `1`, `2`, `4`, `8`, `16`, `32`, `64` | The number of [MSAA](https://en.wikipedia.org/wiki/Multisample_anti-aliasing) samples to use. If the device does not support the requested number of samples, the nearest number will be used. |
+| `max_frames_in_flight` | `1`, `2`, `3` | The maximum number of frames the GPU will process at concurrently |
+| `sample_shading` | `0.0` to `1.0` | Similar to MSAA, but samples pixels within a triangle. The closer to `1.0`, the smoother the pixels. A value of `0.0` will disable this setting. |
+
+The settings profile `JSON` file will have the following format. The keys are the named values in the above table. For example:
+
+```json
+{
+  "prefer_vsync": "false",
+  "msaa_samples": 32
+}
+```

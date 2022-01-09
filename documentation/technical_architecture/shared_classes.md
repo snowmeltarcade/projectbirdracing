@@ -98,7 +98,7 @@ Graphics logs will be logged to `./graphics.log.txt` in the directory of the exe
 
 ## Data Manager
 
-Loads data from the `data` folder. It will load the files in a format that it knows and will expose this data in a format agnostic way.
+Loads data from the `data` folder using the [file manager](#file-manager). It will load the files in a format that it knows and will expose this data in a format agnostic way.
 
 The default data format is `JSON`.
 
