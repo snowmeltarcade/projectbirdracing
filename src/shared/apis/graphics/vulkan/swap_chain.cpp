@@ -178,7 +178,7 @@ namespace pbr::shared::apis::graphics::vulkan {
             };
 
             create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            create_info.queueFamilyIndexCount = indexes.size();
+            create_info.queueFamilyIndexCount = static_cast<uint32_t>(indexes.size());
             create_info.pQueueFamilyIndices = indexes.data();
         }
 
