@@ -203,7 +203,7 @@ namespace pbr::shared::apis::graphics {
         }
 
         this->_vertices.clear();
-        // two triangles for a square
+        // 2 trianges of 3 vertices per square
         this->_vertices.reserve(entities.size() * 6);
 
         // transparent entities need to be rendered last, in back to front order
@@ -227,26 +227,31 @@ namespace pbr::shared::apis::graphics {
                 continue;
             }
 
-            // transform the position form 0..1 to -1..1
-            glm::vec2 transformed_position_top_left((entity.position.x * 2.0f) - 1.0f,
-                                                    (entity.position.y * 2.0f) - 1.0f);
-
-            glm::vec2 transformed_position_bottom_right(((entity.position.x + entity.width) * 2.0f) - 1.0f,
-                                                        ((entity.position.y + entity.height) * 2.0f) - 1.0f);
-
-            glm::vec3 top_left(transformed_position_top_left, entity.position.z);
-            glm::vec3 top_right(transformed_position_bottom_right.x, transformed_position_top_left.y, entity.position.z);
-            glm::vec3 bottom_left(transformed_position_top_left.x, transformed_position_bottom_right.y, entity.position.z);
-            glm::vec3 bottom_right(transformed_position_bottom_right, entity.position.z);
-
-            auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(entity.scale, 1.0));
+            // scale first by the width/height, then by the actual scale
+            glm::vec2 size(entity.width, entity.height);
+            auto scaled_size = size * entity.scale;
+            auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(scaled_size, 1.0f));
 
             auto rotation = glm::toMat4(entity.orientation);
 
-            auto transformed_top_left = rotation * scale * glm::vec4(top_left, 1.0f);
-            auto transformed_top_right = rotation * scale * glm::vec4(top_right, 1.0f);
-            auto transformed_bottom_left = rotation * scale * glm::vec4(bottom_left, 1.0f);
-            auto transformed_bottom_right = rotation * scale * glm::vec4(bottom_right, 1.0f);
+            // this is actually the width/height * 2.0f to move from 0..1 to -1..1, then
+            // * 0.5f to transform from the center of the entity to the top left corner
+            // resulting in just the width and height
+            glm::vec3 transformed_size(entity.width, entity.height, 0.0f);
+
+            auto transform = glm::translate(glm::mat4(1.0f),
+                                            glm::vec3((entity.position.x * 2.0f) - 1.0f,
+                                                      (entity.position.y * 2.0f) - 1.0f,
+                                                      entity.position.z) + transformed_size);
+
+            auto transformed_top_left = transform * rotation * scale *
+                glm::vec4(-1.0f, -1.0f, 0.0f, 1.0f);
+            auto transformed_top_right = transform * rotation * scale *
+                glm::vec4(1.0f, -1.0f, 0.0f, 1.0f);
+            auto transformed_bottom_left = transform * rotation * scale *
+                glm::vec4(-1.0f, 1.0f, 0.0f, 1.0f);
+            auto transformed_bottom_right = transform * rotation * scale *
+                glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
 
             // top left triangle
             this->_vertices.push_back({ transformed_top_left, color });
@@ -272,26 +277,31 @@ namespace pbr::shared::apis::graphics {
                 entity.color.a / 255.0f,
             };
 
-            // transform the position form 0..1 to -1..1
-            glm::vec2 transformed_position_top_left((entity.position.x * 2.0f) - 1.0f,
-                                                    (entity.position.y * 2.0f) - 1.0f);
-
-            glm::vec2 transformed_position_bottom_right(((entity.position.x + entity.width) * 2.0f) - 1.0f,
-                                                        ((entity.position.y + entity.height) * 2.0f) - 1.0f);
-
-            glm::vec3 top_left(transformed_position_top_left, entity.position.z);
-            glm::vec3 top_right(transformed_position_bottom_right.x, transformed_position_top_left.y, entity.position.z);
-            glm::vec3 bottom_left(transformed_position_top_left.x, transformed_position_bottom_right.y, entity.position.z);
-            glm::vec3 bottom_right(transformed_position_bottom_right, entity.position.z);
-
-            auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(entity.scale, 1.0));
+            // scale first by the width/height, then by the actual scale
+            glm::vec2 size(entity.width, entity.height);
+            auto scaled_size = size * entity.scale;
+            auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(scaled_size, 1.0f));
 
             auto rotation = glm::toMat4(entity.orientation);
 
-            auto transformed_top_left = rotation * scale * glm::vec4(top_left, 1.0f);
-            auto transformed_top_right = rotation * scale * glm::vec4(top_right, 1.0f);
-            auto transformed_bottom_left = rotation * scale * glm::vec4(bottom_left, 1.0f);
-            auto transformed_bottom_right = rotation * scale * glm::vec4(bottom_right, 1.0f);
+            // this is actually the width/height * 2.0f to move from 0..1 to -1..1, then
+            // * 0.5f to transform from the center of the entity to the top left corner
+            // resulting in just the width and height
+            glm::vec3 transformed_size(entity.width, entity.height, 0.0f);
+
+            auto transform = glm::translate(glm::mat4(1.0f),
+                                            glm::vec3((entity.position.x * 2.0f) - 1.0f,
+                                                      (entity.position.y * 2.0f) - 1.0f,
+                                                      entity.position.z) + transformed_size);
+
+            auto transformed_top_left = transform * rotation * scale *
+                                        glm::vec4(-1.0f, -1.0f, 0.0f, 1.0f);
+            auto transformed_top_right = transform * rotation * scale *
+                                         glm::vec4(1.0f, -1.0f, 0.0f, 1.0f);
+            auto transformed_bottom_left = transform * rotation * scale *
+                                           glm::vec4(-1.0f, 1.0f, 0.0f, 1.0f);
+            auto transformed_bottom_right = transform * rotation * scale *
+                                            glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
 
             // top left triangle
             this->_vertices.push_back({ transformed_top_left, color });

@@ -76,6 +76,7 @@ namespace pbr::shared::game {
             auto frame_time = now - previous_now;
             auto mcs = std::chrono::duration_cast<std::chrono::microseconds>(frame_time).count();
 
+            // 10 degrees per second
             angle += 10.0f * (mcs / 1000000.0f);
 
             entities.submit({
@@ -106,8 +107,8 @@ namespace pbr::shared::game {
 
             entities.submit({
                                 { 0.2f, 0.8f, 0.0f, },
-                                0.5f, 0.1f,
-                                { 2.0f, 0.5f, },
+                                0.1f, 0.2f,
+                                { 2.0f, 1.0f, },
                                 glm::angleAxis(glm::radians(-angle * 2.0f + 45.0f),
                                                glm::vec3(0.0f, 0.0f, 1.0f)),
                                 { 255, 100, 255, 200 },
