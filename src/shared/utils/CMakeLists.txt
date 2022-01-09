@@ -3,7 +3,9 @@ target_sources(
     PUBLIC
         program_arguments.h
         strings.h
+        uri.h
     PRIVATE
         program_arguments.cpp
         strings.cpp
+        uri.cpp
 )

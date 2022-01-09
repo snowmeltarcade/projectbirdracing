@@ -3,4 +3,5 @@ target_sources(
     PRIVATE
         program_arguments.cpp
         strings.cpp
+        uri.cpp
 )

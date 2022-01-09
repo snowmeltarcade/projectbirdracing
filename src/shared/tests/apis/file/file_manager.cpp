@@ -10,7 +10,10 @@ using namespace pbr::shared::apis::file;
 TEST_CASE("read_file_data - invalid file path - returns error", "[shared/apis/file]") {
     file_manager manager;
 
-    auto result = manager.read_file_data();
+    auto uri = pbr::shared::utils::build_uri("file:///path/to/file.txt");
+    REQUIRE(uri);
+
+    auto result = manager.read_file_data(*uri);
 
     REQUIRE_FALSE(result);
 }

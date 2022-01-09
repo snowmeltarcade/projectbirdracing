@@ -1,6 +1,7 @@
 #pragma once
 
 #include "shared/memory/basic_allocators.h"
+#include "shared/utils/uri.h"
 
 #include <cstdint>
 #include <vector>
@@ -18,8 +19,9 @@ namespace pbr::shared::apis::file {
         virtual ~ifile_manager() = default;
 
         /// Returns the data of the file pointed to by the passed URI
+        /// \param uri The uri of the file to open
         /// \returns The data of the file pointed to by the passed URI. If this file was
         /// not found, an empty result is returned
-        virtual std::optional<std::vector<std::byte>> read_file_data() const noexcept = 0;
+        virtual std::optional<std::vector<std::byte>> read_file_data(const utils::uri& uri) const noexcept = 0;
     };
 }
