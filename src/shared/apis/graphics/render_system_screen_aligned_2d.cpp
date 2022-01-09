@@ -206,7 +206,15 @@ namespace pbr::shared::apis::graphics {
         // two triangles for a square
         this->_vertices.reserve(entities.size() * 6);
 
-        for (const auto& entity : entities) {
+        // transparent entities need to be rendered last, in back to front order
+        std::vector<renderable_entity_2d> transparent_entities;
+        transparent_entities.reserve(entities.size());
+
+        // as the depth compare is `less than` and not `less than or equal`, we need to render the
+        // entities in reverse order
+        for (auto entity_it = entities.rbegin(); entity_it != entities.rend(); ++entity_it) {
+            const auto& entity = *entity_it;
+
             glm::vec4 color {
                 entity.color.r / 255.0f,
                 entity.color.g / 255.0f,
@@ -214,7 +222,55 @@ namespace pbr::shared::apis::graphics {
                 entity.color.a / 255.0f,
             };
 
-            // Vulkan has down as +Y - we are using +Y as up. We will invert the vertex positions in the vertex shader
+            if (color.a < 1.0f) {
+                transparent_entities.push_back(entity);
+                continue;
+            }
+
+            // transform the position form 0..1 to -1..1
+            glm::vec2 transformed_position_top_left((entity.position.x * 2.0f) - 1.0f,
+                                                    (entity.position.y * 2.0f) - 1.0f);
+
+            glm::vec2 transformed_position_bottom_right(((entity.position.x + entity.width) * 2.0f) - 1.0f,
+                                                        ((entity.position.y + entity.height) * 2.0f) - 1.0f);
+
+            glm::vec3 top_left(transformed_position_top_left, entity.position.z);
+            glm::vec3 top_right(transformed_position_bottom_right.x, transformed_position_top_left.y, entity.position.z);
+            glm::vec3 bottom_left(transformed_position_top_left.x, transformed_position_bottom_right.y, entity.position.z);
+            glm::vec3 bottom_right(transformed_position_bottom_right, entity.position.z);
+
+            auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(entity.scale, 1.0));
+
+            auto rotation = glm::toMat4(entity.orientation);
+
+            auto transformed_top_left = rotation * scale * glm::vec4(top_left, 1.0f);
+            auto transformed_top_right = rotation * scale * glm::vec4(top_right, 1.0f);
+            auto transformed_bottom_left = rotation * scale * glm::vec4(bottom_left, 1.0f);
+            auto transformed_bottom_right = rotation * scale * glm::vec4(bottom_right, 1.0f);
+
+            // top left triangle
+            this->_vertices.push_back({ transformed_top_left, color });
+            this->_vertices.push_back({ transformed_top_right, color });
+            this->_vertices.push_back({ transformed_bottom_left, color });
+
+            // bottom right triangle
+            this->_vertices.push_back({ transformed_bottom_left, color });
+            this->_vertices.push_back({ transformed_top_right, color });
+            this->_vertices.push_back({ transformed_bottom_right, color });
+        }
+
+        // as the "2d camera" is always facing +Z, we will simply order by Z-pos
+        // +Z is further away, so needs to be rendered first
+        std::sort(transparent_entities.begin(), transparent_entities.end(),
+                  [](const auto& left, const auto& right) { return left.position.z > right.position.z; });
+
+        for (const auto& entity : transparent_entities) {
+            glm::vec4 color {
+                entity.color.r / 255.0f,
+                entity.color.g / 255.0f,
+                entity.color.b / 255.0f,
+                entity.color.a / 255.0f,
+            };
 
             // transform the position form 0..1 to -1..1
             glm::vec2 transformed_position_top_left((entity.position.x * 2.0f) - 1.0f,
@@ -427,9 +483,10 @@ namespace pbr::shared::apis::graphics {
         depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         depth_stencil.depthTestEnable = VK_TRUE;
         depth_stencil.depthWriteEnable = VK_TRUE;
-        // use `or_equal` to allow the last rendered 2d entity to be rendered "on top" of any
-        // 2d entities rendered before it
-        depth_stencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+        // do not use `less than or equal` to allow for correct rendering of transparent entities, as
+        // we will render transparent entities after all solid entities have been rendered. Solid entities
+        // will be rendered in reverse, so make up for not using `or equal`.
+        depth_stencil.depthCompareOp = VK_COMPARE_OP_LESS;
         depth_stencil.depthBoundsTestEnable = VK_FALSE;
         depth_stencil.minDepthBounds = 0.0f;
         depth_stencil.maxDepthBounds = 1.0f;
