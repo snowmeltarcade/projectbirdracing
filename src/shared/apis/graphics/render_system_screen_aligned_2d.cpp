@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/transform.hpp>
 
 #define FATAL_ERROR(message) \
     this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
@@ -428,7 +427,9 @@ namespace pbr::shared::apis::graphics {
         depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         depth_stencil.depthTestEnable = VK_TRUE;
         depth_stencil.depthWriteEnable = VK_TRUE;
-        depth_stencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        // use `or_equal` to allow the last rendered 2d entity to be rendered "on top" of any
+        // 2d entities rendered before it
+        depth_stencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
         depth_stencil.depthBoundsTestEnable = VK_FALSE;
         depth_stencil.minDepthBounds = 0.0f;
         depth_stencil.maxDepthBounds = 1.0f;
