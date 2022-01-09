@@ -15,6 +15,8 @@ target_include_directories(
         ${VMA_INCLUDE_DIRS}
 )
 
+copy_sdl_dependencies(${PROJECT_BINARY_DIR})
+
 add_subdirectory("apis")
 add_subdirectory("game")
 add_subdirectory("memory")
