@@ -42,6 +42,18 @@ elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
 	set(IOS TRUE)
 endif()
 
+if (WIN32)
+	# as we use clang on Windows, make sure this is properly defined
+	# SDL needs __WIN32__
+	add_definitions(-DWIN32 -D__WIN32__)
+
+	# SDL defines its own main, so ensure we choose the correct main
+	add_link_options(-Wl,-subsystem:console)
+elseif (IOS)
+	# for SDL
+	add_definitions(-D__IPHONEOS__)
+endif()
+
 configure_file("${CMAKE_CURRENT_LIST_DIR}/version.h.in" "${CMAKE_CURRENT_LIST_DIR}/version.h")
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/libraries.cmake")

@@ -2,6 +2,8 @@
 #include "debug_messenger.h"
 
 #include <cassert>
+#include <array>
+#include <algorithm>
 
 namespace pbr::shared::apis::graphics::vulkan {
     /// Create the debug messenger for the instance. This is needed because

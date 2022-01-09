@@ -2,7 +2,7 @@
 #include "shared/game/game_manager.h"
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
-#include "shared/apis/logging/endpoints/stdout.h"
+#include "shared/apis/logging/endpoints/std_out.h"
 #include "shared/apis/logging/endpoints/file.h"
 #include "shared/apis/windowing/window_manager.h"
 #include "shared/apis/graphics/vulkan_graphics_manager.h"
@@ -25,12 +25,12 @@ game::game_manager create_game_manager(const utils::program_arguments& arguments
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
 
     auto game_log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
-    if (!game_log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::stdout>())) {
+    if (!game_log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::std_out>())) {
         throw std::logic_error("Failed to add `stdout` logging endpoint.");
     }
 
     auto graphics_log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
-    if (!graphics_log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::stdout>())) {
+    if (!graphics_log_manager->add_endpoint(std::make_shared<apis::logging::endpoints::std_out>())) {
         throw std::logic_error("Failed to add `stdout` logging endpoint.");
     }
 

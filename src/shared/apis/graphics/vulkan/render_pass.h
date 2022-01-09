@@ -6,6 +6,7 @@
 #include "physical_device.h"
 #include "image.h"
 
+#include <array>
 #include <memory>
 
 namespace pbr::shared::apis::graphics::vulkan {

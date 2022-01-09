@@ -1,5 +1,8 @@
 #include "swap_chain.h"
 
+#include <algorithm>
+#include <array>
+
 #define FATAL_ERROR(message) \
     this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
     throw std::runtime_error(message);

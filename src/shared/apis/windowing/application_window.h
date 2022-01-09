@@ -3,6 +3,7 @@
 #include "shared/apis/logging/ilog_manager.h"
 #include "iapplication_window.h"
 
+#include <stdexcept>
 #include <cassert>
 #include <string>
 #include <SDL.h>
