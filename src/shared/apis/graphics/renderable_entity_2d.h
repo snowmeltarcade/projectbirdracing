@@ -16,10 +16,10 @@ namespace pbr::shared::apis::graphics {
         glm::vec3 position;
 
         /// The width - 1.0f is the full width of the screen
-        float width {1.0f};
+        float width { 1.0f };
 
         /// The height - 1.0f is the full height of the screen
-        float height {1.0f};
+        float height { 1.0f };
 
         /// The scale
         glm::vec2 scale;

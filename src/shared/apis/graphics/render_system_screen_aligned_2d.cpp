@@ -3,6 +3,8 @@
 #include <vk_mem_alloc.h>
 #include <filesystem>
 #include <fstream>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/transform.hpp>
 
 #define FATAL_ERROR(message) \
     this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
@@ -213,31 +215,38 @@ namespace pbr::shared::apis::graphics {
                 entity.color.a / 255.0f,
             };
 
-            // the shader is expecting coordinates from -1..1, these coordinates are from 0..1
-            auto top_x = (entity.position.x * 2.0f) - 1.0f;
-            auto top_y = (entity.position.y * 2.0f) - 1.0f;
-            auto bottom_x = top_x + entity.width;
-            auto bottom_y = top_y + entity.height;
+            // Vulkan has down as +Y - we are using +Y as up. We will invert the vertex positions in the vertex shader
+
+            // transform the position form 0..1 to -1..1
+            glm::vec2 transformed_position_top_left((entity.position.x * 2.0f) - 1.0f,
+                                                    (entity.position.y * 2.0f) - 1.0f);
+
+            glm::vec2 transformed_position_bottom_right(((entity.position.x + entity.width) * 2.0f) - 1.0f,
+                                                        ((entity.position.y + entity.height) * 2.0f) - 1.0f);
+
+            glm::vec3 top_left(transformed_position_top_left, entity.position.z);
+            glm::vec3 top_right(transformed_position_bottom_right.x, transformed_position_top_left.y, entity.position.z);
+            glm::vec3 bottom_left(transformed_position_top_left.x, transformed_position_bottom_right.y, entity.position.z);
+            glm::vec3 bottom_right(transformed_position_bottom_right, entity.position.z);
+
+            auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(entity.scale, 1.0));
+
+            auto rotation = glm::toMat4(entity.orientation);
+
+            auto transformed_top_left = rotation * scale * glm::vec4(top_left, 1.0f);
+            auto transformed_top_right = rotation * scale * glm::vec4(top_right, 1.0f);
+            auto transformed_bottom_left = rotation * scale * glm::vec4(bottom_left, 1.0f);
+            auto transformed_bottom_right = rotation * scale * glm::vec4(bottom_right, 1.0f);
 
             // top left triangle
-            this->_vertices.push_back({ { top_x, top_y, entity.position.z, },
-                                        color });
-
-            this->_vertices.push_back({ { bottom_x, top_y, entity.position.z, },
-                                        color });
-
-            this->_vertices.push_back({ { top_x, bottom_y, entity.position.z, },
-                                        color });
+            this->_vertices.push_back({ transformed_top_left, color });
+            this->_vertices.push_back({ transformed_top_right, color });
+            this->_vertices.push_back({ transformed_bottom_left, color });
 
             // bottom right triangle
-            this->_vertices.push_back({ { top_x, bottom_y, entity.position.z, },
-                                        color });
-
-            this->_vertices.push_back({ { bottom_x, top_y, entity.position.z, },
-                                        color });
-
-            this->_vertices.push_back({ { bottom_x, bottom_y, entity.position.z, },
-                                        color });
+            this->_vertices.push_back({ transformed_bottom_left, color });
+            this->_vertices.push_back({ transformed_top_right, color });
+            this->_vertices.push_back({ transformed_bottom_right, color });
         }
 
         this->create_vertex_buffer();

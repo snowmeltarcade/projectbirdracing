@@ -70,7 +70,16 @@ namespace pbr::shared::game {
             apis::graphics::renderable_entities entities;
 
             entities.submit({
-                                { 0.0f, 0.4f, 0.0f, },
+                                { 0.0f, 0.0f, 0.0f, },
+                                1.0f, 1.0f,
+                                { 1.0f, 1.0f, },
+                                glm::angleAxis(glm::radians(95.0f),
+                                               glm::vec3(0.0f, 0.0f, 1.0f)),
+                                { 0, 255, 0, 255 },
+                            });
+
+            entities.submit({
+                                { 0.2f, 0.4f, 0.0f, },
                                 0.25f, 0.2f,
                                 { 1.0f, 1.0f, },
                                 {},
@@ -80,8 +89,9 @@ namespace pbr::shared::game {
             entities.submit({
                                 { 0.2f, 0.8f, 0.0f, },
                                 0.5f, 0.1f,
-                                { 1.0f, 1.0f, },
-                                {},
+                                { 2.0f, 0.5f, },
+                                glm::angleAxis(glm::radians(45.0f),
+                                               glm::vec3(0.0f, 0.0f, 1.0f)),
                                 { 255, 100, 255, 255 },
                             });
 
