@@ -108,7 +108,7 @@ namespace pbr::shared::game {
             entities.submit({
                                 { 0.2f, 0.8f, 0.0f, },
                                 0.1f, 0.2f,
-                                { 2.0f, 1.0f, },
+                                { 3.0f, 0.5f, },
                                 glm::angleAxis(glm::radians(-angle * 2.0f + 45.0f),
                                                glm::vec3(0.0f, 0.0f, 1.0f)),
                                 { 255, 100, 255, 200 },
