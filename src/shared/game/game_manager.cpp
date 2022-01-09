@@ -47,6 +47,10 @@ namespace pbr::shared::game {
                                         apis::logging::log_levels::info,
                                         "Game");
 
+        auto now = std::chrono::system_clock::now();
+        auto previous_now = now;
+        auto angle = 0.0f;
+
         while (!this->_has_exit_been_requested) {
             if (!this->_window_manager->update()) {
                 this->_log_manager->log_message("Failed to update window manager.",
@@ -69,11 +73,16 @@ namespace pbr::shared::game {
 
             apis::graphics::renderable_entities entities;
 
+            auto frame_time = now - previous_now;
+            auto mcs = std::chrono::duration_cast<std::chrono::microseconds>(frame_time).count();
+
+            angle += 10.0f * (mcs / 1000000.0f);
+
             entities.submit({
                                 { 0.0f, 0.0f, 0.2f, },
                                 1.0f, 1.0f,
                                 { 1.0f, 1.0f, },
-                                glm::angleAxis(glm::radians(95.0f),
+                                glm::angleAxis(glm::radians(angle * 0.7f + 10.0f),
                                                glm::vec3(0.0f, 0.0f, 1.0f)),
                                 { 0, 255, 0, 255 },
                             });
@@ -82,7 +91,7 @@ namespace pbr::shared::game {
                                 { 0.2f, 0.7f, 0.1f, },
                                 0.5f, 0.1f,
                                 { 2.0f, 0.5f, },
-                                glm::angleAxis(glm::radians(30.0f),
+                                glm::angleAxis(glm::radians(angle),
                                                glm::vec3(0.0f, 0.0f, 1.0f)),
                                 { 100, 100, 255, 200 },
                             });
@@ -99,7 +108,7 @@ namespace pbr::shared::game {
                                 { 0.2f, 0.8f, 0.0f, },
                                 0.5f, 0.1f,
                                 { 2.0f, 0.5f, },
-                                glm::angleAxis(glm::radians(45.0f),
+                                glm::angleAxis(glm::radians(-angle * 2.0f + 45.0f),
                                                glm::vec3(0.0f, 0.0f, 1.0f)),
                                 { 255, 100, 255, 200 },
                             });
@@ -116,6 +125,9 @@ namespace pbr::shared::game {
 
             // this will be moved to another thread soon
             this->_graphics_manager->submit_frame_for_render();
+
+            previous_now = now;
+            now = std::chrono::system_clock::now();
         }
 
         this->_log_manager->log_message("Finished running the game manager.",
