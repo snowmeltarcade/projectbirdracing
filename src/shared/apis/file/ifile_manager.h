@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <vector>
 #include <optional>
+#include <future>
 
 namespace pbr::shared::apis::file {
     /// Provides the interface for the file manager. This manager handles the loading file data
@@ -24,10 +25,23 @@ namespace pbr::shared::apis::file {
         /// not found or an error occurred, an empty result is returned
         virtual std::optional<std::vector<std::byte>> read_file_bytes(const utils::uri& uri) const noexcept = 0;
 
+        /// Returns the bytes of the file pointed to by the passed URI
+        /// \param uri The uri of the file to open
+        /// \returns The bytes of the file pointed to by the passed URI. If this file was
+        /// not found or an error occurred, an empty result is returned
+        virtual std::future<std::optional<std::vector<std::byte>>> read_file_bytes_async(
+            const utils::uri& uri) const noexcept = 0;
+
         /// Returns the lines of text in the file pointed to by the passed URI
         /// \param uri The uri of the file to open
         /// \returns The the lines of text in the file pointed to by the passed URI. If this file was
         /// not found or an error occurred, an empty result is returned
         virtual std::optional<std::string> read_file_text(const utils::uri& uri) const noexcept = 0;
+
+        /// Returns the lines of text in the file pointed to by the passed URI
+        /// \param uri The uri of the file to open
+        /// \returns The the lines of text in the file pointed to by the passed URI. If this file was
+        /// not found or an error occurred, an empty result is returned
+        virtual std::future<std::optional<std::string>> read_file_text_async(const utils::uri& uri) const noexcept = 0;
     };
 }

@@ -33,6 +33,16 @@ namespace pbr::shared::apis::file {
         return bytes;
     }
 
+    std::future<std::optional<std::vector<std::byte>>> file_manager::read_file_bytes_async(
+        const utils::uri& uri) const noexcept {
+        auto f = std::async(std::launch::async, [this, uri](){
+            auto result = this->read_file_bytes(uri);
+            return result;
+        });
+
+        return f;
+    }
+
     std::optional<std::string> file_manager::read_file_text(const utils::uri& uri) const noexcept {
         // we are only supporting `file://` at the moment
         if (uri.scheme != "file") {
@@ -50,5 +60,14 @@ namespace pbr::shared::apis::file {
         fs.close();
 
         return text;
+    }
+
+    std::future<std::optional<std::string>> file_manager::read_file_text_async(const utils::uri& uri) const noexcept {
+        auto f = std::async(std::launch::async, [this, uri](){
+            auto result = this->read_file_text(uri);
+            return result;
+        });
+
+        return f;
     }
 }
