@@ -13,6 +13,11 @@ namespace pbr::shared::utils {
 
         /// The path
         std::string path;
+
+        /// The default equality operator
+        /// \param other What to compare against
+        /// \returns `true` if equal, else `false`
+        bool operator ==(const uri& other) const = default;
     };
 
     /// Builds a URI from the passed string
