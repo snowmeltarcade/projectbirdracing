@@ -16,10 +16,16 @@ namespace pbr::shared::apis::file {
         file_manager() = default;
         ~file_manager() override = default;
 
-        /// Returns the data of the file pointed to by the passed URI
+        /// Returns the bytes of the file pointed to by the passed URI
         /// \param uri The uri of the file to open
-        /// \returns The data of the file pointed to by the passed URI. If this file was
-        /// not found, an empty result is returned
-        std::optional<std::vector<std::byte>> read_file_data(const utils::uri& uri) const noexcept override;
+        /// \returns The bytes of the file pointed to by the passed URI. If this file was
+        /// not found or an error occurred, an empty result is returned
+        std::optional<std::vector<std::byte>> read_file_bytes(const utils::uri& uri) const noexcept override;
+
+        /// Returns the lines of text in the file pointed to by the passed URI
+        /// \param uri The uri of the file to open
+        /// \returns The the lines of text in the file pointed to by the passed URI. If this file was
+        /// not found or an error occurred, an empty result is returned
+        std::optional<std::string> read_file_text(const utils::uri& uri) const noexcept override;
     };
 }
