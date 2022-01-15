@@ -53,6 +53,9 @@ TEST_CASE("stringable - constrains correct types", "[shared/utils/stringable]") 
     int i {0};
     stringable_concept_test(i);
 
+    uint32_t ui {0u};
+    stringable_concept_test(ui);
+
     bool b {false};
     stringable_concept_test(b);
 

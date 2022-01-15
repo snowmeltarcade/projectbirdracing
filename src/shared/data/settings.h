@@ -31,13 +31,36 @@ namespace pbr::shared::data {
             this->_map[key] = value;
         }
 
-        /// Returns a setting
+        /// Adds a setting. If the key already exists, its value is overwritten
+        /// \param key The key
+        /// \param value The value
+        void add(const std::string& key, const settings& value) noexcept {
+            this->_settings_map[key] = value;
+        }
+
+        /// Returns a setting as a string
         /// \param key The key
         /// \returns The value, else empty if the key is not present
         std::optional<std::string> get(const std::string& key) noexcept;
 
+        /// Returns a setting as an int
+        /// \param key The key
+        /// \returns The value, else empty if the key is not present
+        std::optional<int> get_as_int(const std::string& key) noexcept;
+
+        /// Returns a settings object
+        /// \param key The key
+        /// \returns The value, else empty if the key is not present
+        std::optional<settings> get_as_settings(const std::string& key) noexcept;
+
+        /// Equality operator
+        bool operator ==(const settings&) const = default;
+
     private:
-        /// Stores the settings
+        /// Stores the settings that can be stringified
         std::unordered_map<std::string, std::string> _map;
+
+        /// Stores other settings objects
+        std::unordered_map<std::string, settings> _settings_map;
     };
 }

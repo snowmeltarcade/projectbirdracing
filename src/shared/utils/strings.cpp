@@ -121,4 +121,12 @@ namespace pbr::shared::utils {
         auto res = string_to_check.substr(string_to_check.size() - ends_with.size(), ends_with.size());
         return res == ends_with;
     }
+
+    std::optional<int> to_int(std::string_view s) noexcept {
+        try {
+            return std::stoi(std::string(s), nullptr, 10);
+        } catch (...) {
+            return {};
+        }
+    }
 }

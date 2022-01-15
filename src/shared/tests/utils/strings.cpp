@@ -447,3 +447,39 @@ TEST_CASE("ends_with - string does not end with value to check for - returns tru
 
     REQUIRE_FALSE(result);
 }
+
+/*********************************************
+ * to_int
+ ********************************************/
+
+TEST_CASE("to_int - empty string - returns empty", "[shared/utils/strings]") {
+    auto s = "";
+    auto result = to_int(s);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("to_int - invalid string - returns empty", "[shared/utils/strings]") {
+    auto s = "invalid";
+    auto result = to_int(s);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("to_int - valid string - returns correct results", "[shared/utils/strings]") {
+    std::vector<std::tuple<std::string, int>> values {
+        { "0", 0 },
+        { "1", 1 },
+        { "-1", -1 },
+        { "10", 10 },
+        { "999", 999 },
+        { "1234567890", 1234567890 },
+    };
+
+    for (const auto& [value, expected] : values) {
+        auto result = to_int(value);
+
+        REQUIRE(result);
+        REQUIRE(*result == expected);
+    }
+}
