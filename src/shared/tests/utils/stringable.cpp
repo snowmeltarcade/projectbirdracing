@@ -58,7 +58,4 @@ TEST_CASE("stringable - constrains correct types", "[shared/utils/stringable]") 
 
     bool b {false};
     stringable_concept_test(b);
-
-    std::string s;
-    stringable_concept_test(s);
 }

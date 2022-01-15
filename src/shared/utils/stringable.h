@@ -23,5 +23,5 @@ namespace pbr::shared::utils {
     template <typename T>
     concept stringable = requires (T t) {
         to_string(t);
-    } || std::is_convertible_v<T, std::string>;
+    } && !std::is_same_v<T, const char*>;
 }

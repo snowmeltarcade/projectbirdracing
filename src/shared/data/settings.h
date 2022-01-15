@@ -48,6 +48,16 @@ namespace pbr::shared::data {
         /// \returns The value, else empty if the key is not present
         std::optional<int> get_as_int(const std::string& key) noexcept;
 
+        /// Returns a setting as an uint32_t
+        /// \param key The key
+        /// \returns The value, else empty if the key is not present
+        std::optional<uint32_t> get_as_uint32_t(const std::string& key) noexcept;
+
+        /// Returns a setting as a bool
+        /// \param key The key
+        /// \returns The value, else empty if the key is not present
+        std::optional<bool> get_as_bool(const std::string& key) noexcept;
+
         /// Returns a settings object
         /// \param key The key
         /// \returns The value, else empty if the key is not present

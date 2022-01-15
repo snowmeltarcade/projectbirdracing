@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 
 using namespace pbr::shared::apis::file;
 
@@ -27,15 +28,15 @@ std::vector<std::byte> read_file_bytes(std::filesystem::path path) {
 }
 
 std::string read_file_text(std::filesystem::path path) {
-    std::ifstream fs(path, std::ios::ate);
+    std::ifstream fs(path);
     REQUIRE(fs.is_open());
 
-    std::string text;
-    fs >> text;
+    std::ostringstream ss;
+    ss << fs.rdbuf();
 
     fs.close();
 
-    return text;
+    return ss.str();
 }
 
 //////////

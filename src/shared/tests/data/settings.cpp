@@ -143,6 +143,17 @@ TEST_CASE("get_as_int - unknown key - returns empty", "[shared/data]") {
     REQUIRE_FALSE(result);
 }
 
+TEST_CASE("get_as_int - invalid value - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto key = "key";
+    settings.add(key, "invalid");
+
+    auto result = settings.get_as_int(key);
+
+    REQUIRE_FALSE(result);
+}
+
 TEST_CASE("get_as_int - known key - returns value", "[shared/data]") {
     settings settings;
 
@@ -167,6 +178,110 @@ TEST_CASE("get_as_int - existing key - overwrites value", "[shared/data]") {
     settings.add(key, expected);
 
     auto result = settings.get_as_int(key);
+
+    REQUIRE(result);
+    REQUIRE(*result == expected);
+}
+
+//////////
+/// get_as_uint32_t
+//////////
+
+TEST_CASE("get_as_uint32_t - unknown key - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto result = settings.get_as_uint32_t("unknown");
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("get_as_uint32_t - invalid value - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto key = "key";
+    settings.add(key, "invalid");
+
+    auto result = settings.get_as_uint32_t(key);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("get_as_uint32_t - known key - returns value", "[shared/data]") {
+    settings settings;
+
+    std::string key = "key";
+    auto expected = 1234u;
+
+    settings.add(key, expected);
+
+    auto result = settings.get_as_uint32_t(key);
+
+    REQUIRE(result);
+    REQUIRE(*result == expected);
+}
+
+TEST_CASE("get_as_uint32_t - existing key - overwrites value", "[shared/data]") {
+    settings settings;
+
+    std::string key = "key";
+    auto expected = 1234u;
+
+    settings.add(key, 9999u);
+    settings.add(key, expected);
+
+    auto result = settings.get_as_uint32_t(key);
+
+    REQUIRE(result);
+    REQUIRE(*result == expected);
+}
+
+//////////
+/// get_as_bool
+//////////
+
+TEST_CASE("get_as_bool - unknown key - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto result = settings.get_as_bool("unknown");
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("get_as_bool - invalid value - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto key = "key";
+    settings.add(key, "invalid");
+
+    auto result = settings.get_as_bool(key);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("get_as_bool - known key - returns value", "[shared/data]") {
+    settings settings;
+
+    std::string key = "key";
+    auto expected = true;
+
+    settings.add(key, expected);
+
+    auto result = settings.get_as_bool(key);
+
+    REQUIRE(result);
+    REQUIRE(*result == expected);
+}
+
+TEST_CASE("get_as_bool - existing key - overwrites value", "[shared/data]") {
+    settings settings;
+
+    std::string key = "key";
+    auto expected = true;
+
+    settings.add(key, false);
+    settings.add(key, expected);
+
+    auto result = settings.get_as_bool(key);
 
     REQUIRE(result);
     REQUIRE(*result == expected);

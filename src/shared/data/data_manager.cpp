@@ -35,10 +35,19 @@ namespace pbr::shared::data {
             return {};
         }
 
-        nlohmann::json json(*text);
+        try {
+            auto json = nlohmann::json::parse(*text);
 
-        auto settings = build_settings(json);
-        return settings;
+            auto settings = build_settings(json);
+            return settings;
+        }
+        catch (const std::exception& ex) {
+            this->_log_manager->log_message("Failed to load JSON for path: " + relative_path.generic_string() +
+                                            " with error: " + ex.what(),
+                                            apis::logging::log_levels::error,
+                                            "Data Manager");
+            return {};
+        }
     }
 
     std::optional<std::filesystem::path> data_manager::resolve_path(

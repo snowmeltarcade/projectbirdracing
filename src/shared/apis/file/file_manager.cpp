@@ -1,6 +1,7 @@
 #include "file_manager.h"
 
 #include <fstream>
+#include <sstream>
 
 namespace pbr::shared::apis::file {
     std::optional<std::vector<std::byte>> file_manager::read_file_bytes(const utils::uri& uri) const noexcept {
@@ -49,17 +50,17 @@ namespace pbr::shared::apis::file {
             return {};
         }
 
-        std::ifstream fs(uri.path, std::ios::ate);
+        std::ifstream fs(uri.path);
         if (!fs.is_open()) {
             return {};
         }
 
-        std::string text;
-        fs >> text;
+        std::ostringstream ss;
+        ss << fs.rdbuf();
 
         fs.close();
 
-        return text;
+        return ss.str();
     }
 
     std::future<std::optional<std::string>> file_manager::read_file_text_async(const utils::uri& uri) const noexcept {
