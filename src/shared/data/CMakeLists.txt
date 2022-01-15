@@ -1,0 +1,9 @@
+target_sources(
+    "${SHARED_PROJECT_NAME}"
+    PUBLIC
+        data_manager.h
+        settings.h
+    PRIVATE
+        data_manager.cpp
+        settings.cpp
+)
