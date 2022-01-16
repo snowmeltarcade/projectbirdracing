@@ -32,6 +32,19 @@ namespace pbr::shared::data {
         return {};
     }
 
+    std::optional<float> settings::get_as_float(const std::string& key) noexcept {
+        auto it = this->_map.find(key);
+        if (it == this->_map.end()) {
+            return {};
+        }
+
+        if (auto i = utils::to_float(this->_map[key]); i) {
+            return i;
+        }
+
+        return {};
+    }
+
     std::optional<bool> settings::get_as_bool(const std::string& key) noexcept {
         auto it = this->_map.find(key);
         if (it == this->_map.end()) {

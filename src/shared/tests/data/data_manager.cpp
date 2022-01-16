@@ -51,6 +51,16 @@ TEST_CASE("read_settings - valid settings file - does not return empty", "[share
     auto path = "settings";
 
     auto result = dm.read_settings(path);
-
     REQUIRE(result);
+
+    REQUIRE(result->get("string1") == "value1");
+    REQUIRE(result->get("string2") == "value2");
+    REQUIRE(result->get_as_int("int1") == -123);
+    REQUIRE(result->get_as_int("int2") == 456);
+    REQUIRE(result->get_as_uint32_t("int3") == 1234567890);
+    REQUIRE(result->get_as_float("float1") == 123.456f);
+    REQUIRE(result->get_as_float("float2") == -789.012f);
+    REQUIRE(result->get_as_bool("bool1") == true);
+    REQUIRE(result->get_as_bool("bool2") == false);
+    REQUIRE(result->get("null1") == "");
 }

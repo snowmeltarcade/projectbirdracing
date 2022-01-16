@@ -129,4 +129,12 @@ namespace pbr::shared::utils {
             return {};
         }
     }
+
+    std::optional<float> to_float(std::string_view s) noexcept {
+        try {
+            return std::stof(std::string(s));
+        } catch (...) {
+            return {};
+        }
+    }
 }

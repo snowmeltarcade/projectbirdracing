@@ -117,4 +117,9 @@ namespace pbr::shared::utils {
     /// \param s The string to convert
     /// \returns The int, else empty if an error occurred
     std::optional<int> to_int(std::string_view s) noexcept;
+
+    /// Tries to convert the passed string to a float
+    /// \param s The string to convert
+    /// \returns The int, else empty if an error occurred
+    std::optional<float> to_float(std::string_view s) noexcept;
 }

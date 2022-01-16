@@ -6,8 +6,35 @@ namespace pbr::shared::data {
     /// Builds a settings object from the passed json
     /// \param json The json to build from
     /// \returns The built settings
-    settings build_settings(const nlohmann::json&) {
-        return {};
+    settings build_settings(const nlohmann::json& json) {
+        settings settings;
+
+        for (const auto& item : json.items()) {
+            auto key = item.key();
+            auto value = item.value();
+
+            if (value.is_string()) {
+                settings.add(key, value.get<std::string>());
+            } else if (value.is_number_unsigned()) { // check for unsigned before checking for generate integers
+                settings.add(key, value.get<uint32_t>());
+            } else if (value.is_number_integer()) {
+                settings.add(key, value.get<int>());
+            } else if (value.is_number_float()) {
+                settings.add(key, value.get<float>());
+            } else if (value.is_null()) {
+                settings.add(key, "");
+            } else if (value.is_boolean()) {
+                settings.add(key, value.get<bool>());
+            } else if (value.is_array()) { // check for array before checking if structured
+
+            } else if (value.is_object()) {
+
+            } else if (value.is_binary()) {
+
+            }
+        }
+
+        return settings;
     }
 
     std::optional<settings> data_manager::read_settings(const std::filesystem::path& relative_path) const noexcept {

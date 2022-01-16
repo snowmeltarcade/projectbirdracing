@@ -483,3 +483,39 @@ TEST_CASE("to_int - valid string - returns correct results", "[shared/utils/stri
         REQUIRE(*result == expected);
     }
 }
+
+/*********************************************
+ * to_float
+ ********************************************/
+
+TEST_CASE("to_float - empty string - returns empty", "[shared/utils/strings]") {
+    auto s = "";
+    auto result = to_float(s);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("to_float - invalid string - returns empty", "[shared/utils/strings]") {
+    auto s = "invalid";
+    auto result = to_float(s);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("to_float - valid string - returns correct results", "[shared/utils/strings]") {
+    std::vector<std::tuple<std::string, float>> values {
+        { "0.0", 0.0f },
+        { "1.1", 1.1f },
+        { "-1.1", -1.1f },
+        { "10.01", 10.01f },
+        { "999.999", 999.999f },
+        { "123.4567890", 123.4567890f },
+    };
+
+    for (const auto& [value, expected] : values) {
+        auto result = to_float(value);
+
+        REQUIRE(result);
+        REQUIRE(*result == expected);
+    }
+}

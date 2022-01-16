@@ -9,6 +9,10 @@ namespace pbr::shared::utils {
         return std::to_string(value);
     }
 
+    std::string to_string(float value) noexcept {
+        return std::to_string(value);
+    }
+
     std::string to_string(bool value) noexcept {
         return value ? "true" : "false";
     }

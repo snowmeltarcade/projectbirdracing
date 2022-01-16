@@ -236,6 +236,58 @@ TEST_CASE("get_as_uint32_t - existing key - overwrites value", "[shared/data]") 
 }
 
 //////////
+/// get_as_float
+//////////
+
+TEST_CASE("get_as_float - unknown key - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto result = settings.get_as_float("unknown");
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("get_as_float - invalid value - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto key = "key";
+    settings.add(key, "invalid");
+
+    auto result = settings.get_as_float(key);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("get_as_float - known key - returns value", "[shared/data]") {
+    settings settings;
+
+    std::string key = "key";
+    auto expected = 123.456f;
+
+    settings.add(key, expected);
+
+    auto result = settings.get_as_float(key);
+
+    REQUIRE(result);
+    REQUIRE(*result == expected);
+}
+
+TEST_CASE("get_as_float - existing key - overwrites value", "[shared/data]") {
+    settings settings;
+
+    std::string key = "key";
+    auto expected = 123.456f;
+
+    settings.add(key, 999.999f);
+    settings.add(key, expected);
+
+    auto result = settings.get_as_float(key);
+
+    REQUIRE(result);
+    REQUIRE(*result == expected);
+}
+
+//////////
 /// get_as_bool
 //////////
 

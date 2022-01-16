@@ -8,10 +8,15 @@ namespace pbr::shared::utils {
     /// \returns The string converted value
     std::string to_string(int value) noexcept;
 
-    /// Converts an uint32_t to a `std::string`
+    /// Converts a uint32_t to a `std::string`
     /// \param value The value to convert
     /// \returns The string converted value
     std::string to_string(uint32_t value) noexcept;
+
+    /// Converts a float to a `std::string`
+    /// \param value The value to convert
+    /// \returns The string converted value
+    std::string to_string(float value) noexcept;
 
     /// Converts a bool to a `std::string`
     /// \param value The value to convert
