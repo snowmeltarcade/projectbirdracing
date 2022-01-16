@@ -45,7 +45,7 @@ TEST_CASE("read_settings - invalid settings file - returns empty", "[shared/data
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("read_settings - valid settings file - does not return empty", "[shared/data]") {
+TEST_CASE("read_settings - valid settings file - returns valid settings", "[shared/data]") {
     auto dm = create_data_manager();
 
     auto path = "settings";
@@ -63,4 +63,13 @@ TEST_CASE("read_settings - valid settings file - does not return empty", "[share
     REQUIRE(result->get_as_bool("bool1") == true);
     REQUIRE(result->get_as_bool("bool2") == false);
     REQUIRE(result->get("null1") == "");
+
+    auto settings1 = result->get_as_settings("settings1");
+    REQUIRE(settings1);
+    REQUIRE(settings1->get("string3") == "value3");
+
+    auto settings2 = result->get_as_settings("settings2");
+    REQUIRE(settings2);
+    REQUIRE(settings2->get_as_float("float3") == 987.654f);
+    REQUIRE(settings2->get_as_float("float4") == 123.123f);
 }

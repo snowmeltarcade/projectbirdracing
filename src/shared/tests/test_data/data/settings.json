@@ -8,5 +8,12 @@
   "float2": -789.012,
   "bool1": true,
   "bool2": false,
-  "null1": null
+  "null1": null,
+  "settings1": {
+    "string3": "value3"
+  },
+  "settings2": {
+    "float3": 987.654,
+    "float4": 123.123
+  }
 }

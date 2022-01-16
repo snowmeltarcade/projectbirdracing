@@ -26,11 +26,12 @@ namespace pbr::shared::data {
             } else if (value.is_boolean()) {
                 settings.add(key, value.get<bool>());
             } else if (value.is_array()) { // check for array before checking if structured
-
+                // not supported...
             } else if (value.is_object()) {
-
+                auto sub_settings = build_settings(value);
+                settings.add(key, sub_settings);
             } else if (value.is_binary()) {
-
+                // not supported...
             }
         }
 
