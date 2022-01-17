@@ -7,3 +7,4 @@ src/version.h
 .idea/*
 documentation/code/*
 src/cmake-build*/*
+**/__temp/*

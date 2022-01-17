@@ -1,0 +1,19 @@
+{
+  "string1": "value1",
+  "string2": "value2",
+  "int1": -123,
+  "int2": 456,
+  "int3": 1234567890,
+  "float1": 123.456,
+  "float2": -789.012,
+  "bool1": true,
+  "bool2": false,
+  "null1": null,
+  "settings1": {
+    "string3": "value3"
+  },
+  "settings2": {
+    "float3": 987.654,
+    "float4": 123.123
+  }
+}

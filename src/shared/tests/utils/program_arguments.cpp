@@ -17,11 +17,11 @@ TEST_CASE("constructor - empty arguments - throws exception", "[shared/utils/pro
     try {
         program_arguments pa(arguments);
     } catch (...) {
-        SUCCEED();
+        SUCCEED("");
         return;
     }
 
-    FAIL();
+    FAIL("");
 }
 
 //TEST_CASE("constructor - invalid arguments - throws exception", "[shared/utils/program_arguments]") {

@@ -26,7 +26,7 @@ TEST_CASE("gigabytes constructor int - set value - sets value", "[shared/memory]
 //////////
 
 TEST_CASE("gigabytes constructor bytes - set value - sets value", "[shared/memory]") {
-    bytes b(2048 * 1024 * 1024);
+    bytes b(2048u * 1024u * 1024u);
     auto expected = b.get_value() / 1024u / 1024u / 1024u;
 
     gigabytes gb(b);

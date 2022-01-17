@@ -2,7 +2,7 @@
 # See: https://github.com/Kitware/CMake/blob/master/Modules/FindVulkan.cmake
 
 if (WIN32)
-    set(VULKAN_SDK "${LIBRARIES_ROOT_DIR}/vulkan/Windows/windows")
+    set(VULKAN_SDK "D:/VulkanSDK/1.2.198.1")
 elseif (LINUX)
     set(VULKAN_SDK "${LIBRARIES_ROOT_DIR}/vulkan/Linux/linux")
 else()

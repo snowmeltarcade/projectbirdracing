@@ -5,10 +5,10 @@
 
 namespace pbr::shared::apis::logging::endpoints {
     /// Logs messages to `stdout` - AKA, the console
-    class stdout : public endpoint {
+    class std_out : public endpoint {
     public:
-        stdout() = default;
-        ~stdout() override = default;
+        std_out() = default;
+        ~std_out() override = default;
 
         /// Logs a message to this endpoint
         /// \param message The message to log. It is up to the caller to add any date, time or id etc... information

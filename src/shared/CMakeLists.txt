@@ -5,6 +5,7 @@ target_link_libraries("${SHARED_PROJECT_NAME}"
         glm::glm
         ${SDL2_LIBRARIES}
         ${Vulkan_LIBRARIES}
+        "nlohmann_json::nlohmann_json"
 )
 
 target_include_directories(
@@ -15,7 +16,10 @@ target_include_directories(
         ${VMA_INCLUDE_DIRS}
 )
 
+copy_sdl_dependencies(${PROJECT_BINARY_DIR})
+
 add_subdirectory("apis")
+add_subdirectory("data")
 add_subdirectory("game")
 add_subdirectory("memory")
 add_subdirectory("scene")

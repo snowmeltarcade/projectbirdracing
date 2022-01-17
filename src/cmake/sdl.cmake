@@ -57,3 +57,24 @@ if (NOT LINUX)
             ${INSTALL_DIRECTORY}
     )
 endif()
+
+function(copy_sdl_dependencies project_binary_dir)
+    if (WIN32)
+        file (
+                COPY "${SDL2_DLL_PATH}"
+                DESTINATION "${project_binary_dir}/bin"
+        )
+
+        file (
+                COPY "${SDL2_NET_DLL_PATH}"
+                DESTINATION "${project_binary_dir}/bin"
+        )
+
+        foreach(DLL_PATH ${SDL2_IMG_DLL_PATH})
+            file (
+                    COPY "${DLL_PATH}"
+                    DESTINATION "${project_binary_dir}/bin"
+            )
+        endforeach()
+    endif()
+endfunction()

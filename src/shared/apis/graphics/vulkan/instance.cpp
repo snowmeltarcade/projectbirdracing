@@ -2,6 +2,8 @@
 #include "debug_messenger.h"
 
 #include <cassert>
+#include <array>
+#include <algorithm>
 
 namespace pbr::shared::apis::graphics::vulkan {
     /// Create the debug messenger for the instance. This is needed because
@@ -200,7 +202,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         enables[0] = VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT;
 
         features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-        features.enabledValidationFeatureCount = enables.size();
+        features.enabledValidationFeatureCount = static_cast<uint32_t>(enables.size());
         features.pEnabledValidationFeatures = enables.data();
 
         info.pNext = &features;

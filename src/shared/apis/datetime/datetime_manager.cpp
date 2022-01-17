@@ -1,5 +1,6 @@
 #include "datetime_manager.h"
 
+#include <ctime>
 #include <iomanip>
 #include <sstream>
 
@@ -22,8 +23,15 @@ namespace pbr::shared::apis::datetime {
         //std::chrono::utc_clock c;
 
         auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        auto gmt = std::gmtime(&now);
-        return *gmt;
+
+        tm tm;
+#ifdef WIN32
+        gmtime_s(&tm, &now);
+#else
+        gmtime_r(&now, &tm);
+#endif
+
+        return tm;
     }
 
     std::string datetime_manager::get_date_time_as_string(std::string_view format) noexcept {

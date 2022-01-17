@@ -43,6 +43,10 @@
         {
             "name": "vulkan_memory_allocator",
             "version": "2.3.0"
+        },
+        {
+            "name": "nlohmann_json",
+            "version": "3.9.1"
         }
     ]
 }

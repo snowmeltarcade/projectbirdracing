@@ -31,8 +31,10 @@ namespace pbr::shared::apis::graphics {
         return true;
     }
 
-    void vulkan_graphics_manager::set_environment_variables(const std::filesystem::path& executable_path) const noexcept {
-#if defined(DEBUG) && defined(REQUIRES_MOLTEN_VK)
+    void vulkan_graphics_manager::set_environment_variables(
+            [[maybe_unused]] const std::filesystem::path& executable_path) const noexcept {
+#ifdef REQUIRES_MOLTEN_VK
+#ifdef DEBUG
         this->_log_manager->log_message("Setting `VK_LAYER_PATH` to " + std::string(VK_LAYER_PATH),
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -44,6 +46,7 @@ namespace pbr::shared::apis::graphics {
                                         apis::logging::log_levels::info,
                                         "Graphics");
         setenv("VK_ICD_FILENAMES", icd_path.c_str(), 0);
+#endif
     }
 
     bool vulkan_graphics_manager::initialize() noexcept {

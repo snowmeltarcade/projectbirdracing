@@ -1,6 +1,10 @@
 # Graphics
 
 - [Graphics](#graphics)
+  - [Render Systems](#render-systems)
+    - [2D Render System](#2d-render-system)
+      - [2D Render System Materials](#2d-render-system-materials)
+    - [3D Render System](#3d-render-system)
   - [Materials](#materials)
     - [Material Update Script](#material-update-script)
   - [Algorithms](#algorithms)
@@ -13,6 +17,36 @@
     - [Named Texture Render Targets](#named-texture-render-targets)
 
 Rendering all graphical elements and loading graphics related resources are required.
+
+## Render Systems
+
+Different formats of graphics require their own render system. A render system is specific to that graphical format. The actual code to submit a frame is run on a separate thread to the main logic thread.
+
+All entities that require rendering need to be submitted to a render system. Submitting entities is a thread safe operation. Entities must be submitted each frame. Frustum/view culling is performed on all entities by the respective render system.
+
+Specific material types are supported by each system. If an entity is missing required material data, or the attached material is missing, A default value specified by the render system will be used.
+
+### 2D Render System
+
+Renders 2D entities in screen space. Screen space is defined as `0.0f,0.0f` to `1.0f,1.0f`, where `0.0f,0.0f` is the top left and `1.0f,1.0f` is the bottom right of the screen.
+
+A depth buffer is used, with +Z being 'further away' from the screen. The depth buffer ranges from `0.0f` to `1.0f`. Entities that share the same Z value will be displayed in the order of render, as in, the last entity submitted will appear to be the last entity rendered on screen.
+
+Transparent entities are rendered after all opaque entities.
+
+There is no camera, in the sense that there is no view matrix applied to any transformations. Scale and rotation matrices are applied to all rendered entities, with the origin points being the center point of that entity (i.e. `x + w/2`). No projection matrix is applied, so any rotations or scales in the Z direction will not affect the size (appearance of depth) of the entity.
+
+Entity positions represent the top left corner of that entity.
+
+Position, size and scale values must be in the range of screen space. Translations from pixel space to screen space are not the responsibility of this render system.
+
+#### 2D Render System Materials
+
+| Name | Colors | Textures | Description |
+| -- | -- | -- | -- |
+| Simple | Global | Albedo | A simple textured material. The global color is applied to the texture. |
+
+### 3D Render System
 
 ## Materials
 

@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 namespace pbr::shared::utils {
     /// Trims whitespace from both the beginning and end of the passed string. The
@@ -54,7 +55,7 @@ namespace pbr::shared::utils {
     /// \returns The passed string with all characters in upper case
 	std::string to_upper(std::string_view s) noexcept;
 
-    /// Converts the passed string to an `std::array<>`
+    /// Converts the passed string to an `std::array<>` of characters
     /// \param s The string to convert
     /// \returns An array converted to from the passed string
 	template <size_t N>
@@ -111,4 +112,14 @@ namespace pbr::shared::utils {
     /// \param ends_with The value to check for
     /// \returns `true` if the passed string ends with `ends_with`, else `false`
     bool ends_with(std::string_view string_to_check, std::string_view ends_with) noexcept;
+
+    /// Tries to convert the passed string to an int
+    /// \param s The string to convert
+    /// \returns The int, else empty if an error occurred
+    std::optional<int> to_int(std::string_view s) noexcept;
+
+    /// Tries to convert the passed string to a float
+    /// \param s The string to convert
+    /// \returns The int, else empty if an error occurred
+    std::optional<float> to_float(std::string_view s) noexcept;
 }

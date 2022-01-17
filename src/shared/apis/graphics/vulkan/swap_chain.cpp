@@ -1,5 +1,8 @@
 #include "swap_chain.h"
 
+#include <algorithm>
+#include <array>
+
 #define FATAL_ERROR(message) \
     this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
     throw std::runtime_error(message);
@@ -175,7 +178,7 @@ namespace pbr::shared::apis::graphics::vulkan {
             };
 
             create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            create_info.queueFamilyIndexCount = indexes.size();
+            create_info.queueFamilyIndexCount = static_cast<uint32_t>(indexes.size());
             create_info.pQueueFamilyIndices = indexes.data();
         }
 
