@@ -47,12 +47,13 @@ namespace pbr::shared::game {
                                         apis::logging::log_levels::info,
                                         "Game");
 
-//        std::thread graphics_thread(&game_manager::run_graphics_manager,
-//                                    this->_graphics_manager,
-//                                    this->_has_exit_been_requested,
-//                                    this->_frame_synchronize_semaphore,
-//                                    this->_graphics_synchronize_semaphore);
-        std::thread graphics_thread(&game_manager::f);
+        // make sure we don't start in a deadlock
+        this->_graphics_synchronize_semaphore.release();
+
+        std::thread graphics_thread(&game_manager::run_graphics_manager,
+                                    this->_graphics_manager,
+                                    std::reference_wrapper(this->_has_exit_been_requested),
+                                    std::reference_wrapper(this->_graphics_synchronize_semaphore));
 
         while (!this->_has_exit_been_requested) {
             this->begin_frame();
@@ -142,16 +143,15 @@ namespace pbr::shared::game {
 
     void game_manager::exit_synchronize_frame() noexcept {
         // let the other game loop threads know we are done with their stuff
-        this->_frame_synchronize_semaphore.release();
+        this->_graphics_synchronize_semaphore.release();
     }
 
     void game_manager::run_graphics_manager(std::shared_ptr<apis::graphics::igraphics_manager> graphics_manager,
                                             std::atomic_bool& has_exit_been_requested,
-                                            std::binary_semaphore& frame_synchronize_semaphore,
                                             std::binary_semaphore& graphics_synchronize_semaphore) noexcept {
         while (!has_exit_been_requested) {
-            // wait for the logic thread to be finished with the graphics manager
-            frame_synchronize_semaphore.acquire();
+            // we are working with graphics resources now
+            graphics_synchronize_semaphore.acquire();
 
             graphics_manager->submit_frame_for_render();
 

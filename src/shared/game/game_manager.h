@@ -94,9 +94,6 @@ namespace pbr::shared::game {
         /// Has an exit been requested?
         std::atomic_bool _has_exit_been_requested { false };
 
-        /// Used to synchronize the main logic thread with the other game loop threads
-        std::binary_semaphore _frame_synchronize_semaphore { 0 };
-
         /// Used to synchronize the graphics thread with the main logic thread
         std::binary_semaphore _graphics_synchronize_semaphore { 0 };
 
@@ -132,13 +129,9 @@ namespace pbr::shared::game {
         /// is called and before `exit_synchronize_frame()` is called.
         /// \param graphics_manager The graphics manager to run
         /// \param has_exit_been_requested Will be set to `true` if this thread should exit
-        /// \param frame_synchronize_semaphore Used to synchronize the logic thread with the graphics thread
         /// \param graphics_synchronize_semaphore Used to synchronize the graphics thread with the logic thread
         static void run_graphics_manager(std::shared_ptr<apis::graphics::igraphics_manager> graphics_manager,
                                          std::atomic_bool& has_exit_been_requested,
-                                         std::binary_semaphore& frame_synchronize_semaphore,
                                          std::binary_semaphore& graphics_synchronize_semaphore) noexcept;
-
-        static void f()noexcept{}
     };
 }
