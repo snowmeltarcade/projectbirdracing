@@ -21,7 +21,7 @@
 
 #include <memory>
 #include <string>
-#include <mutex>
+#include <shared_mutex>
 
 namespace pbr::shared::apis::graphics {
     /// Handles the Vulkan graphics API and rendering processes
@@ -153,7 +153,7 @@ namespace pbr::shared::apis::graphics {
         bool _signal_swap_chain_out_of_date {false};
 
         /// Synchronizes submitting renderable entities
-        std::mutex _submit_renderable_entities_mutex;
+        std::shared_mutex _submit_renderable_entities_mutex;
 
         /// The entities to render
         renderable_entities _renderable_entities;

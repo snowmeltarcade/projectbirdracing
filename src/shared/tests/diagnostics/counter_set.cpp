@@ -121,20 +121,68 @@ TEST_CASE("get_counter_for_duration - returns values", "[shared/diagnostics]") {
     auto duration = std::chrono::milliseconds(500);
 
     auto expected {0};
+    auto result_on_duration {0};
 
     // ensure the last update time is set up correctly
-    c.get_counter_for_duration(key, duration);
+    c.get_counter_for_duration(key, duration, result_on_duration);
+    result_on_duration = 0;
 
-    while (std::chrono::system_clock::now() - now <= duration) {
+    while (std::chrono::system_clock::now() - now < duration) {
         expected += value;
 
         c.increment_counter(key, value);
 
-        auto result = c.get_counter_for_duration(key, duration);
+        auto result = c.get_counter_for_duration(key, duration, result_on_duration);
         REQUIRE(result == expected);
+        REQUIRE(result_on_duration == 0);
     }
 
+    std::this_thread::sleep_for(duration / 2);
+
     // the duration has now passed
-    auto passed_result = c.get_counter_for_duration(key, duration);
-    REQUIRE(passed_result == 0);
+    auto passed_result = c.get_counter_for_duration(key, duration, result_on_duration);
+    REQUIRE(passed_result >= 0);
+    REQUIRE(passed_result < expected);
+    REQUIRE(expected == result_on_duration);
+}
+
+//////////
+/// get_average_for_duration
+//////////
+
+TEST_CASE("get_average_for_duration - returns values", "[shared/diagnostics]") {
+    counter_set c;
+
+    auto key = "key";
+    auto value = 10;
+
+    auto now = std::chrono::system_clock::now();
+    auto duration = std::chrono::milliseconds(500);
+
+    auto number_of_additions {0};
+    auto total {0};
+    auto result_on_duration {0.0f};
+
+    // ensure the last update time is set up correctly
+    c.get_average_for_duration(key, duration, result_on_duration);
+    result_on_duration = 0.0f;
+
+    while (std::chrono::system_clock::now() - now <= duration) {
+        total += value;
+        ++number_of_additions;
+
+        c.add_value_to_list(key, value);
+
+        c.get_average_for_duration(key, duration, result_on_duration);
+        REQUIRE(result_on_duration == 0.0f);
+    }
+
+    std::this_thread::sleep_for(duration / 2);
+
+    auto expected = static_cast<float>(total) / number_of_additions;
+
+    // the duration has now passed
+    auto result = c.get_average_for_duration(key, duration, result_on_duration);
+    REQUIRE(result == expected);
+    REQUIRE(result_on_duration == expected);
 }

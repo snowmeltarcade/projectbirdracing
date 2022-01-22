@@ -49,17 +49,25 @@ namespace pbr::shared::diagnostics {
         /// ensure the last update time is set correctly
         /// \param key The key of the counter
         /// \param duration The duration to reset the count after in milliseconds
+        /// \param out_result_at_duration The count at the point when `duration` has been reached, else
+        /// this value is not set
         /// \returns The count
         // no `[[nodiscard]]`
-        int get_counter_for_duration(const std::string& key, std::chrono::milliseconds duration) noexcept;
+        int get_counter_for_duration(const std::string& key,
+                                     std::chrono::milliseconds duration,
+                                     int& out_result_at_duration) noexcept;
 
         /// Returns the average of a counter list indicated by the passed key. If the time since this
         /// function was last called is greater than or equal to duration, the counter list is reset
         /// \param key The key of the counter
         /// \param duration The duration to reset the count after in milliseconds
+        /// \param out_average_at_duration The average at the point when `duration` has been reached, else
+        /// this value is not set
         /// \returns The average of the counter list
-        [[nodiscard]]
-        int get_average_for_duration(const std::string& key, std::chrono::milliseconds duration) noexcept;
+        // no `[[nodiscard]]`
+        float get_average_for_duration(const std::string& key,
+                                       std::chrono::milliseconds duration,
+                                       float& out_average_at_duration) noexcept;
 
     private:
         /// Stores the counters

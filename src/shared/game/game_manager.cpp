@@ -35,6 +35,9 @@ namespace pbr::shared::game {
             return false;
         }
 
+        this->_counter_set.get_counter_for_duration("fps", std::chrono::seconds(1), this->_fps);
+        this->_counter_set.get_average_for_duration("average_frame_time", std::chrono::seconds(1), this->_average_frame_time);
+
         this->_log_manager->log_message("Initialized the game manager.",
                                         apis::logging::log_levels::info,
                                         "Game");
@@ -47,13 +50,9 @@ namespace pbr::shared::game {
                                         apis::logging::log_levels::info,
                                         "Game");
 
-        // make sure we don't start in a deadlock
-        this->_graphics_synchronize_semaphore.release();
-
         std::thread graphics_thread(&game_manager::run_graphics_manager,
                                     this->_graphics_manager,
-                                    std::reference_wrapper(this->_has_exit_been_requested),
-                                    std::reference_wrapper(this->_graphics_synchronize_semaphore));
+                                    std::reference_wrapper(this->_has_exit_been_requested));
 
         while (!this->_has_exit_been_requested) {
             this->begin_frame();
@@ -65,11 +64,9 @@ namespace pbr::shared::game {
                 return false;
             }
 
-            this->enter_synchronize_frame();
-
             this->synchronize_frame();
 
-            this->exit_synchronize_frame();
+            this->exit_frame();
         }
 
         if (graphics_thread.joinable()) {
@@ -104,7 +101,30 @@ namespace pbr::shared::game {
     }
 
     void game_manager::begin_frame() noexcept {
-        // increase frame count
+    }
+
+    void game_manager::exit_frame() noexcept {
+        auto now = std::chrono::system_clock::now();
+
+        auto last_frame_duration = now - this->_last_frame_time;
+        this->_counter_set.add_value_to_list("average_frame_time",
+                                             std::chrono::duration_cast<std::chrono::milliseconds>(last_frame_duration).count());
+
+        this->_counter_set.increment_counter("fps", 1);
+
+        this->_last_frame_time = now;
+
+        this->_counter_set.get_counter_for_duration("fps",
+                                                    std::chrono::seconds(1),
+                                                    this->_fps);
+
+        this->_counter_set.get_average_for_duration("average_frame_time",
+                                                    std::chrono::seconds(1),
+                                                    this->_average_frame_time);
+
+        this->_log_manager->log_message("FPS: " + std::to_string(this->_fps), apis::logging::log_levels::info);
+        this->_log_manager->log_message("Average Frame Time: " + std::to_string(this->_average_frame_time), apis::logging::log_levels::info);
+        //this->_log_manager->log_message("Frame...", apis::logging::log_levels::info);
     }
 
     bool game_manager::update_frame() noexcept {
@@ -130,33 +150,15 @@ namespace pbr::shared::game {
         return true;
     }
 
-    void game_manager::enter_synchronize_frame() noexcept {
-        // wait for the graphics thread to be done with the graphics manager
-        this->_graphics_synchronize_semaphore.acquire();
-    }
-
     void game_manager::synchronize_frame() noexcept {
-        // submit renderable entities
-        // ...
-        // this->_graphics_manager->submit_renderable_entities()
-    }
-
-    void game_manager::exit_synchronize_frame() noexcept {
-        // let the other game loop threads know we are done with their stuff
-        this->_graphics_synchronize_semaphore.release();
+        apis::graphics::renderable_entities renderable_entities;
+        this->_graphics_manager->submit_renderable_entities(renderable_entities);
     }
 
     void game_manager::run_graphics_manager(std::shared_ptr<apis::graphics::igraphics_manager> graphics_manager,
-                                            std::atomic_bool& has_exit_been_requested,
-                                            std::binary_semaphore& graphics_synchronize_semaphore) noexcept {
+                                            std::atomic_bool& has_exit_been_requested) noexcept {
         while (!has_exit_been_requested) {
-            // we are working with graphics resources now
-            graphics_synchronize_semaphore.acquire();
-
             graphics_manager->submit_frame_for_render();
-
-            // tell the logic thread we are done using the graphics manager for now
-            graphics_synchronize_semaphore.release();
         }
     }
 }
