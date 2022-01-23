@@ -234,7 +234,7 @@ namespace pbr::shared::apis::graphics {
     }
 
     void vulkan_graphics_manager::submit_renderable_entities(renderable_entities renderable_entities) noexcept {
-        std::scoped_lock<std::mutex> lock(this->_submit_renderable_entities_mutex);
+        std::unique_lock<std::shared_mutex> lock(this->_submit_renderable_entities_mutex);
 
         this->_renderable_entities = renderable_entities;
     }
@@ -378,7 +378,7 @@ namespace pbr::shared::apis::graphics {
         // copy the data to avoid keeping the lock longer than needed
         renderable_entities renderable_entities;
         {
-            std::scoped_lock<std::mutex> lock(this->_submit_renderable_entities_mutex);
+            std::shared_lock<std::shared_mutex> lock(this->_submit_renderable_entities_mutex);
             renderable_entities = this->_renderable_entities;
         }
 

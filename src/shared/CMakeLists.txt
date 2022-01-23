@@ -20,6 +20,7 @@ copy_sdl_dependencies(${PROJECT_BINARY_DIR})
 
 add_subdirectory("apis")
 add_subdirectory("data")
+add_subdirectory("diagnostics")
 add_subdirectory("game")
 add_subdirectory("memory")
 add_subdirectory("scene")
