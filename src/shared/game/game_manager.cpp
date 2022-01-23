@@ -1,4 +1,5 @@
 #include "game_manager.h"
+#include "shared/utils/defer.h"
 
 namespace pbr::shared::game {
     bool game_manager::initialize() noexcept {
@@ -54,6 +55,17 @@ namespace pbr::shared::game {
                                     this->_graphics_manager,
                                     std::reference_wrapper(this->_has_exit_been_requested));
 
+        // make sure the graphics thread is joined no matter where we exit this function
+        utils::defer defer_graphics_thread {
+            [&graphics_thread, this]() {
+                if (graphics_thread.joinable()) {
+                    this->request_exit();
+
+                    graphics_thread.join();
+                }
+            }
+        };
+
         while (!this->_has_exit_been_requested) {
             this->begin_frame();
 
@@ -67,10 +79,6 @@ namespace pbr::shared::game {
             this->synchronize_frame();
 
             this->exit_frame();
-        }
-
-        if (graphics_thread.joinable()) {
-            graphics_thread.join();
         }
 
         this->_log_manager->log_message("Finished running the game manager.",

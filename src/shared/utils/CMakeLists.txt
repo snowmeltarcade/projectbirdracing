@@ -1,11 +1,13 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        defer.h
         program_arguments.h
         stringable.h
         strings.h
         uri.h
     PRIVATE
+        defer.cpp
         program_arguments.cpp
         stringable.cpp
         strings.cpp

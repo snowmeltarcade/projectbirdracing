@@ -1,6 +1,7 @@
 #include <atomic>
 #include <cstdint>
 #include <tuple>
+#include <cassert>
 
 #include "basic_allocators.h"
 
@@ -14,6 +15,7 @@ std::pair<void*, size_t> allocate_with_header(size_t size) {
     auto total_size = size + sizeof(pbr::shared::memory::memory_block_header);
 
     auto ptr = malloc(total_size);
+    assert((ptr));
 
     auto header_ptr = static_cast<pbr::shared::memory::memory_block_header*>(ptr);
     header_ptr[0].key = pbr::shared::memory::memory_block_header::ID;
@@ -29,7 +31,11 @@ std::pair<void*, size_t> allocate_with_header(size_t size) {
 /// \returns The pointer to free and the size of the allocated block of memory. If the memory was
 /// not allocated by us, `0` is returned.
 std::pair<void*, size_t> get_ptr_to_free(void* ptr) {
+    assert((ptr));
+
     auto header_ptr = static_cast<pbr::shared::memory::memory_block_header*>(ptr);
+    assert((ptr));
+
     auto header = &header_ptr[-1];
 
     if (header->key != pbr::shared::memory::memory_block_header::ID) {
