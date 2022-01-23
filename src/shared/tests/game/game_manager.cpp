@@ -87,7 +87,10 @@ public:
         return true;
     }
 
+    bool submit_frame_for_render_called {false};
+
     void submit_frame_for_render() noexcept override {
+        this->submit_frame_for_render_called = true;
     }
 
     void submit_renderable_entities(apis::graphics::renderable_entities) noexcept override {
@@ -276,4 +279,14 @@ TEST_CASE("run - running scene manager returns false - returns false", "[shared/
 
     auto result = gm.run();
     REQUIRE_FALSE(result);
+}
+
+TEST_CASE("run - frame is submitted for render", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    REQUIRE(gm.initialize());
+
+    REQUIRE(gm.run());
+
+    REQUIRE(g_graphics_manager->submit_frame_for_render_called);
 }
