@@ -5,7 +5,7 @@
 #include "shared/apis/logging/endpoints/std_out.h"
 #include "shared/apis/logging/endpoints/file.h"
 #include "shared/apis/windowing/window_manager.h"
-#include "shared/apis/graphics/vulkan_graphics_manager.h"
+#include "shared/apis/graphics/vulkan/graphics_manager.h"
 #include "shared/apis/graphics/performance_settings.h"
 #include "shared/scene/scene_manager.h"
 #include "scene/scene_factory.h"
@@ -52,10 +52,10 @@ game::game_manager create_game_manager(const utils::program_arguments& arguments
 
     apis::graphics::performance_settings performance_settings;
 
-    auto graphics_manager = std::make_shared<apis::graphics::vulkan_graphics_manager>(graphics_log_manager,
-                                                                                      window_manager,
-                                                                                      app_info,
-                                                                                      performance_settings);
+    auto graphics_manager = std::make_shared<apis::graphics::vulkan::graphics_manager>(graphics_log_manager,
+                                                                                       window_manager,
+                                                                                       app_info,
+                                                                                       performance_settings);
 
     auto scene_factory = std::make_shared<pbr::server::scene::scene_factory>(game_log_manager);
 

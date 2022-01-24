@@ -7,10 +7,12 @@ target_sources(
         device.h
         fence.h
         framebuffer.h
+        graphics_manager.h
         image.h
         image_view.h
         instance.h
         render_pass.h
+        performance_settings.h
         physical_device.h
         queue.h
         semaphore.h
@@ -24,10 +26,12 @@ target_sources(
         device.cpp
         fence.cpp
         framebuffer.cpp
+        graphics_manager.cpp
         image.cpp
         image_view.cpp
         instance.cpp
         render_pass.cpp
+        performance_settings.cpp
         physical_device.cpp
         queue.cpp
         semaphore.cpp
