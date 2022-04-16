@@ -8,6 +8,6 @@ int main(int argv, char* args[])
     return session.run(argv, args);
 }
 
-TEST_CASE("test", "[client/test]") {
+TEST_CASE("stub test", "[client/test]") {
     REQUIRE(true);
 }
