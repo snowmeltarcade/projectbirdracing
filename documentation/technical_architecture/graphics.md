@@ -1,6 +1,7 @@
 # Graphics
 
 - [Graphics](#graphics)
+  - [APIs](#apis)
   - [Render Systems](#render-systems)
     - [2D Render System](#2d-render-system)
       - [2D Render System Materials](#2d-render-system-materials)
@@ -17,6 +18,20 @@
     - [Named Texture Render Targets](#named-texture-render-targets)
 
 Rendering all graphical elements and loading graphics related resources are required.
+
+## APIs
+
+Both Vulkan and OpenGL are supported. The selection of these APIs will be decided at runtime. Each API implements a graphics manager.
+
+To configure which API to use, the following configuration is used in `data/graphics/config.json`, with the following structure:
+
+```json
+{
+  "api": "<api name>"
+}
+```
+
+`api` is the name of the API to use. The valid values are: `vulkan` and `opengl`.
 
 ## Render Systems
 
