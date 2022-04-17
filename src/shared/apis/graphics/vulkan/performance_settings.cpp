@@ -1,4 +1,4 @@
-#include "vulkan_performance_settings.h"
+#include "performance_settings.h"
 
 namespace pbr::shared::apis::graphics {
     VkSampleCountFlagBits get_msaa_samples(const performance_settings& settings,

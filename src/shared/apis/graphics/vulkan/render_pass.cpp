@@ -1,5 +1,5 @@
 #include "render_pass.h"
-#include "shared/apis/graphics/vulkan_performance_settings.h"
+#include "performance_settings.h"
 
 #define FATAL_ERROR(message) \
     this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \

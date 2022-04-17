@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "performance_settings.h"
+#include "shared/apis/graphics/performance_settings.h"
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>

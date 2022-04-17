@@ -1,4 +1,4 @@
-#include "vulkan_graphics_manager.h"
+#include "graphics_manager.h"
 #include "shared/apis/windowing/application_window.h"
 
 #include <cstdlib>
@@ -6,8 +6,8 @@
 
 using namespace pbr::shared::apis;
 
-namespace pbr::shared::apis::graphics {
-    bool vulkan_graphics_manager::load_api(const std::filesystem::path& executable_path) noexcept {
+namespace pbr::shared::apis::graphics::vulkan {
+    bool graphics_manager::load_api(const std::filesystem::path& executable_path) noexcept {
         this->_log_manager->log_message("Loading the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -31,7 +31,7 @@ namespace pbr::shared::apis::graphics {
         return true;
     }
 
-    void vulkan_graphics_manager::set_environment_variables(
+    void graphics_manager::set_environment_variables(
             [[maybe_unused]] const std::filesystem::path& executable_path) const noexcept {
 #ifdef REQUIRES_MOLTEN_VK
 #ifdef DEBUG
@@ -49,7 +49,7 @@ namespace pbr::shared::apis::graphics {
 #endif
     }
 
-    bool vulkan_graphics_manager::initialize() noexcept {
+    bool graphics_manager::initialize() noexcept {
         this->_log_manager->log_message("Initializing the graphics manager...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -127,7 +127,7 @@ namespace pbr::shared::apis::graphics {
         return true;
     }
 
-    bool vulkan_graphics_manager::refresh_resources() noexcept {
+    bool graphics_manager::refresh_resources() noexcept {
         // wait until the driver has finished using everything
         vkDeviceWaitIdle(this->_device->get_native_handle());
 
@@ -165,7 +165,7 @@ namespace pbr::shared::apis::graphics {
         return true;
     }
 
-    bool vulkan_graphics_manager::shutdown() noexcept {
+    bool graphics_manager::shutdown() noexcept {
         this->_log_manager->log_message("Shutting down the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -199,7 +199,7 @@ namespace pbr::shared::apis::graphics {
         return true;
     }
 
-    void vulkan_graphics_manager::cleanup_resources() noexcept {
+    void graphics_manager::cleanup_resources() noexcept {
         this->_log_manager->log_message("Cleaning up graphics resources...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
@@ -215,7 +215,7 @@ namespace pbr::shared::apis::graphics {
                                         "Graphics");
     }
 
-    bool vulkan_graphics_manager::create_swap_chain_synchronization_objects() noexcept {
+    bool graphics_manager::create_swap_chain_synchronization_objects() noexcept {
         auto max_frames = this->_performance_settings.max_frames_in_flight;
         this->_image_available_semaphores.reserve(max_frames);
         this->_render_finished_semaphores.reserve(max_frames);
@@ -233,13 +233,13 @@ namespace pbr::shared::apis::graphics {
         return true;
     }
 
-    void vulkan_graphics_manager::submit_renderable_entities(renderable_entities renderable_entities) noexcept {
+    void graphics_manager::submit_renderable_entities(renderable_entities renderable_entities) noexcept {
         std::unique_lock<std::shared_mutex> lock(this->_submit_renderable_entities_mutex);
 
         this->_renderable_entities = renderable_entities;
     }
 
-    void vulkan_graphics_manager::submit_frame_for_render() noexcept {
+    void graphics_manager::submit_frame_for_render() noexcept {
         // wait until any blocking actions to finish, so we can start a render request
         auto in_flight_fence = this->_in_flight_fences[this->_current_frame].get_native_handle();
 
@@ -374,7 +374,7 @@ namespace pbr::shared::apis::graphics {
         this->_current_frame = (this->_current_frame + 1) % this->_performance_settings.max_frames_in_flight;
     }
 
-    bool vulkan_graphics_manager::create_render_entities_command_buffers(uint32_t image_index) noexcept {
+    bool graphics_manager::create_render_entities_command_buffers(uint32_t image_index) noexcept {
         // copy the data to avoid keeping the lock longer than needed
         renderable_entities renderable_entities;
         {

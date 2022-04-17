@@ -2,40 +2,40 @@
 
 #include "shared/apis/logging/ilog_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
-#include "igraphics_manager.h"
-#include "application_information.h"
+#include "shared/apis/graphics/igraphics_manager.h"
+#include "shared/apis/graphics/application_information.h"
 #include "performance_settings.h"
-#include "vulkan/instance.h"
-#include "vulkan/window_surface.h"
-#include "vulkan/physical_device.h"
-#include "vulkan/device.h"
-#include "vulkan/vma.h"
-#include "vulkan/queue.h"
-#include "vulkan/command_pool.h"
-#include "vulkan/command_buffer.h"
-#include "vulkan/swap_chain.h"
-#include "vulkan/render_pass.h"
-#include "vulkan/framebuffer.h"
-#include "vulkan/semaphore.h"
-#include "vulkan/fence.h"
+#include "instance.h"
+#include "window_surface.h"
+#include "physical_device.h"
+#include "device.h"
+#include "vma.h"
+#include "queue.h"
+#include "command_pool.h"
+#include "command_buffer.h"
+#include "swap_chain.h"
+#include "render_pass.h"
+#include "framebuffer.h"
+#include "semaphore.h"
+#include "fence.h"
 
 #include <memory>
 #include <string>
 #include <shared_mutex>
 
-namespace pbr::shared::apis::graphics {
+namespace pbr::shared::apis::graphics::vulkan {
     /// Handles the Vulkan graphics API and rendering processes
-    class vulkan_graphics_manager : public igraphics_manager {
+    class graphics_manager : public igraphics_manager {
     public:
         /// Constructs this manager
         /// \param log_manager The log manager to use
         /// \param window_manager The window manager
         /// \param application_information Needed application information
         /// \param performance_settings The performance settings to use
-        vulkan_graphics_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
-                                std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
-                                application_information application_information,
-                                performance_settings performance_settings)
+        graphics_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
+                         std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
+                         application_information application_information,
+                         performance_settings performance_settings)
             : _log_manager(log_manager),
                 _window_manager(window_manager),
                 _application_information(application_information),
@@ -43,7 +43,7 @@ namespace pbr::shared::apis::graphics {
         }
 
         /// Destroys this manager
-        ~vulkan_graphics_manager() override {
+        ~graphics_manager() override {
             if (!this->shutdown()) {
                 this->_log_manager->log_message("Failed to shutdown the graphics manager.",
                                                 apis::logging::log_levels::error,
