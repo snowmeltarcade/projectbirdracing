@@ -264,9 +264,12 @@ The following APIs will be used:
 
 [SDL Image 2.0](https://www.libsdl.org/projects/SDL_image/) is a cross platform, C++ API that works on all target devices. It handles the loading of various image formats.
 
-Actual rendering will be done using [Vulkan](https://www.vulkan.org/) for Windows, Linux and Android and [MoltenVK](https://github.com/KhronosGroup/MoltenVK/) for Mac and iOS.
+Actual rendering will be done using one of two APIs:
 
-Graphics based memory management will be handled using the [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator).
+- [Vulkan](https://www.vulkan.org/) for Windows, Linux and Android and [MoltenVK](https://github.com/KhronosGroup/MoltenVK/) for Mac and iOS.
+- [OpenGL](https://www.opengl.org/) 4.6 for Windows, Linux, Android and iOS.
+
+Vulkan graphics based memory management will be handled using the [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator).
 
 [GLSL](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language#:~:text=The%20OpenGL%20Shading%20Language%20(GLSL,is%20a%20C%2Dstyle%20language.&text=The%20current%20version%20of%20GLSL%20is%204.60.) will be used as the shader language.
 
