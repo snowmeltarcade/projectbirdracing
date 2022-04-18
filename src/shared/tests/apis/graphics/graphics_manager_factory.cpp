@@ -5,6 +5,7 @@
 #include "shared/apis/windowing/iwindow_manager.h"
 #include "shared/apis/file/file_manager.h"
 #include "shared/apis/graphics/vulkan/graphics_manager.h"
+#include "shared/apis/graphics/opengl/graphics_manager.h"
 #include "shared/tests/test_utils.h"
 
 using namespace pbr::shared;
@@ -71,5 +72,21 @@ TEST_CASE("create - vulkan api name - returns vulkan manager", "[shared/apis/gra
                                                            "graphics/config_vulkan");
 
     auto result = std::dynamic_pointer_cast<apis::graphics::vulkan::graphics_manager>(result_manager);
+    REQUIRE(result);
+}
+
+TEST_CASE("create - opengl api name - returns opengl manager", "[shared/apis/graphics]") {
+    auto data_manager = create_data_manager();
+    auto window_manager = create_window_manager();
+
+    auto result_manager = graphics_manager_factory::create(data_manager,
+                                                           g_log_manager,
+                                                           g_log_manager,
+                                                           window_manager,
+                                                           {},
+                                                           {},
+                                                           "graphics/config_opengl");
+
+    auto result = std::dynamic_pointer_cast<apis::graphics::opengl::graphics_manager>(result_manager);
     REQUIRE(result);
 }

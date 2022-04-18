@@ -8,7 +8,7 @@ using namespace pbr::shared::apis;
 
 namespace pbr::shared::apis::graphics::vulkan {
     bool graphics_manager::load_api(const std::filesystem::path& executable_path) noexcept {
-        this->_log_manager->log_message("Loading the graphics API...",
+        this->_log_manager->log_message("Loading the Vulkan graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
 

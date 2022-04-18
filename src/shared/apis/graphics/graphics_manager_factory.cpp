@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "graphics_manager_factory.h"
+#include "opengl/graphics_manager.h"
 #include "vulkan/graphics_manager.h"
 
 namespace pbr::shared::apis::graphics {
@@ -30,7 +31,13 @@ namespace pbr::shared::apis::graphics {
 
         auto api_name = settings->get("api");
 
-        if (api_name == "vulkan") {
+        if (api_name == "opengl") {
+            auto manager = std::make_shared<opengl::graphics_manager>(graphics_log_manager,
+                                                                      window_manager,
+                                                                      application_information,
+                                                                      performance_settings);
+            return manager;
+        } else if (api_name == "vulkan") {
             auto manager = std::make_shared<vulkan::graphics_manager>(graphics_log_manager,
                                                                       window_manager,
                                                                       application_information,

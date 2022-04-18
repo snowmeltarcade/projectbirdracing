@@ -13,4 +13,5 @@ target_sources(
         renderable_entities.cpp
 )
 
+add_subdirectory("opengl")
 add_subdirectory("vulkan")
