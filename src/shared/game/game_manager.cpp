@@ -51,20 +51,22 @@ namespace pbr::shared::game {
                                         apis::logging::log_levels::info,
                                         "Game");
 
-        std::thread graphics_thread(&game_manager::run_graphics_manager,
-                                    this->_graphics_manager,
-                                    std::reference_wrapper(this->_has_exit_been_requested));
+        if (this->_graphics_manager->run_on_separate_thread()) {
+            std::thread graphics_thread(&game_manager::run_graphics_manager,
+                                        this->_graphics_manager,
+                                        std::reference_wrapper(this->_has_exit_been_requested));
 
-        // make sure the graphics thread is joined no matter where we exit this function
-        utils::defer defer_graphics_thread {
-            [&graphics_thread, this]() {
-                if (graphics_thread.joinable()) {
-                    this->request_exit();
+            // make sure the graphics thread is joined no matter where we exit this function
+            utils::defer defer_graphics_thread {
+                [&graphics_thread, this]() {
+                    if (graphics_thread.joinable()) {
+                        this->request_exit();
 
-                    graphics_thread.join();
+                        graphics_thread.join();
+                    }
                 }
-            }
-        };
+            };
+        }
 
         while (!this->_has_exit_been_requested) {
             this->begin_frame();
@@ -77,6 +79,10 @@ namespace pbr::shared::game {
             }
 
             this->synchronize_frame();
+
+            if (!this->_graphics_manager->run_on_separate_thread()) {
+                this->_graphics_manager->submit_frame_for_render();
+            }
 
             this->exit_frame();
         }

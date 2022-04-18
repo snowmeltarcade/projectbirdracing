@@ -38,5 +38,10 @@ namespace pbr::shared::apis::graphics {
 
         /// Submits a frame for rendering
         virtual void submit_frame_for_render() noexcept = 0;
+
+        /// Returns if this graphics manager should run on a separate thread or not
+        /// \returns `true` if this should run on a separate thread, else `false`
+        [[nodiscard]]
+        virtual bool run_on_separate_thread() const noexcept = 0;
     };
 }
