@@ -4,12 +4,14 @@ target_sources(
         apis.h
         application_information.h
         color.h
+        config.h
         graphics_manager_factory.h
         igraphics_manager.h
         performance_settings.h
         renderable_entities.h
         renderable_entity_2d.h
     PRIVATE
+        config.cpp
         graphics_manager_factory.cpp
         renderable_entities.cpp
 )

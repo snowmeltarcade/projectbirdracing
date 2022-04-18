@@ -28,7 +28,7 @@ namespace pbr::shared::apis::graphics {
             const std::shared_ptr<data::data_manager>& data_manager,
             const std::shared_ptr<logging::ilog_manager>& log_manager,
             const std::shared_ptr<logging::ilog_manager>& graphics_log_manager,
-            const std::shared_ptr<windowing::iwindow_manager> window_manager,
+            const std::shared_ptr<windowing::iwindow_manager>& window_manager,
             const application_information& application_information,
             const performance_settings& performance_settings,
             const std::filesystem::path& config_path = graphics_manager_factory::graphics_config_path) noexcept;
