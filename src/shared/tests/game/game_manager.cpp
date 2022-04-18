@@ -95,6 +95,11 @@ public:
 
     void submit_renderable_entities(apis::graphics::renderable_entities) noexcept override {
     }
+
+    bool _run_on_separate_thread {false};
+    bool run_on_separate_thread() const noexcept override {
+        return _run_on_separate_thread;
+    }
 };
 
 class test_scene_manager : public scene::iscene_manager {
@@ -281,8 +286,22 @@ TEST_CASE("run - running scene manager returns false - returns false", "[shared/
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("run - frame is submitted for render", "[shared/game]") {
+TEST_CASE("run - separate thread, frame is submitted for render", "[shared/game]") {
     auto gm = create_game_manager();
+
+    g_graphics_manager->_run_on_separate_thread = true;
+
+    REQUIRE(gm.initialize());
+
+    REQUIRE(gm.run());
+
+    REQUIRE(g_graphics_manager->submit_frame_for_render_called);
+}
+
+TEST_CASE("run - same thread, frame is submitted for render", "[shared/game]") {
+    auto gm = create_game_manager();
+
+    g_graphics_manager->_run_on_separate_thread = false;
 
     REQUIRE(gm.initialize());
 

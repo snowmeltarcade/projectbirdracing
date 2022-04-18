@@ -2,6 +2,7 @@
 
 - [Graphics](#graphics)
   - [APIs](#apis)
+    - [API Configuration](#api-configuration)
   - [Render Systems](#render-systems)
     - [2D Render System](#2d-render-system)
       - [2D Render System Materials](#2d-render-system-materials)
@@ -22,6 +23,10 @@ Rendering all graphical elements and loading graphics related resources are requ
 ## APIs
 
 Both Vulkan and OpenGL are supported. The selection of these APIs will be decided at runtime. Each API implements a graphics manager.
+
+Not all APIs support multithreading, so implemented graphics managers should indicate if they support multithreading or not.
+
+### API Configuration
 
 To configure which API to use, the following configuration is used in `data/graphics/config.json`, with the following structure:
 

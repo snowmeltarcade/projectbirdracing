@@ -60,6 +60,13 @@ namespace pbr::shared::apis::graphics::opengl {
         /// submitted
         void submit_frame_for_render() noexcept override;
 
+        /// Returns if this graphics manager should run on a separate thread or not
+        /// \returns `true` if this should run on a separate thread, else `false`
+        [[nodiscard]]
+        bool run_on_separate_thread() const noexcept override {
+            return false;
+        }
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
