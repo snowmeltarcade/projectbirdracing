@@ -1,12 +1,14 @@
 #include "shared/memory/basic_allocators.h"
 #include "shared/game/game_manager.h"
+#include "shared/data/data_manager.h"
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/logging/endpoints/std_out.h"
 #include "shared/apis/logging/endpoints/file.h"
 #include "shared/apis/windowing/window_manager.h"
-#include "shared/apis/graphics/vulkan/graphics_manager.h"
+#include "shared/apis/graphics/graphics_manager_factory.h"
 #include "shared/apis/graphics/performance_settings.h"
+#include "shared/apis/file/file_manager.h"
 #include "shared/scene/scene_manager.h"
 #include "scene/scene_factory.h"
 #include "shared/utils/program_arguments.h"
@@ -17,6 +19,18 @@
 #include "version.h"
 
 using namespace pbr::shared;
+
+/// Creates the data manager
+/// \param log_manager The log manager to use
+/// \param executable_path The path of this executable
+/// \returns The data manager
+std::shared_ptr<data::data_manager> create_data_manager(const std::shared_ptr<apis::logging::ilog_manager> log_manager,
+                                                        const std::filesystem::path& executable_path) {
+    auto file_manager = std::make_shared<apis::file::file_manager>();
+    auto data_path = executable_path / "data";
+
+    return std::make_shared<data::data_manager>(data_path, file_manager, log_manager);
+}
 
 /// Creates the game manager
 /// \param arguments The program arguments
@@ -40,6 +54,10 @@ game::game_manager create_game_manager(const utils::program_arguments& arguments
         throw std::logic_error("Failed to add `file` logging endpoint.");
     }
 
+    auto executable_path = arguments.get_executable_path().parent_path();
+
+    auto data_manager = create_data_manager(game_log_manager, executable_path);
+
     auto window_manager = std::make_shared<apis::windowing::window_manager>(game_log_manager);
 
     apis::graphics::application_information app_info {
@@ -52,18 +70,18 @@ game::game_manager create_game_manager(const utils::program_arguments& arguments
 
     apis::graphics::performance_settings performance_settings;
 
-    auto graphics_manager = std::make_shared<apis::graphics::vulkan::graphics_manager>(graphics_log_manager,
-                                                                                       window_manager,
-                                                                                       app_info,
-                                                                                       performance_settings);
+    auto graphics_manager = apis::graphics::graphics_manager_factory::create(data_manager,
+                                                                             game_log_manager,
+                                                                             graphics_log_manager,
+                                                                             window_manager,
+                                                                             app_info,
+                                                                             performance_settings);
 
     auto scene_factory = std::make_shared<pbr::server::scene::scene_factory>(game_log_manager);
 
     auto scene_manager = std::make_shared<scene::scene_manager>(scene_factory,
                                                                 scene::scene_types::loading,
                                                                 game_log_manager);
-
-    auto executable_path = arguments.get_executable_path().parent_path();
 
     game::game_manager gm(executable_path,
                           game_log_manager,

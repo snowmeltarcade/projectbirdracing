@@ -65,3 +65,9 @@ include_directories("${CMAKE_CURRENT_LIST_DIR}")
 add_subdirectory("shared")
 add_subdirectory("client")
 add_subdirectory("server")
+
+install_data_files(
+	"${CMAKE_CURRENT_LIST_DIR}/data/graphics/"
+	"${CMAKE_BINARY_DIR}/bin/data/graphics/"
+	"${INSTALL_DIRECTORY}/data/graphics/"
+)
