@@ -170,6 +170,10 @@ namespace pbr::shared::apis::graphics::vulkan {
                                         apis::logging::log_levels::info,
                                         "Graphics");
 
+        if (!this->_device) {
+            return true;
+        }
+
         vkDeviceWaitIdle(this->_device->get_native_handle());
 
         this->cleanup_resources();
