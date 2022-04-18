@@ -8,7 +8,7 @@
 using namespace pbr::shared;
 using namespace pbr::shared::data;
 
-data_manager create_data_manager() {
+static data_manager create_data_manager() {
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
     auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
     auto file_manager = std::make_shared<apis::file::file_manager>();

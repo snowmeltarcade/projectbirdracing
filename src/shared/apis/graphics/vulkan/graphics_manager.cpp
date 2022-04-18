@@ -8,7 +8,7 @@ using namespace pbr::shared::apis;
 
 namespace pbr::shared::apis::graphics::vulkan {
     bool graphics_manager::load_api(const std::filesystem::path& executable_path) noexcept {
-        this->_log_manager->log_message("Loading the graphics API...",
+        this->_log_manager->log_message("Loading the Vulkan graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
 
@@ -169,6 +169,10 @@ namespace pbr::shared::apis::graphics::vulkan {
         this->_log_manager->log_message("Shutting down the graphics API...",
                                         apis::logging::log_levels::info,
                                         "Graphics");
+
+        if (!this->_device) {
+            return true;
+        }
 
         vkDeviceWaitIdle(this->_device->get_native_handle());
 

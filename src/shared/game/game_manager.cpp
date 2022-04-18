@@ -130,8 +130,8 @@ namespace pbr::shared::game {
                                                     std::chrono::seconds(1),
                                                     this->_average_frame_time);
 
-        this->_log_manager->log_message("FPS: " + std::to_string(this->_fps), apis::logging::log_levels::info);
-        this->_log_manager->log_message("Average Frame Time: " + std::to_string(this->_average_frame_time), apis::logging::log_levels::info);
+        //this->_log_manager->log_message("FPS: " + std::to_string(this->_fps), apis::logging::log_levels::info);
+        //this->_log_manager->log_message("Average Frame Time: " + std::to_string(this->_average_frame_time), apis::logging::log_levels::info);
         //this->_log_manager->log_message("Frame...", apis::logging::log_levels::info);
     }
 

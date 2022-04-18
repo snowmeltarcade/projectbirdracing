@@ -10,12 +10,17 @@ add_executable(
 target_link_libraries(
     "${SHARED_TEST_PROJECT_NAME}"
     Catch2::Catch2
+    ${Vulkan_LIBRARIES}
+    ${SDL_LIBRARIES}
     "${SHARED_PROJECT_NAME}"
 )
 
 target_include_directories(
     "${SHARED_TEST_PROJECT_NAME}"
     SYSTEM PRIVATE
+    ${Vulkan_INCLUDE_DIRS}
+    ${VMA_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIRS}
     "${CATCH2_INCLUDE_DIRS}"
 )
 
