@@ -58,7 +58,8 @@ game::game_manager create_game_manager(const utils::program_arguments& arguments
 
     auto data_manager = create_data_manager(game_log_manager, executable_path);
 
-    auto window_manager = std::make_shared<apis::windowing::window_manager>(game_log_manager);
+    auto window_manager = std::make_shared<apis::windowing::window_manager>(
+        game_log_manager, apis::graphics::apis::opengl);
 
     apis::graphics::application_information app_info {
         std::string(PROJECT_NAME) + " - Server",

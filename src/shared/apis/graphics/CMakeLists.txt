@@ -1,6 +1,7 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        apis.h
         application_information.h
         color.h
         graphics_manager_factory.h

@@ -2,6 +2,7 @@
 
 #include "iwindow_manager.h"
 #include "shared/apis/logging/ilog_manager.h"
+#include "shared/apis/graphics/apis.h"
 
 #include <cassert>
 
@@ -9,7 +10,10 @@ namespace pbr::shared::apis::windowing {
     /// This manager creates and manages both console and application windows
     class window_manager : public iwindow_manager {
     public:
-        window_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager) : _log_manager(log_manager) {
+        window_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
+                       graphics::apis graphics_api)
+                       : _log_manager(log_manager),
+                            _graphics_api(graphics_api) {
             assert((this->_log_manager));
         }
         ~window_manager() override {
@@ -63,6 +67,9 @@ namespace pbr::shared::apis::windowing {
 
         /// Should the window manager quit?
         bool _should_quit {false};
+
+        /// The apis the graphics manager is using
+        graphics::apis _graphics_api;
 
         /// Shuts down the window manager
         /// \returns `true` upon success, else `false`

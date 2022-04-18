@@ -1,13 +1,33 @@
 #include "application_window.h"
 
+#include <cassert>
+#include <SDL_opengl.h>
 #include <SDL_vulkan.h>
 
 namespace pbr::shared::apis::windowing {
+    /// Returns the window flag for the passed api
+    /// \param api The graphics api
+    /// \returns The window flag for the passed api
+    int api_window_flag(graphics::apis api) {
+        switch (api) {
+            case graphics::apis::opengl: {
+                return SDL_WINDOW_OPENGL;
+            }
+            case graphics::apis::vulkan: {
+                return SDL_WINDOW_VULKAN;
+            }
+            default: {
+                assert(("Unknown graphics api."));
+            }
+        }
+    }
+
     bool application_window::create(std::string_view title,
                                     uint32_t x, uint32_t y,
                                     uint32_t w, uint32_t h) noexcept {
-        auto flags = SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE |
-                     SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN;
+        auto flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN;
+
+        flags |= api_window_flag(this->_graphics_api);
 
         this->_window = SDL_CreateWindow(std::string(title).c_str(),
                                          x, y,
@@ -33,9 +53,21 @@ namespace pbr::shared::apis::windowing {
         int width {0};
         int height {0};
 
-        SDL_Vulkan_GetDrawableSize(this->_window,
-                                   &width,
-                                   &height);
+        switch (this->_graphics_api) {
+            case graphics::apis::opengl: {
+                SDL_GL_GetDrawableSize(this->_window,
+                                       &width,
+                                       &height);
+            }
+            case graphics::apis::vulkan: {
+                SDL_Vulkan_GetDrawableSize(this->_window,
+                                           &width,
+                                           &height);
+            }
+            default: {
+                assert(("Unknown graphics api."));
+            }
+        }
 
         size.width_in_pixels = static_cast<pixels>(width);
         size.height_in_pixels = static_cast<pixels>(height);

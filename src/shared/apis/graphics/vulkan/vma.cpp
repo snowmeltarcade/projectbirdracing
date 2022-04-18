@@ -1,7 +1,7 @@
 #include "vma.h"
 
 #define FATAL_ERROR(message) \
-    this->_log_manager->log_message(message, apis::logging::log_levels::fatal, "Vulkan"); \
+    this->_log_manager->log_message(message, logging::log_levels::fatal, "Vulkan"); \
     throw std::runtime_error(message);
 
 namespace pbr::shared::apis::graphics::vulkan {

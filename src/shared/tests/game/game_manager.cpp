@@ -67,6 +67,10 @@ public:
 
 class test_graphics_manager : public apis::graphics::igraphics_manager {
 public:
+    apis::graphics::apis implemented_api() const noexcept override {
+        return apis::graphics::apis::opengl;
+    }
+
     bool load_api_called {false};
     bool load_api_result {true};
 
