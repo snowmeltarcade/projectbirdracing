@@ -1,7 +1,10 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        context.h
         graphics_manager.h
+        opengl_dependencies.h
     PRIVATE
+        context.cpp
         graphics_manager.cpp
 )

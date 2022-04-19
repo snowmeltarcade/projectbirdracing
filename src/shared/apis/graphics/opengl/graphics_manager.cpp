@@ -1,7 +1,23 @@
-#include "graphics_manager.h"
+#include "opengl_dependencies.h"
 #include "shared/apis/windowing/application_window.h"
+#include "graphics_manager.h"
+
+#include <sstream>
 
 namespace pbr::shared::apis::graphics::opengl {
+    /// Sets the api version
+    void set_api_version() {
+#if defined(USE_OPENGL_ES)
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
+    }
+
     bool graphics_manager::load_api(const std::filesystem::path&) noexcept {
         this->_log_manager->log_message("Loading the OpenGL graphics API...",
                                         logging::log_levels::info,
@@ -33,6 +49,17 @@ namespace pbr::shared::apis::graphics::opengl {
             this->_window_manager->get_main_application_window());
         assert((application_window));
 
+        set_api_version();
+
+        this->_context = std::make_shared<context>(application_window->get_native_handle());
+
+        if (!this->setup_glew()) {
+            this->_log_manager->log_message("Failed to initialize GLEW.",
+                                            logging::log_levels::error,
+                                            "Graphics");
+            return false;
+        }
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         logging::log_levels::info,
                                         "Graphics");
@@ -49,6 +76,8 @@ namespace pbr::shared::apis::graphics::opengl {
                                         logging::log_levels::info,
                                         "Graphics");
 
+        this->_context.reset();
+
         SDL_VideoQuit();
 
         this->_log_manager->log_message("Shut down the graphics API.",
@@ -64,5 +93,22 @@ namespace pbr::shared::apis::graphics::opengl {
     }
 
     void graphics_manager::submit_frame_for_render() noexcept {
+    }
+
+    bool graphics_manager::setup_glew() const noexcept {
+        glewExperimental = GL_TRUE;
+
+        GLenum glewError = glewInit();
+        if (glewError != GLEW_OK) {
+            std::stringstream errorString;
+            errorString << glewGetErrorString(glewError);
+            this->_log_manager->log_message("Failed to load GLEW with the following error: " +
+                                            errorString.str(),
+                                            logging::log_levels::error,
+                                            "Graphics");
+            return false;
+        }
+
+        return true;
     }
 }

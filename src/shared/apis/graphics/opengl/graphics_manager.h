@@ -5,10 +5,11 @@
 #include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/graphics/application_information.h"
 #include "shared/apis/graphics/performance_settings.h"
+#include "context.h"
 
 namespace pbr::shared::apis::graphics::opengl {
     /// Handles the OpenGL graphics API and rendering processes
-    class graphics_manager : public igraphics_manager {
+    class graphics_manager final : public igraphics_manager {
     public:
         /// Constructs this manager
         /// \param log_manager The log manager to use
@@ -81,6 +82,9 @@ namespace pbr::shared::apis::graphics::opengl {
         /// The window manager
         std::shared_ptr<windowing::iwindow_manager> _window_manager;
 
+        /// The OpenGL context
+        std::shared_ptr<context> _context;
+
         /// Needed application information
         application_information _application_information;
 
@@ -94,5 +98,10 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool shutdown() noexcept;
+
+        /// Sets up GLEW
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool setup_glew() const noexcept;
     };
 }
