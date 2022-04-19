@@ -71,7 +71,9 @@ game::game_manager create_game_manager(const utils::program_arguments& arguments
 
     apis::graphics::performance_settings performance_settings;
 
-    auto graphics_manager = apis::graphics::graphics_manager_factory::create(data_manager,
+    apis::graphics::config graphics_config(data_manager, game_log_manager);
+
+    auto graphics_manager = apis::graphics::graphics_manager_factory::create(graphics_config,
                                                                              game_log_manager,
                                                                              graphics_log_manager,
                                                                              window_manager,

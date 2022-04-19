@@ -13,19 +13,25 @@ using namespace pbr::shared::apis;
 using namespace pbr::shared::data;
 using namespace pbr::shared::apis::graphics;
 
-auto g_datetime_manager = std::make_shared<datetime::datetime_manager>();
-auto g_log_manager = std::make_shared<logging::log_manager>(g_datetime_manager);
+static auto g_datetime_manager = std::make_shared<datetime::datetime_manager>();
+static auto g_log_manager = std::make_shared<logging::log_manager>(g_datetime_manager);
 
 static std::shared_ptr<data_manager> create_data_manager() {
     auto file_manager = std::make_shared<file::file_manager>();
 
-    // we want to point to the parent of the `graphics` directory
-    auto data_path = get_test_data_file_path("");
+    auto data_path = get_test_data_file_path("graphics");
 
     auto dm = std::make_shared<data_manager>(data_path,
                                              file_manager,
                                              g_log_manager);
     return dm;
+}
+
+config create_config() {
+    auto data_manager = create_data_manager();
+
+    config c(data_manager, g_log_manager, "config_opengl");
+    return c;
 }
 
 class dummy_window : public windowing::iwindow_manager {
@@ -45,48 +51,51 @@ std::shared_ptr<windowing::iwindow_manager> create_window_manager() {
 /// create
 //////////
 
-TEST_CASE("create - invalid api name - returns empty", "[shared/apis/graphics]") {
-    auto data_manager = create_data_manager();
+TEST_CASE("create - invalid api name - returns empty", "[shared/apis/graphics/graphics_manager]") {
     auto window_manager = create_window_manager();
+    auto config = create_config();
 
-    auto result = graphics_manager_factory::create(data_manager,
+    config.set_api(static_cast<graphics::apis>(99999));
+
+    auto result = graphics_manager_factory::create(config,
                                                    g_log_manager,
                                                    g_log_manager,
                                                    window_manager,
                                                    {},
-                                                   {},
-                                                   "graphics/config_invalid");
+                                                   {});
 
     REQUIRE_FALSE(result);
 }
 
-TEST_CASE("create - vulkan api name - returns vulkan manager", "[shared/apis/graphics]") {
-    auto data_manager = create_data_manager();
+TEST_CASE("create - vulkan api name - returns vulkan manager", "[shared/apis/graphics/graphics_manager]") {
     auto window_manager = create_window_manager();
+    auto config = create_config();
 
-    auto result_manager = graphics_manager_factory::create(data_manager,
+    config.set_api(graphics::apis::vulkan);
+
+    auto result_manager = graphics_manager_factory::create(config,
                                                            g_log_manager,
                                                            g_log_manager,
                                                            window_manager,
                                                            {},
-                                                           {},
-                                                           "graphics/config_vulkan");
+                                                           {});
 
     auto result = std::dynamic_pointer_cast<graphics::vulkan::graphics_manager>(result_manager);
     REQUIRE(result);
 }
 
-TEST_CASE("create - opengl api name - returns opengl manager", "[shared/apis/graphics]") {
-    auto data_manager = create_data_manager();
+TEST_CASE("create - opengl api name - returns opengl manager", "[shared/apis/graphics/graphics_manager]") {
     auto window_manager = create_window_manager();
+    auto config = create_config();
 
-    auto result_manager = graphics_manager_factory::create(data_manager,
+    config.set_api(graphics::apis::opengl);
+
+    auto result_manager = graphics_manager_factory::create(config,
                                                            g_log_manager,
                                                            g_log_manager,
                                                            window_manager,
                                                            {},
-                                                           {},
-                                                           "graphics/config_opengl");
+                                                           {});
 
     auto result = std::dynamic_pointer_cast<graphics::opengl::graphics_manager>(result_manager);
     REQUIRE(result);
