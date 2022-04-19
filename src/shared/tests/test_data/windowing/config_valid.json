@@ -3,12 +3,14 @@
     {
       "width": 1024,
       "height": 768,
-      "default": false
+      "fullscreen": false,
+      "default": true
     },
     {
       "width": 1280,
       "height": 1024,
-      "default": true
+      "fullscreen": true,
+      "default": false
     }
   ]
 }

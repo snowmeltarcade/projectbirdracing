@@ -54,6 +54,7 @@ The file structure is as follows:
     {
       "width": 800,
       "height": 600,
+      "fullscreen": true,
       "default": false
     }
   ]
@@ -63,6 +64,8 @@ The file structure is as follows:
 `width` is the window's width.
 
 `height` is the window's height.
+
+`fullscreen` specifies if this resolution is full screen or not.
 
 `default` specifies if the resolution is default or not. If more than one resolution is marked as default, the first entry in this list will be used.
 

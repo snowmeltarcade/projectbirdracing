@@ -42,5 +42,9 @@ TEST_CASE("constructor - valid resolutions - load resolutions", "[shared/apis/wi
 
     REQUIRE(c.resolutions().size() == expected.size());
 
-
+    for (auto i {0u}; i < expected.size(); ++i) {
+        REQUIRE(c.resolutions()[i].width == expected[i].width);
+        REQUIRE(c.resolutions()[i].height == expected[i].height);
+        REQUIRE(c.resolutions()[i].fullscreen == expected[i].fullscreen);
+    }
 }
