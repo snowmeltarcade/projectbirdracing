@@ -44,7 +44,7 @@ Available resolutions are:
 * 1920x1080
 * 3840x2160
 
-These resolutions will be saved in `data/window/sizes.json`.
+These resolutions will be saved in `data/window/config.json`.
 
 The file structure is as follows:
 
