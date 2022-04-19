@@ -4,7 +4,9 @@ target_sources(
         context.h
         graphics_manager.h
         opengl_dependencies.h
+        opengl_errors.h
     PRIVATE
         context.cpp
         graphics_manager.cpp
+        opengl_errors.cpp
 )

@@ -1,6 +1,7 @@
 #include "opengl_dependencies.h"
 #include "shared/apis/windowing/application_window.h"
 #include "graphics_manager.h"
+#include "opengl_errors.h"
 
 #include <sstream>
 
@@ -106,6 +107,8 @@ namespace pbr::shared::apis::graphics::opengl {
                                             errorString.str(),
                                             logging::log_levels::error,
                                             "Graphics");
+
+            CHECK_OPENGL_ERROR(this->_log_manager);
             return false;
         }
 
