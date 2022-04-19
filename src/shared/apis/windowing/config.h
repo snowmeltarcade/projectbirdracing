@@ -2,10 +2,12 @@
 
 #include "shared/data/data_manager.h"
 #include "shared/apis/logging/ilog_manager.h"
+#include "resolution.h"
 
 #include <cassert>
 #include <memory>
 #include <exception>
+#include <vector>
 
 namespace pbr::shared::apis::windowing {
     /// The windowing configuration settings
@@ -29,6 +31,13 @@ namespace pbr::shared::apis::windowing {
             }
         }
 
+        /// Returns the loaded resolutions
+        /// \returns The loaded resolutions
+        [[nodiscard]]
+        std::vector<resolution> resolutions() const noexcept {
+            return this->_resolutions;
+        }
+
     private:
         /// The path to the window config
         static const std::filesystem::path window_config_path;
@@ -42,5 +51,12 @@ namespace pbr::shared::apis::windowing {
         bool load(const std::shared_ptr<data::data_manager>& data_manager,
                   const std::shared_ptr<logging::ilog_manager>& log_manager,
                   const std::filesystem::path& config_path) noexcept;
+
+        /// Reads the resolutions from the config
+        /// \param settings The settings to read from
+        void read_resolutions(data::settings& settings) noexcept;
+
+        /// The resolutions
+        std::vector<resolution> _resolutions;
     };
 }

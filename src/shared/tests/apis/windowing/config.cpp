@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
 #include "shared/apis/windowing/config.h"
+#include "shared/apis/windowing/resolution.h"
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
@@ -33,4 +34,13 @@ TEST_CASE("constructor - valid resolutions - load resolutions", "[shared/apis/wi
     auto data_manager = create_data_manager();
 
     config c(data_manager, g_log_manager, "config_valid");
+
+    std::vector<resolution> expected {
+        { 1024, 768, false, },
+        { 1280, 1024, true, },
+    };
+
+    REQUIRE(c.resolutions().size() == expected.size());
+
+
 }

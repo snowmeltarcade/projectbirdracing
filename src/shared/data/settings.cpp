@@ -71,4 +71,13 @@ namespace pbr::shared::data {
 
         return this->_settings_map[key];
     }
+
+    std::optional<std::vector<settings>> settings::get_as_settings_array(const std::string& key) noexcept {
+        auto it = this->_array.find(key);
+        if (it == this->_array.end()) {
+            return {};
+        }
+
+        return this->_array[key];
+    }
 }
