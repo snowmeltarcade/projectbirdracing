@@ -103,5 +103,11 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool setup_glew() const noexcept;
+
+        /// Enables or disables vsync
+        /// \param enable `true` to enable vsync, else `false`
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool enable_vsync(bool enable) const noexcept;
     };
 }

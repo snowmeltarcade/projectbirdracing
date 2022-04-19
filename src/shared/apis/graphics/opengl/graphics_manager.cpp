@@ -2,6 +2,7 @@
 #include "shared/apis/windowing/application_window.h"
 #include "graphics_manager.h"
 #include "opengl_errors.h"
+#include "shared/apis/graphics/color.h"
 
 #include <sstream>
 
@@ -17,6 +18,15 @@ namespace pbr::shared::apis::graphics::opengl {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
+    }
+
+    /// Sets the clear color
+    /// \param color The color to clear to
+    void set_clear_color(color color) {
+        glClearColor(color.r / 255.0f,
+                     color.g / 255.0f,
+                     color.b / 255.0f,
+                     color.a / 255.0f);
     }
 
     bool graphics_manager::load_api(const std::filesystem::path&) noexcept {
@@ -60,6 +70,15 @@ namespace pbr::shared::apis::graphics::opengl {
                                             "Graphics");
             return false;
         }
+
+        if (!this->enable_vsync(false)) {
+            this->_log_manager->log_message("Failed to disable vsync.",
+                                            logging::log_levels::error,
+                                            "Graphics");
+            return false;
+        }
+
+        set_clear_color(colors::black);
 
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         logging::log_levels::info,
@@ -108,6 +127,15 @@ namespace pbr::shared::apis::graphics::opengl {
                                             logging::log_levels::error,
                                             "Graphics");
 
+            CHECK_OPENGL_ERROR(this->_log_manager);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool graphics_manager::enable_vsync(bool enable) const noexcept {
+        if (SDL_GL_SetSwapInterval(enable ? 0 : 1) != 0) {
             CHECK_OPENGL_ERROR(this->_log_manager);
             return false;
         }
