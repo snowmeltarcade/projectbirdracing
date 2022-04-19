@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "apis.h"
 #include "renderable_entities.h"
 
 namespace pbr::shared::apis::graphics {
@@ -14,6 +15,11 @@ namespace pbr::shared::apis::graphics {
 
         /// Destroys this manager
         virtual ~igraphics_manager() = default;
+
+        /// Returns the api implemented by this manager
+        /// \returns The api implemented by this manager
+        [[nodiscard]]
+        virtual apis implemented_api() const noexcept = 0;
 
         /// Loads any needed dependencies or libraries required by the graphics api
         /// \param executable_path The path of the main executable

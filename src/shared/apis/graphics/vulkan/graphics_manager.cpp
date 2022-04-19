@@ -9,23 +9,23 @@ using namespace pbr::shared::apis;
 namespace pbr::shared::apis::graphics::vulkan {
     bool graphics_manager::load_api(const std::filesystem::path& executable_path) noexcept {
         this->_log_manager->log_message("Loading the Vulkan graphics API...",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
 
         this->set_environment_variables(executable_path);
 
         if (SDL_VideoInit(nullptr) < 0) {
             this->_log_manager->log_message("Failed to init SDL with error:",
-                                            apis::logging::log_levels::error,
+                                            logging::log_levels::error,
                                             "Graphics");
             this->_log_manager->log_message(SDL_GetError(),
-                                            apis::logging::log_levels::error,
+                                            logging::log_levels::error,
                                             "Graphics");
             return false;
         }
 
         this->_log_manager->log_message("Loaded the graphics API.",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
 
         return true;
@@ -36,14 +36,14 @@ namespace pbr::shared::apis::graphics::vulkan {
 #ifdef REQUIRES_MOLTEN_VK
 #ifdef DEBUG
         this->_log_manager->log_message("Setting `VK_LAYER_PATH` to " + std::string(VK_LAYER_PATH),
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
         setenv("VK_LAYER_PATH", VK_LAYER_PATH, 0);
 #endif
 
         auto icd_path = executable_path / VK_ICD_FILENAMES;
         this->_log_manager->log_message("Setting `VK_ICD_FILENAMES` to " + std::string(icd_path),
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
         setenv("VK_ICD_FILENAMES", icd_path.c_str(), 0);
 #endif
@@ -51,7 +51,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     bool graphics_manager::initialize() noexcept {
         this->_log_manager->log_message("Initializing the graphics manager...",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
 
         auto application_window = std::dynamic_pointer_cast<windowing::application_window>(
@@ -99,7 +99,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
         if (!this->refresh_resources()) {
             this->_log_manager->log_message("Failed to refresh resources.",
-                                            apis::logging::log_levels::error,
+                                            logging::log_levels::error,
                                             "Graphics");
             return false;
         }
@@ -115,13 +115,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         // this requires a valid swap chain, which is crated in `refresh_resources()`
         if (!this->create_swap_chain_synchronization_objects()) {
             this->_log_manager->log_message("Failed to create swap chain synchronization objects.",
-                                            apis::logging::log_levels::error,
+                                            logging::log_levels::error,
                                             "Graphics");
             return false;
         }
 
         this->_log_manager->log_message("Initialized the graphics manager.",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
 
         return true;
@@ -167,7 +167,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     bool graphics_manager::shutdown() noexcept {
         this->_log_manager->log_message("Shutting down the graphics API...",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
 
         if (!this->_device) {
@@ -197,7 +197,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         SDL_VideoQuit();
 
         this->_log_manager->log_message("Shut down the graphics API.",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
 
         return true;
@@ -205,7 +205,7 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     void graphics_manager::cleanup_resources() noexcept {
         this->_log_manager->log_message("Cleaning up graphics resources...",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
 
         this->_framebuffer.reset();
@@ -215,7 +215,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         this->_swap_chain.reset();
 
         this->_log_manager->log_message("Cleaned up graphics resources.",
-                                        apis::logging::log_levels::info,
+                                        logging::log_levels::info,
                                         "Graphics");
     }
 
@@ -265,13 +265,13 @@ namespace pbr::shared::apis::graphics::vulkan {
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             if (!this->refresh_resources()) {
                 this->_log_manager->log_message("Failed to refresh resources.",
-                                                apis::logging::log_levels::error,
+                                                logging::log_levels::error,
                                                 "Vulkan");
                 return;
             }
         } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             this->_log_manager->log_message("Failed to acquire next image.",
-                                            apis::logging::log_levels::error,
+                                            logging::log_levels::error,
                                             "Vulkan");
             return;
         }
@@ -363,13 +363,13 @@ namespace pbr::shared::apis::graphics::vulkan {
             this->_signal_swap_chain_out_of_date) {
             if (!this->refresh_resources()) {
                 this->_log_manager->log_message("Failed to refresh resources.",
-                                                apis::logging::log_levels::error,
+                                                logging::log_levels::error,
                                                 "Vulkan");
                 return;
             }
         } else if (result != VK_SUCCESS) {
             this->_log_manager->log_message("Failed to present queue.",
-                                            apis::logging::log_levels::error,
+                                            logging::log_levels::error,
                                             "Vulkan");
             return;
         }

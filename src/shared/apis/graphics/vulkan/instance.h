@@ -18,7 +18,7 @@ namespace pbr::shared::apis::graphics::vulkan {
     class instance {
     public:
         /// Constructs this instance
-        instance(std::shared_ptr<apis::logging::ilog_manager> log_manager)
+        instance(std::shared_ptr<logging::ilog_manager> log_manager)
             : _log_manager(log_manager)
         {
             assert((this->_log_manager));
@@ -28,7 +28,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         ~instance() {
             if (!this->shutdown()) {
                 this->_log_manager->log_message("Failed to shutdown Vulkan instance.",
-                                                apis::logging::log_levels::error,
+                                                logging::log_levels::error,
                                                 "Graphics");
             }
         }
@@ -103,7 +103,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         bool shutdown() noexcept;
 
         /// The log manager
-        std::shared_ptr<apis::logging::ilog_manager> _log_manager;
+        std::shared_ptr<logging::ilog_manager> _log_manager;
 
         /// The SDL window
         SDL_Window* _window {nullptr};

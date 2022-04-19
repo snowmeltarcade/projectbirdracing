@@ -32,8 +32,8 @@ namespace pbr::shared::apis::graphics::vulkan {
         /// \param window_manager The window manager
         /// \param application_information Needed application information
         /// \param performance_settings The performance settings to use
-        graphics_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
-                         std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
+        graphics_manager(std::shared_ptr<logging::ilog_manager> log_manager,
+                         std::shared_ptr<windowing::iwindow_manager> window_manager,
                          application_information application_information,
                          performance_settings performance_settings)
             : _log_manager(log_manager),
@@ -46,9 +46,16 @@ namespace pbr::shared::apis::graphics::vulkan {
         ~graphics_manager() override {
             if (!this->shutdown()) {
                 this->_log_manager->log_message("Failed to shutdown the graphics manager.",
-                                                apis::logging::log_levels::error,
+                                                logging::log_levels::error,
                                                 "Graphics");
             }
+        }
+
+        /// Returns the api implemented by this manager
+        /// \returns The api implemented by this manager
+        [[nodiscard]]
+        apis implemented_api() const noexcept override {
+            return apis::vulkan;
         }
 
         /// Loads any needed dependencies or libraries required by the graphics api
@@ -89,10 +96,10 @@ namespace pbr::shared::apis::graphics::vulkan {
 
     private:
         /// The log manager
-        std::shared_ptr<apis::logging::ilog_manager> _log_manager;
+        std::shared_ptr<logging::ilog_manager> _log_manager;
 
         /// The window manager
-        std::shared_ptr<apis::windowing::iwindow_manager> _window_manager;
+        std::shared_ptr<windowing::iwindow_manager> _window_manager;
 
         /// Needed application information
         application_information _application_information;

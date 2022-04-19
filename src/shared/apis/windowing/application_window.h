@@ -1,6 +1,7 @@
 #pragma once
 
 #include "shared/apis/logging/ilog_manager.h"
+#include "shared/apis/graphics/apis.h"
 #include "iapplication_window.h"
 
 #include <stdexcept>
@@ -15,13 +16,16 @@ namespace pbr::shared::apis::windowing {
     public:
         /// Constructs this window
         /// \param log_manager The log manager to use
+        /// \param graphics_api The graphics API to create this window for
         /// \param title The window title
         /// \param w The width
         /// \param h The height
         application_window(std::shared_ptr<apis::logging::ilog_manager> log_manager,
+                           graphics::apis graphics_api,
                            std::string_view title,
                            uint32_t w, uint32_t h)
-                           : _log_manager(log_manager) {
+                           : _log_manager(log_manager),
+                             _graphics_api(graphics_api) {
             assert((this->_log_manager));
 
             if (!this->create(title,
@@ -55,6 +59,9 @@ namespace pbr::shared::apis::windowing {
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;
+
+        /// The graphics api this window is created for
+        graphics::apis _graphics_api;
 
         /// The window instance
         SDL_Window* _window {nullptr};

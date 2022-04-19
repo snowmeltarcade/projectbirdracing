@@ -17,4 +17,9 @@ namespace pbr::shared::apis::graphics {
         /// Alpha
         uint8_t a {255u};
     };
+
+    namespace colors {
+        /// Black
+        constexpr color black { 0, 0, 0, 0 };
+    }
 }

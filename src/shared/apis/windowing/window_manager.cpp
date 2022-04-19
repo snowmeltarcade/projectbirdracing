@@ -28,6 +28,7 @@ namespace pbr::shared::apis::windowing {
 
     std::shared_ptr<iapplication_window> window_manager::create_application_window() noexcept {
         auto window = std::make_shared<application_window>(this->_log_manager,
+                                                           this->_graphics_api,
                                                            "PBR",
                                                            500, 500);
 

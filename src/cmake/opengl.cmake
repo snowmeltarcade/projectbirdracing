@@ -1,0 +1,5 @@
+if (IOS)
+	find_package(OpenGLES REQUIRED)
+else()
+	find_package(OpenGL REQUIRED)
+endif()

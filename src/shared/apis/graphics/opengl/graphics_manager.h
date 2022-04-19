@@ -5,18 +5,19 @@
 #include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/graphics/application_information.h"
 #include "shared/apis/graphics/performance_settings.h"
+#include "context.h"
 
 namespace pbr::shared::apis::graphics::opengl {
     /// Handles the OpenGL graphics API and rendering processes
-    class graphics_manager : public igraphics_manager {
+    class graphics_manager final : public igraphics_manager {
     public:
         /// Constructs this manager
         /// \param log_manager The log manager to use
         /// \param window_manager The window manager
         /// \param application_information Needed application information
         /// \param performance_settings The performance settings to use
-        graphics_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
-                         std::shared_ptr<apis::windowing::iwindow_manager> window_manager,
+        graphics_manager(std::shared_ptr<logging::ilog_manager> log_manager,
+                         std::shared_ptr<windowing::iwindow_manager> window_manager,
                          application_information application_information,
                          performance_settings performance_settings)
             : _log_manager(log_manager),
@@ -29,9 +30,16 @@ namespace pbr::shared::apis::graphics::opengl {
         ~graphics_manager() override {
             if (!this->shutdown()) {
                 this->_log_manager->log_message("Failed to shutdown the graphics manager.",
-                                                apis::logging::log_levels::error,
+                                                logging::log_levels::error,
                                                 "Graphics");
             }
+        }
+
+        /// Returns the api implemented by this manager
+        /// \returns The api implemented by this manager
+        [[nodiscard]]
+        apis implemented_api() const noexcept override {
+            return apis::opengl;
         }
 
         /// Loads any needed dependencies or libraries required by the graphics api
@@ -69,10 +77,13 @@ namespace pbr::shared::apis::graphics::opengl {
 
     private:
         /// The log manager
-        std::shared_ptr<apis::logging::ilog_manager> _log_manager;
+        std::shared_ptr<logging::ilog_manager> _log_manager;
 
         /// The window manager
-        std::shared_ptr<apis::windowing::iwindow_manager> _window_manager;
+        std::shared_ptr<windowing::iwindow_manager> _window_manager;
+
+        /// The OpenGL context
+        std::shared_ptr<context> _context;
 
         /// Needed application information
         application_information _application_information;
@@ -87,5 +98,16 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool shutdown() noexcept;
+
+        /// Sets up GLEW
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool setup_glew() const noexcept;
+
+        /// Enables or disables vsync
+        /// \param enable `true` to enable vsync, else `false`
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool enable_vsync(bool enable) const noexcept;
     };
 }
