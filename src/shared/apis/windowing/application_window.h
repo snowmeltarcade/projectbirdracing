@@ -18,19 +18,22 @@ namespace pbr::shared::apis::windowing {
         /// \param log_manager The log manager to use
         /// \param graphics_api The graphics API to create this window for
         /// \param title The window title
-        /// \param w The width
-        /// \param h The height
+        /// \param width The width
+        /// \param height The height
+        /// \param fullscreen If this window should be full screen or not
         application_window(std::shared_ptr<apis::logging::ilog_manager> log_manager,
                            graphics::apis graphics_api,
                            std::string_view title,
-                           uint32_t w, uint32_t h)
+                           pixels width, pixels height,
+                           bool fullscreen)
                            : _log_manager(log_manager),
                              _graphics_api(graphics_api) {
             assert((this->_log_manager));
 
             if (!this->create(title,
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              w, h)) {
+                              width, height,
+                              fullscreen)) {
                 auto message = "Failed to create application window.";
                 this->_log_manager->log_message(message,
                                                 apis::logging::log_levels::fatal,
@@ -54,7 +57,15 @@ namespace pbr::shared::apis::windowing {
         /// Returns the window size
         /// \returns The window size
         [[nodiscard]]
-        window_size get_window_size() const noexcept override;
+        window_size get_size() const noexcept override;
+
+        /// Sets the window size
+        /// \param width The window width
+        /// \param height The window height
+        /// \param fullscreen If this window should be full screen or not
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool set_size(pixels width, pixels height, bool fullscreen) noexcept override;
 
     private:
         /// The log manager
@@ -70,13 +81,15 @@ namespace pbr::shared::apis::windowing {
         /// \param title The window title
         /// \param x The x position
         /// \param y The y position
-        /// \param w The width
-        /// \param h The height
+        /// \param width The width
+        /// \param height The height
+        /// \param fullscreen `true` if this window should be full screen, else `false`
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool create(std::string_view title,
-                    uint32_t x, uint32_t y,
-                    uint32_t w, uint32_t h) noexcept;
+                    pixels x, pixels y,
+                    pixels width, pixels height,
+                    bool fullscreen) noexcept;
 
         /// Shuts down this window
         void shutdown() noexcept;

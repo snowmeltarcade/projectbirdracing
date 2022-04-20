@@ -72,4 +72,12 @@ TEST_CASE("read_settings - valid settings file - returns valid settings", "[shar
     REQUIRE(settings2);
     REQUIRE(settings2->get_as_float("float3") == 987.654f);
     REQUIRE(settings2->get_as_float("float4") == 123.123f);
+
+    auto array1 = result->get_as_settings_array("array1");
+    REQUIRE(array1);
+    REQUIRE(array1->size() == 2);
+    REQUIRE((*array1)[0].get("string1") == "value1");
+    REQUIRE((*array1)[0].get("string2") == "value2");
+    REQUIRE((*array1)[1].get("string3") == "value3");
+    REQUIRE((*array1)[1].get("string4") == "value4");
 }

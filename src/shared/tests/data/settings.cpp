@@ -46,6 +46,36 @@ TEST_CASE("add - valid key and value - adds setting", "[shared/data]") {
 }
 
 //////////
+/// add_to_array
+//////////
+
+TEST_CASE("add_to_array - valid key and value - adds setting to array", "[shared/data]") {
+    auto key1 = "key1";
+    auto expected1 = "expected1";
+
+    settings settings1;
+    settings1.add(key1, expected1);
+
+    auto key2 = "key2";
+    auto expected2 = "expected2";
+
+    settings settings2;
+    settings2.add(key2, expected2);
+
+    auto key = "key";
+
+    settings settings;
+    settings.add_to_array(key, settings1);
+    settings.add_to_array(key, settings2);
+
+    auto result = settings.get_as_settings_array(key);
+    REQUIRE(result);
+    REQUIRE(result->size() == 2);
+    REQUIRE((*result)[0].get(key1) == expected1);
+    REQUIRE((*result)[1].get(key2) == expected2);
+}
+
+//////////
 /// get
 //////////
 
@@ -129,6 +159,32 @@ TEST_CASE("get_as_settings - existing key - overwrites value", "[shared/data]") 
     auto result = settings.get_as_settings(key);
 
     REQUIRE(result == expected);
+}
+
+//////////
+/// get_as_settings_array
+//////////
+
+TEST_CASE("get_as_settings_array - unknown key - returns empty", "[shared/data]") {
+    settings settings;
+
+    auto result = settings.get_as_settings_array("unknown");
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("get_as_settings_array - known key - returns value", "[shared/data]") {
+    settings expected;
+    auto key = "key";
+    expected.add(key, "value");
+
+    settings settings;
+    auto array_key = "key2";
+    settings.add_to_array(array_key, expected);
+
+    auto result = settings.get_as_settings_array(array_key);
+    REQUIRE(result);
+    REQUIRE((*result)[0].get(key) == expected.get(key));
 }
 
 //////////

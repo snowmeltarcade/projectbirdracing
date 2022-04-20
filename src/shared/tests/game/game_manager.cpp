@@ -3,6 +3,7 @@
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
+#include "shared/apis/windowing/types.h"
 #include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/graphics/renderable_entities.h"
 #include "shared/apis/windowing/iconsole_window.h"
@@ -17,8 +18,12 @@ using namespace pbr::shared::game;
 
 class test_application_window : public apis::windowing::iapplication_window {
 public:
-    apis::windowing::window_size get_window_size() const noexcept {
+    apis::windowing::window_size get_size() const noexcept override {
         return {};
+    }
+
+    bool set_size(apis::windowing::pixels, apis::windowing::pixels, bool) noexcept override {
+        return true;
     }
 };
 

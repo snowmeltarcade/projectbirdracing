@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include <optional>
+#include <vector>
 
 namespace pbr::shared::data {
     /// A collection of settings. Each setting has a string key and a value. The
@@ -40,6 +41,13 @@ namespace pbr::shared::data {
             this->_settings_map[key] = value;
         }
 
+        /// Adds a setting as an array element
+        /// \param key The key
+        /// \param value The value
+        void add_to_array(const std::string& key, const settings& value) noexcept {
+            this->_array[key].push_back(value);
+        }
+
         /// Returns a setting as a string
         /// \param key The key
         /// \returns The value, else empty if the key is not present
@@ -70,6 +78,11 @@ namespace pbr::shared::data {
         /// \returns The value, else empty if the key is not present
         std::optional<settings> get_as_settings(const std::string& key) noexcept;
 
+        /// Returns a settings object array
+        /// \param key The key
+        /// \returns The value, else empty if the key is not present
+        std::optional<std::vector<settings>> get_as_settings_array(const std::string& key) noexcept;
+
         /// Equality operator
         bool operator ==(const settings&) const = default;
 
@@ -79,5 +92,8 @@ namespace pbr::shared::data {
 
         /// Stores other settings objects
         std::unordered_map<std::string, settings> _settings_map;
+
+        /// Stores an array of other settings
+        std::unordered_map<std::string, std::vector<settings>> _array;
     };
 }

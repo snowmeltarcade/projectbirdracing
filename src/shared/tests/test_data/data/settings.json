@@ -15,5 +15,15 @@
   "settings2": {
     "float3": 987.654,
     "float4": 123.123
-  }
+  },
+  "array1": [
+    {
+      "string1": "value1",
+      "string2": "value2"
+    },
+    {
+      "string3": "value3",
+      "string4": "value4"
+    }
+  ]
 }

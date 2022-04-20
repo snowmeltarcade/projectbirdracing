@@ -44,7 +44,7 @@ Available resolutions are:
 * 1920x1080
 * 3840x2160
 
-These resolutions will be saved in `data/window/sizes.json`.
+These resolutions will be saved in `data/window/config.json`.
 
 The file structure is as follows:
 
@@ -54,7 +54,8 @@ The file structure is as follows:
     {
       "width": 800,
       "height": 600,
-      "is_default": false
+      "fullscreen": true,
+      "default": false
     }
   ]
 }
@@ -64,7 +65,9 @@ The file structure is as follows:
 
 `height` is the window's height.
 
-`is_default` specifies if the resolution is default or not. If more than one resolution is marked as default, the first entry in this list will be used.
+`fullscreen` specifies if this resolution is full screen or not.
+
+`default` specifies if the resolution is default or not. If more than one resolution is marked as default, the first entry in this list will be used.
 
 ## Audio
 
