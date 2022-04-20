@@ -38,6 +38,12 @@ namespace pbr::shared::apis::windowing {
             return this->_resolutions;
         }
 
+        /// Returns the default resolution
+        [[nodiscard]]
+        resolution default_resolution() const noexcept {
+            return this->_resolutions[this->_default_resolution_index];
+        }
+
     private:
         /// The path to the window config
         static const std::filesystem::path window_config_path;
@@ -58,5 +64,8 @@ namespace pbr::shared::apis::windowing {
 
         /// The resolutions
         std::vector<resolution> _resolutions;
+
+        /// The index of the default resolution
+        uint32_t _default_resolution_index {0u};
     };
 }

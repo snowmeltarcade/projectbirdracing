@@ -1,6 +1,7 @@
 #pragma once
 
 #include "iwindow_manager.h"
+#include "config.h"
 #include "shared/apis/logging/ilog_manager.h"
 #include "shared/apis/graphics/apis.h"
 
@@ -11,9 +12,11 @@ namespace pbr::shared::apis::windowing {
     class window_manager : public iwindow_manager {
     public:
         window_manager(std::shared_ptr<apis::logging::ilog_manager> log_manager,
-                       graphics::apis graphics_api)
+                       graphics::apis graphics_api,
+                       config config)
                        : _log_manager(log_manager),
-                            _graphics_api(graphics_api) {
+                            _graphics_api(graphics_api),
+                            _config(config) {
             assert((this->_log_manager));
         }
         ~window_manager() override {
@@ -70,6 +73,9 @@ namespace pbr::shared::apis::windowing {
 
         /// The apis the graphics manager is using
         graphics::apis _graphics_api;
+
+        /// The config settings
+        config _config;
 
         /// Shuts down the window manager
         /// \returns `true` upon success, else `false`

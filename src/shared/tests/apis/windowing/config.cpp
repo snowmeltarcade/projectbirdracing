@@ -48,3 +48,44 @@ TEST_CASE("constructor - valid resolutions - load resolutions", "[shared/apis/wi
         REQUIRE(c.resolutions()[i].fullscreen == expected[i].fullscreen);
     }
 }
+
+//////////
+/// resolutions
+//////////
+
+TEST_CASE("resolutions - returns resolutions", "[shared/apis/windowing/config]") {
+    auto data_manager = create_data_manager();
+
+    config c(data_manager, g_log_manager, "config_valid");
+
+    std::vector<resolution> expected {
+        { 1024, 768, false, },
+        { 1280, 1024, true, },
+    };
+
+    REQUIRE(c.resolutions().size() == expected.size());
+
+    for (auto i {0u}; i < expected.size(); ++i) {
+        REQUIRE(c.resolutions()[i].width == expected[i].width);
+        REQUIRE(c.resolutions()[i].height == expected[i].height);
+        REQUIRE(c.resolutions()[i].fullscreen == expected[i].fullscreen);
+    }
+}
+
+//////////
+/// default_resolution
+//////////
+
+TEST_CASE("default_resolution - returns default resolution", "[shared/apis/windowing/config]") {
+    auto data_manager = create_data_manager();
+
+    config c(data_manager, g_log_manager, "config_valid");
+
+    resolution expected { 1280, 1024, true, };
+
+    auto result = c.default_resolution();
+
+    REQUIRE(result.width == expected.width);
+    REQUIRE(result.height == expected.height);
+    REQUIRE(result.fullscreen == expected.fullscreen);
+}

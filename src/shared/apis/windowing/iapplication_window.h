@@ -14,6 +14,14 @@ namespace pbr::shared::apis::windowing {
         /// Returns the window size
         /// \returns The window size
         [[nodiscard]]
-        virtual window_size get_window_size() const noexcept = 0;
+        virtual window_size get_size() const noexcept = 0;
+
+        /// Sets the window size
+        /// \param width The window width
+        /// \param height The window height
+        /// \param fullscreen If this window should be full screen or not
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        virtual bool set_size(pixels width, pixels height, bool fullscreen) noexcept = 0;
     };
 }

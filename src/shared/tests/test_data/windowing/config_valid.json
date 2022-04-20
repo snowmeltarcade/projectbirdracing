@@ -4,13 +4,13 @@
       "width": 1024,
       "height": 768,
       "fullscreen": false,
-      "default": true
+      "default": false
     },
     {
       "width": 1280,
       "height": 1024,
       "fullscreen": true,
-      "default": false
+      "default": true
     }
   ]
 }

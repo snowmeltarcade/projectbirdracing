@@ -98,7 +98,7 @@ namespace pbr::shared::apis::graphics::vulkan {
         if (capabilities.currentExtent.width != UINT32_MAX) {
             return capabilities.currentExtent;
         } else {
-            auto window_size = window->get_window_size();
+            auto window_size = window->get_size();
 
             VkExtent2D extent {
                 std::clamp(window_size.width_in_pixels,

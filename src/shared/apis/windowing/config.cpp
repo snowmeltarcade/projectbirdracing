@@ -57,7 +57,9 @@ namespace pbr::shared::apis::windowing {
         }
 
         this->_resolutions.clear();
+        this->_default_resolution_index = 0;
 
+        auto setting_index {0u};
         for (auto& resolution_setting : *resolutions) {
             resolution resolution;
 
@@ -65,7 +67,15 @@ namespace pbr::shared::apis::windowing {
             resolution.height = get_value_or_default(resolution_setting, "height", 0);
             resolution.fullscreen = get_value_or_default(resolution_setting, "fullscreen", false);
 
+            auto is_default = get_value_or_default(resolution_setting, "default", false);
+
+            // if there is more than one resolution marked as default, we only care about the first one
+            if (is_default && this->_default_resolution_index == 0) {
+                this->_default_resolution_index = setting_index;
+            }
+
             this->_resolutions.push_back(resolution);
+            ++setting_index;
         }
     }
 }

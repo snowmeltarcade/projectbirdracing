@@ -71,3 +71,9 @@ install_data_files(
 	"${CMAKE_BINARY_DIR}/bin/data/graphics/"
 	"${INSTALL_DIRECTORY}/data/graphics/"
 )
+
+install_data_files(
+	"${CMAKE_CURRENT_LIST_DIR}/data/windowing/"
+	"${CMAKE_BINARY_DIR}/bin/data/windowing/"
+	"${INSTALL_DIRECTORY}/data/windowing/"
+)

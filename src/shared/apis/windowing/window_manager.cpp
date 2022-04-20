@@ -27,10 +27,13 @@ namespace pbr::shared::apis::windowing {
     }
 
     std::shared_ptr<iapplication_window> window_manager::create_application_window() noexcept {
+        auto default_resolution = this->_config.default_resolution();
+
         auto window = std::make_shared<application_window>(this->_log_manager,
                                                            this->_graphics_api,
                                                            "PBR",
-                                                           500, 500);
+                                                           default_resolution.width, default_resolution.height,
+                                                           default_resolution.fullscreen);
 
         this->_application_windows.push_back(window);
 
