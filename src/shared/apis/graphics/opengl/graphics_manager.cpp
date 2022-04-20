@@ -120,6 +120,9 @@ namespace pbr::shared::apis::graphics::opengl {
         // submit render targets to compositor
 
         this->_compositor->render({});
+
+        auto application_window = this->_window_manager->get_main_application_window();
+        application_window->update_display();
     }
 
     bool graphics_manager::setup_glew() const noexcept {

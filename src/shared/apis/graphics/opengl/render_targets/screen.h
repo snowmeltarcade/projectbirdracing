@@ -19,6 +19,9 @@ namespace pbr::shared::apis::graphics::opengl::render_targets {
         /// Unbinds this render target
         void unbind() const noexcept override;
 
+        /// Submits the rendered content to the screen
+        void submit() const noexcept override;
+
         /// Resizes this render target
         /// \param width The width
         /// \param height The height

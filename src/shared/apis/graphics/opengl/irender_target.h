@@ -20,6 +20,9 @@ namespace pbr::shared::apis::graphics::opengl {
         /// Unbinds this render target
         virtual void unbind() const noexcept = 0;
 
+        /// Submits this render target (swaps buffers, writes any data etc...)
+        virtual void submit() const noexcept = 0;
+
         /// Resizes this render target
         /// \param width The width
         /// \param height The height

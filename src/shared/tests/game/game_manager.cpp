@@ -25,6 +25,8 @@ public:
     bool set_size(pixels, pixels, bool) noexcept override {
         return true;
     }
+
+    void update_display() noexcept override {}
 };
 
 class test_window_manager : public apis::windowing::iwindow_manager {

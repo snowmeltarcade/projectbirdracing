@@ -3,10 +3,10 @@
 namespace pbr::shared::apis::graphics::opengl {
     void compositor::render(const std::vector<std::shared_ptr<irender_target>>& submitted_targets) noexcept {
         if (submitted_targets.empty()) {
-            return;
+            //return;
         }
 
-        // bind default target
+        this->_destination->bind();
 
         // bind shader and vbo
 
@@ -15,6 +15,8 @@ namespace pbr::shared::apis::graphics::opengl {
             // bind texture id
             // render
 
-        // submit default target
+        this->_destination->submit();
+
+        this->_destination->unbind();
     }
 }

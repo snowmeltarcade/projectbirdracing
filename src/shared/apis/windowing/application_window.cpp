@@ -120,6 +120,12 @@ namespace pbr::shared::apis::windowing {
         return true;
     }
 
+    void application_window::update_display() noexcept {
+        assert((this->_window));
+
+        SDL_GL_SwapWindow(this->_window);
+    }
+
     void application_window::shutdown() noexcept {
         if (this->_window) {
             SDL_DestroyWindow(this->_window);
