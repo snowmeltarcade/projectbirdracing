@@ -101,11 +101,11 @@ namespace pbr::shared::apis::graphics::vulkan {
             auto window_size = window->get_size();
 
             VkExtent2D extent {
-                std::clamp(window_size.width_in_pixels,
+                std::clamp(window_size.width,
                            capabilities.minImageExtent.width,
                            capabilities.maxImageExtent.width),
 
-                std::clamp(window_size.height_in_pixels,
+                std::clamp(window_size.height,
                            capabilities.minImageExtent.height,
                            capabilities.maxImageExtent.height),
             };

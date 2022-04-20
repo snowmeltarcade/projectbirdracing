@@ -1,12 +1,19 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        compositor.h
         context.h
+        framebuffer.h
         graphics_manager.h
+        irender_target.h
         opengl_dependencies.h
         opengl_errors.h
     PRIVATE
+        compositor.cpp
         context.cpp
+        framebuffer.cpp
         graphics_manager.cpp
         opengl_errors.cpp
 )
+
+add_subdirectory("render_targets")

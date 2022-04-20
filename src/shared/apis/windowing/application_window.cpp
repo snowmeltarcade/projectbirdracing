@@ -77,8 +77,8 @@ namespace pbr::shared::apis::windowing {
             }
         }
 
-        size.width_in_pixels = static_cast<pixels>(width);
-        size.height_in_pixels = static_cast<pixels>(height);
+        size.width = static_cast<pixels>(width);
+        size.height = static_cast<pixels>(height);
 
         return size;
     }

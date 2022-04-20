@@ -80,6 +80,10 @@ namespace pbr::shared::apis::graphics::opengl {
 
         set_clear_color(colors::black);
 
+        this->setup_compositor();
+
+        this->sync_resolutions();
+
         this->_log_manager->log_message("Initialized the graphics manager.",
                                         logging::log_levels::info,
                                         "Graphics");
@@ -113,6 +117,9 @@ namespace pbr::shared::apis::graphics::opengl {
     }
 
     void graphics_manager::submit_frame_for_render() noexcept {
+        // submit render targets to compositor
+
+        this->_compositor->render({});
     }
 
     bool graphics_manager::setup_glew() const noexcept {
@@ -141,5 +148,21 @@ namespace pbr::shared::apis::graphics::opengl {
         }
 
         return true;
+    }
+
+    void graphics_manager::setup_compositor() noexcept {
+        this->_screen_render_target = std::make_shared<render_targets::screen>();
+
+        this->_compositor = std::make_shared<compositor>(this->_screen_render_target);
+    }
+
+    void graphics_manager::sync_resolutions() noexcept {
+        auto application_window = std::dynamic_pointer_cast<windowing::application_window>(
+            this->_window_manager->get_main_application_window());
+        assert((application_window));
+
+        auto size = application_window->get_size();
+
+        this->_screen_render_target->resize(size.width, size.height);
     }
 }

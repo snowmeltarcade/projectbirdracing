@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "shared/types.h"
 
 namespace pbr::shared::apis::windowing {
     /// A screen resolution

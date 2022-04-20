@@ -5,7 +5,9 @@
 #include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/graphics/application_information.h"
 #include "shared/apis/graphics/performance_settings.h"
+#include "compositor.h"
 #include "context.h"
+#include "render_targets/screen.h"
 
 namespace pbr::shared::apis::graphics::opengl {
     /// Handles the OpenGL graphics API and rendering processes
@@ -94,6 +96,12 @@ namespace pbr::shared::apis::graphics::opengl {
         /// The entities to render
         renderable_entities _renderable_entities;
 
+        // The screen's render target
+        std::shared_ptr<render_targets::screen> _screen_render_target;
+
+        /// The compositor
+        std::shared_ptr<compositor> _compositor;
+
         /// Shuts down the graphics manager
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
@@ -109,5 +117,11 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool enable_vsync(bool enable) const noexcept;
+
+        /// Sets up the compositor
+        void setup_compositor() noexcept;
+
+        /// Resizes all render targets to match the resolution of the application window
+        void sync_resolutions() noexcept;
     };
 }

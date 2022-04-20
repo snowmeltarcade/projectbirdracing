@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace pbr::shared::apis::windowing {
+namespace pbr::shared {
     /// Screen pixels
     typedef uint32_t pixels;
 }

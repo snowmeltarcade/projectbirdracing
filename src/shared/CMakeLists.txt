@@ -1,5 +1,11 @@
 add_library("${SHARED_PROJECT_NAME}")
 
+target_sources(
+    "${SHARED_PROJECT_NAME}"
+    PUBLIC
+        types.h
+)
+
 if (IOS)
     target_link_libraries(
         "${SHARED_PROJECT_NAME}"

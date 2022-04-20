@@ -9,7 +9,6 @@ target_sources(
         iwindow_manager.h
         resolution.h
         resolutions.h
-        types.h
         window_manager.h
         window_size.h
     PRIVATE
