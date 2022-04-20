@@ -7,6 +7,7 @@
     - [2D Render System](#2d-render-system)
       - [2D Render System Materials](#2d-render-system-materials)
     - [3D Render System](#3d-render-system)
+    - [Compositor](#compositor)
   - [Materials](#materials)
     - [Material Update Script](#material-update-script)
   - [Algorithms](#algorithms)
@@ -67,6 +68,12 @@ Position, size and scale values must be in the range of screen space. Translatio
 | Simple | Global | Albedo | A simple textured material. The global color is applied to the texture. |
 
 ### 3D Render System
+
+### Compositor
+
+All of the render targets will be passed to the compositor, where they will then be rendered to the screen. The screen will be a simple quad which will have the results of the render targets textured onto it.
+
+It is expected that all post processing will have been performed on the render targets before the compositor renders them.
 
 ## Materials
 
