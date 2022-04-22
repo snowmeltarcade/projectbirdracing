@@ -6,6 +6,7 @@ target_link_libraries(
         "${SHARED_PROJECT_NAME}"
 		${SDL2_LIBRARIES}
 		${Vulkan_LIBRARIES}
+		${GLEW_LIBRARIES}
 )
 
 target_sources(
@@ -22,6 +23,7 @@ target_include_directories(
 		${CMAKE_CURRENT_SOURCE_DIR}
 		${Vulkan_INCLUDE_DIRS}
 		${VMA_INCLUDE_DIRS}
+		${GLEW_INCLUDE_DIRS}
 )
 
 install(

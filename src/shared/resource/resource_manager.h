@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shared/apis/logging/log_manager.h"
+#include "shared/apis/logging/ilog_manager.h"
 #include "shared/data/data_manager.h"
 
 #include <memory>
@@ -24,7 +24,7 @@ namespace pbr::shared::resource {
         /// \param log_manager The log manager
         /// \param list_path The path to the resource list from the `data` directory
         resource_manager(const std::shared_ptr<data::data_manager>& data_manager,
-                         const std::shared_ptr<apis::logging::log_manager>& log_manager,
+                         const std::shared_ptr<apis::logging::ilog_manager>& log_manager,
                          const std::filesystem::path& list_path) {
             assert((data_manager));
             assert((log_manager));
@@ -85,7 +85,7 @@ namespace pbr::shared::resource {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool load_list(const std::shared_ptr<data::data_manager>& data_manager,
-                       const std::shared_ptr<apis::logging::log_manager>& log_manager,
+                       const std::shared_ptr<apis::logging::ilog_manager>& log_manager,
                        const std::filesystem::path& settings_path) noexcept {
             auto settings = data_manager->read_settings(settings_path);
             if (!settings) {

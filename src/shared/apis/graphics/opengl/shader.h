@@ -1,11 +1,11 @@
 #pragma once
 
-#include "shared/apis/logging/log_manager.h"
+#include "shared/apis/logging/ilog_manager.h"
 #include "shared/data/data_manager.h"
+#include "opengl_dependencies.h"
 
 #include <memory>
 #include <filesystem>
-#include <GL/glew.h>
 #include <SDL_opengl.h>
 
 namespace pbr::shared::apis::graphics::opengl {
@@ -18,7 +18,7 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \param log_manager The log manager
         shader(const std::filesystem::path& path,
                const std::shared_ptr<data::data_manager>& data_manager,
-               const std::shared_ptr<logging::log_manager>& log_manager) {
+               const std::shared_ptr<logging::ilog_manager>& log_manager) {
             if (!this->create(path, data_manager, log_manager)) {
                 log_manager->log_message("Failed to create shader with path: " + path.generic_string(),
                                          logging::log_levels::error,
@@ -44,7 +44,7 @@ namespace pbr::shared::apis::graphics::opengl {
         [[nodiscard]]
         bool create(const std::filesystem::path& path,
                     const std::shared_ptr<data::data_manager>& data_manager,
-                    const std::shared_ptr<logging::log_manager>& log_manager) noexcept;
+                    const std::shared_ptr<logging::ilog_manager>& log_manager) noexcept;
 
         /// Returns any error messages during this shader's creation
         /// \returns Any error messages during this shader's creation

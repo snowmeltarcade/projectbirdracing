@@ -12,7 +12,7 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \param log_manager The log manager
         /// \param list_path The path to the resource list from the `data` directory
         shader_manager(const std::shared_ptr<data::data_manager>& data_manager,
-                       const std::shared_ptr<apis::logging::log_manager>& log_manager,
+                       const std::shared_ptr<logging::ilog_manager>& log_manager,
                        const std::filesystem::path& list_path)
                        : resource::resource_manager<shader>(data_manager, log_manager, list_path),
                            _data_manager(data_manager),
@@ -35,6 +35,6 @@ namespace pbr::shared::apis::graphics::opengl {
         std::shared_ptr<data::data_manager> _data_manager;
 
         /// The log manager
-        std::shared_ptr<apis::logging::log_manager> _log_manager;
+        std::shared_ptr<logging::ilog_manager> _log_manager;
     };
 }

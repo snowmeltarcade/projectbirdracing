@@ -1,6 +1,7 @@
 #pragma once
 
 #include "irender_target.h"
+#include "shader_manager.h"
 
 #include <vector>
 #include <memory>
@@ -12,9 +13,13 @@ namespace pbr::shared::apis::graphics::opengl {
     public:
         /// Creates this compositor
         /// \param destination The render target to render the composed render targets
-        compositor(std::shared_ptr<irender_target> destination)
+        /// \param shader_manager The shader manager
+        compositor(std::shared_ptr<irender_target> destination,
+                   const std::shared_ptr<shader_manager>& shader_manager)
             : _destination(destination) {
             assert((destination));
+
+            auto _ = shader_manager->get("compositor");
         }
         /// Destroys this compositor
         ~compositor() = default;

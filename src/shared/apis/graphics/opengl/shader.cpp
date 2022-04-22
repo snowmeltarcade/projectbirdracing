@@ -3,7 +3,7 @@
 namespace pbr::shared::apis::graphics::opengl {
     bool shader::create(const std::filesystem::path& path,
                         const std::shared_ptr<data::data_manager>& data_manager,
-                        const std::shared_ptr<logging::log_manager>& log_manager) noexcept {
+                        const std::shared_ptr<logging::ilog_manager>& log_manager) noexcept {
         auto shader_code = data_manager->read_shader_code(path);
         if (!shader_code) {
             log_manager->log_message("Failed to load shader at path: " + path.generic_string(),
