@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <filesystem>
+#include <cassert>
 
 namespace pbr::shared::resource {
     /// Manages resources that need allocating and deallocating. When a resource is
@@ -19,7 +20,20 @@ namespace pbr::shared::resource {
     class resource_manager {
     public:
         /// Creates this resource manager
-        resource_manager() = default;
+        /// \param data_manager The data manager
+        /// \param list_path The path to the resource list from the `data` directory
+        resource_manager(const std::shared_ptr<data::data_manager>& data_manager,
+                         const std::shared_ptr<apis::logging::log_manager>& log_manager,
+                         const std::filesystem::path& list_path) {
+            assert((data_manager));
+            assert((log_manager));
+
+            if (!this->load_list(data_manager, log_manager, list_path)) {
+                log_manager->log_message("Failed to load config list with path: `" + list_path.generic_string(),
+                                         apis::logging::log_levels::error,
+                                         "Resource");
+            }
+        }
 
         /// Destroys this resource manager
         virtual ~resource_manager() = default;
@@ -30,7 +44,9 @@ namespace pbr::shared::resource {
         [[nodiscard]]
         std::shared_ptr<T> get(const std::string& name) noexcept {
             if (!this->_resources.contains(name)) {
-                auto loaded_resource = this->load(name);
+                auto path = this->_paths[name];
+                auto loaded_resource = this->load(path);
+
                 this->_resources[name] = loaded_resource;
             }
 
@@ -60,8 +76,42 @@ namespace pbr::shared::resource {
         std::unordered_map<std::string, std::filesystem::path> _paths;
 
         /// Loads the paths from the resource descriptor file
+        /// \param data_manager The data manager
+        /// \param log_manager The log manager
+        /// \param settings_path The path of the file to load
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
-        bool load_paths() noexcept { return true; }
+        bool load_list(const std::shared_ptr<data::data_manager>& data_manager,
+                       const std::shared_ptr<apis::logging::log_manager>& log_manager,
+                       const std::filesystem::path& settings_path) noexcept {
+            auto settings = data_manager->read_settings(settings_path);
+            if (!settings) {
+                log_manager->log_message("Failed to load settings at path: " + settings_path.generic_string(),
+                                         apis::logging::log_levels::error,
+                                         "Resource");
+                return false;
+            }
+
+            auto resources = settings->get_as_settings_array("resources");
+            if (!resources) {
+                log_manager->log_message("Failed to find `resources` key for path: " + settings_path.generic_string(),
+                                         apis::logging::log_levels::error,
+                                         "Resource");
+                return false;
+            }
+
+            for (auto& resource : *resources) {
+                auto resource_name = resource.get("name");
+                auto resource_path = resource.get("path");
+
+                if (!resource_name || !resource_path) {
+                    continue;
+                }
+
+                this->_paths[*resource_name] = *resource_path;
+            }
+
+            return true;
+        }
     };
 }
