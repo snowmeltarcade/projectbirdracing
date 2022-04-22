@@ -3,6 +3,7 @@ target_sources(
     PUBLIC
         data_manager.h
         settings.h
+        shader_code.h
     PRIVATE
         data_manager.cpp
         settings.cpp

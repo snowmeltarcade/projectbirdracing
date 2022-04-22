@@ -8,12 +8,16 @@ target_sources(
         irender_target.h
         opengl_dependencies.h
         opengl_errors.h
+        shader.h
+        shader_manager.h
     PRIVATE
         compositor.cpp
         context.cpp
         framebuffer.cpp
         graphics_manager.cpp
         opengl_errors.cpp
+        shader.cpp
+        shader_manager.cpp
 )
 
 add_subdirectory("render_targets")

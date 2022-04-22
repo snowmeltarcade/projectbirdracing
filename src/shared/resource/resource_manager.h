@@ -21,6 +21,7 @@ namespace pbr::shared::resource {
     public:
         /// Creates this resource manager
         /// \param data_manager The data manager
+        /// \param log_manager The log manager
         /// \param list_path The path to the resource list from the `data` directory
         resource_manager(const std::shared_ptr<data::data_manager>& data_manager,
                          const std::shared_ptr<apis::logging::log_manager>& log_manager,
@@ -60,10 +61,12 @@ namespace pbr::shared::resource {
         /// \param resource The resource to free
         void free(std::shared_ptr<T>& resource) noexcept {
             assert((resource));
+            // TODO: Implement the rest of the resource manager in an appropriate PR
         }
 
     protected:
         /// This loads a resource
+        /// \param path The path os the resource
         /// \returns The loaded resource
         [[nodiscard]]
         virtual std::shared_ptr<T> load(const std::filesystem::path& path) noexcept = 0;
