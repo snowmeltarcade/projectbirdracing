@@ -10,6 +10,7 @@ target_sources(
         opengl_errors.h
         shader.h
         shader_manager.h
+        shader_program.h
     PRIVATE
         compositor.cpp
         context.cpp
@@ -18,6 +19,7 @@ target_sources(
         opengl_errors.cpp
         shader.cpp
         shader_manager.cpp
+        shader_program.cpp
 )
 
 add_subdirectory("render_targets")

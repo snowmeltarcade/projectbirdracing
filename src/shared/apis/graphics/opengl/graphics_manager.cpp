@@ -161,7 +161,8 @@ namespace pbr::shared::apis::graphics::opengl {
         this->_screen_render_target = std::make_shared<render_targets::screen>();
 
         this->_compositor = std::make_shared<compositor>(this->_screen_render_target,
-                                                         this->_shader_manager);
+                                                         this->_shader_manager,
+                                                         this->_log_manager);
     }
 
     void graphics_manager::sync_resolutions() noexcept {

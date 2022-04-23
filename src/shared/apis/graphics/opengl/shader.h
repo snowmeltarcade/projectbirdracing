@@ -32,6 +32,13 @@ namespace pbr::shared::apis::graphics::opengl {
             this->_id = 0;
         }
 
+        /// Returns the native id
+        /// \returns The native id
+        [[nodiscard]]
+        GLuint native_id() const noexcept {
+            return this->_id;
+        }
+
     private:
         /// The shader id
         GLuint _id;

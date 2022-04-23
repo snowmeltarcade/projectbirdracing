@@ -2,6 +2,7 @@
 
 #include "irender_target.h"
 #include "shader_manager.h"
+#include "shader_program.h"
 
 #include <vector>
 #include <memory>
@@ -14,12 +15,18 @@ namespace pbr::shared::apis::graphics::opengl {
         /// Creates this compositor
         /// \param destination The render target to render the composed render targets
         /// \param shader_manager The shader manager
+        /// \param log_manager The log manager
         compositor(std::shared_ptr<irender_target> destination,
-                   const std::shared_ptr<shader_manager>& shader_manager)
+                   const std::shared_ptr<shader_manager>& shader_manager,
+                   const std::shared_ptr<logging::ilog_manager>& log_manager)
             : _destination(destination) {
             assert((destination));
 
-            auto _ = shader_manager->get("compositor_vertex");
+            if (!this->load_resources(shader_manager, log_manager)) {
+                log_manager->log_message("Failed to load resources for compositor.",
+                                         logging::log_levels::error,
+                                         "Graphics");
+            }
         }
 
         /// Destroys this compositor
@@ -32,5 +39,16 @@ namespace pbr::shared::apis::graphics::opengl {
     private:
         /// The destination render target
         std::shared_ptr<irender_target> _destination;
+
+        /// The shader program to use
+        std::shared_ptr<shader_program> _shader_program;
+
+        /// Loads the resources needed for this compositor
+        /// \param shader_manager The shader manager
+        /// \param log_manager The log manager
+        /// \returns `true` upon success, else `false`
+        [[nodiscard]]
+        bool load_resources(const std::shared_ptr<shader_manager>& shader_manager,
+                            const std::shared_ptr<logging::ilog_manager>& log_manager) noexcept;
     };
 }
