@@ -17,6 +17,7 @@
   - [Window Manager](#window-manager)
   - [Network Manager](#network-manager)
   - [Resource Manager](#resource-manager)
+    - [Resource Manager Lists](#resource-manager-lists)
   - [Memory Manager](#memory-manager)
   - [Script Manager](#script-manager)
   - [Scene Manager](#scene-manager)
@@ -156,6 +157,27 @@ See [here](./networking.md) for more information.
 Loads and frees any needed resources, such as images, mesh, audio and world data.
 
 To avoid loading the same resource more than once, each time a resource is requested, its usage count will increase. If it is not yet loaded, the resource will first be loaded. When a resource is freed, its usage count is decreased. If the usage count becomes zero, the resource is destroyed and any memory used is freed.
+
+### Resource Manager Lists
+
+Resource are detected by placing them in a settings file called `list.json`. When a resource manager loads, it searches for resources by means of this file. The format of this file is as follows:
+
+```json
+{
+  "resources": [
+    {
+      "name": "name",
+      "path": "path"
+    }
+  ]
+}
+```
+
+`name` is the name of the resource. This name will be used to load the resource from the resource manager's `get()` function.
+
+`path` is the path relative to the `list.json` file.
+
+Note: the key must be `resources` for the resource manager to detect the resources.
 
 ## Memory Manager
 
