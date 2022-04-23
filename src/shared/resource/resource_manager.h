@@ -25,9 +25,10 @@ namespace pbr::shared::resource {
         /// \param list_path The path to the resource list from the `data` directory
         resource_manager(const std::shared_ptr<data::data_manager>& data_manager,
                          const std::shared_ptr<apis::logging::ilog_manager>& log_manager,
-                         const std::filesystem::path& list_path) {
+                         const std::filesystem::path& list_path)
+                            : _log_manager(log_manager) {
             assert((data_manager));
-            assert((log_manager));
+            assert((this->_log_manager));
 
             if (!this->load_list(data_manager, log_manager, list_path)) {
                 log_manager->log_message("Failed to load config list with path: `" + list_path.generic_string(),
@@ -45,8 +46,22 @@ namespace pbr::shared::resource {
         [[nodiscard]]
         std::shared_ptr<T> get(const std::string& name) noexcept {
             if (!this->_resources.contains(name)) {
+                if (!this->_paths.contains(name)) {
+                    this->_log_manager->log_message("Failed to get resource with name: " + name,
+                                                    apis::logging::log_levels::error,
+                                                    "Resource");
+                    return {};
+                }
+
                 auto path = this->_paths[name];
+
                 auto loaded_resource = this->load(path);
+                if (!loaded_resource) {
+                    this->_log_manager->log_message("Failed to get resource with name: " + name,
+                                                    apis::logging::log_levels::error,
+                                                    "Resource");
+                    return {};
+                }
 
                 this->_resources[name] = loaded_resource;
             }
@@ -77,6 +92,9 @@ namespace pbr::shared::resource {
 
         /// The filepaths from the names
         std::unordered_map<std::string, std::filesystem::path> _paths;
+
+        /// The log manager
+        std::shared_ptr<apis::logging::ilog_manager> _log_manager;
 
         /// Loads the paths from the resource descriptor file
         /// \param data_manager The data manager
@@ -111,7 +129,9 @@ namespace pbr::shared::resource {
                     continue;
                 }
 
-                this->_paths[*resource_name] = *resource_path;
+                // the resource path is relative to the settings path, so we need
+                // to prepend the path of the settings file
+                this->_paths[*resource_name] = settings_path.parent_path() / *resource_path;
             }
 
             return true;

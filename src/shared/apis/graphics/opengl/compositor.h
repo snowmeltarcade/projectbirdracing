@@ -19,8 +19,9 @@ namespace pbr::shared::apis::graphics::opengl {
             : _destination(destination) {
             assert((destination));
 
-            auto _ = shader_manager->get("compositor");
+            auto _ = shader_manager->get("compositor_vertex");
         }
+
         /// Destroys this compositor
         ~compositor() = default;
 

@@ -122,10 +122,11 @@ TEST_CASE("read_shader_code - valid path - returns correct shader types", "[shar
     std::vector<std::pair<std::string, apis::graphics::shader_types>> test_data {
         { "shader_vertex", apis::graphics::shader_types::vertex, },
         { "shader_fragment", apis::graphics::shader_types::fragment, },
+        { "shader_unknown", apis::graphics::shader_types::fragment, },
     };
 
     for (const auto& [path, expected] : test_data) {
-        auto result = dm.read_shader_code(path);
+        auto result = dm.read_shader_code(path, expected);
         REQUIRE(result);
 
         REQUIRE(result->type == expected);

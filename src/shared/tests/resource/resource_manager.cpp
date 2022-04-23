@@ -47,6 +47,16 @@ public:
 /// get
 //////////
 
+TEST_CASE("get - invalid name - returns nullptr", "[shared/resource/resource_manager]") {
+    auto data_manager = create_data_manager();
+
+    test_resource_manager manager(data_manager);
+
+    auto result = manager.get("invalid name");
+
+    REQUIRE_FALSE(result);
+}
+
 TEST_CASE("get - item not loaded - loads item", "[shared/resource/resource_manager]") {
     auto data_manager = create_data_manager();
 

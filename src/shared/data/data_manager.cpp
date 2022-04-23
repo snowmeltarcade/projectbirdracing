@@ -42,7 +42,7 @@ namespace pbr::shared::data {
     }
 
     std::optional<settings> data_manager::read_settings(const std::filesystem::path& relative_path) const noexcept {
-        auto path = this->resolve_path(relative_path, {".json"});
+        auto path = this->resolve_path(relative_path, { ".json" });
         if (!path) {
             this->_log_manager->log_message("Failed to find path: " + relative_path.generic_string(),
                                             apis::logging::log_levels::error,
@@ -82,8 +82,9 @@ namespace pbr::shared::data {
     }
 
     std::optional<shader_code> data_manager::read_shader_code(
-        const std::filesystem::path& relative_path) const noexcept {
-        auto path = this->resolve_path(relative_path, {".vert", ".frag"});
+        const std::filesystem::path& relative_path,
+        const apis::graphics::shader_types type_hint) const noexcept {
+        auto path = this->resolve_path(relative_path, { ".vert", ".frag", ".glsl" });
         if (!path) {
             this->_log_manager->log_message("Failed to find path: " + relative_path.generic_string(),
                                             apis::logging::log_levels::error,
@@ -109,7 +110,7 @@ namespace pbr::shared::data {
 
         auto file_extension = path->extension();
 
-        auto shader_type = apis::graphics::shader_types::vertex;
+        auto shader_type = type_hint;
 
         // we default to vertex, so no need to check for that
         if (file_extension == ".frag") {

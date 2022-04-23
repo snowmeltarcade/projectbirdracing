@@ -88,7 +88,7 @@ namespace pbr::shared::apis::graphics::opengl {
 
     private:
         /// The path of the shader list
-        static inline const std::string shader_list_path = "graphics/shaders/list.json";
+        static inline const std::string shader_list_path = "graphics/shaders/list";
 
         /// The data manager
         std::shared_ptr<data::data_manager> _data_manager;

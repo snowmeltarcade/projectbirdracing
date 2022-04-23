@@ -35,10 +35,12 @@ namespace pbr::shared::data {
 
         /// Reads shader code from the passed file. The file extension (not needed in the relative path),
         /// will be used to determine the type of shader this is. If the file extension is not known, the
-        /// shader type will default to a vertex shader.
+        /// shader type will default to the passed type hint.
         /// \param relative_path The relative path to the shader file from the `data` directory
+        /// \param type_hint If the file extension is not know, this is used to identify the shader type
         /// \returns The read shader code, else empty if an error occurred
-        std::optional<shader_code> read_shader_code(const std::filesystem::path& relative_path) const noexcept;
+        std::optional<shader_code> read_shader_code(const std::filesystem::path& relative_path,
+                                                    const apis::graphics::shader_types type_hint = apis::graphics::shader_types::vertex) const noexcept;
 
     private:
         /// The path to the `data` directory
