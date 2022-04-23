@@ -22,6 +22,7 @@ target_include_directories(
     ${VMA_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIRS}
     "${CATCH2_INCLUDE_DIRS}"
+    ${GLEW_INCLUDE_DIRS}
 )
 
 add_subdirectory("apis")
