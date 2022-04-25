@@ -29,6 +29,11 @@ namespace pbr::shared::apis::graphics::opengl {
                      color.a / 255.0f);
     }
 
+    /// Sets the stencil buffer size
+    void setup_stencil_size() {
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    }
+
     bool graphics_manager::load_api(const std::filesystem::path&) noexcept {
         this->_log_manager->log_message("Loading the OpenGL graphics API...",
                                         logging::log_levels::info,
@@ -80,6 +85,8 @@ namespace pbr::shared::apis::graphics::opengl {
 
         set_clear_color(colors::black);
 
+        setup_stencil_size();
+
         this->_shader_manager = std::make_shared<shader_manager>(this->_data_manager,
                                                                  this->_log_manager,
                                                                  graphics_manager::shader_list_path);
@@ -127,6 +134,8 @@ namespace pbr::shared::apis::graphics::opengl {
 
         auto application_window = this->_window_manager->get_main_application_window();
         application_window->update_display();
+
+        CHECK_OPENGL_ERROR_NO_RETURN(this->_log_manager);
     }
 
     bool graphics_manager::setup_glew() const noexcept {

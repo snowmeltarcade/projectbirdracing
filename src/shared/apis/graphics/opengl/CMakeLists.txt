@@ -6,6 +6,7 @@ target_sources(
         framebuffer.h
         graphics_manager.h
         irender_target.h
+        mesh.h
         opengl_dependencies.h
         opengl_errors.h
         shader.h
@@ -16,6 +17,7 @@ target_sources(
         context.cpp
         framebuffer.cpp
         graphics_manager.cpp
+        mesh.cpp
         opengl_errors.cpp
         shader.cpp
         shader_manager.cpp

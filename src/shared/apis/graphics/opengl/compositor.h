@@ -3,6 +3,7 @@
 #include "irender_target.h"
 #include "shader_manager.h"
 #include "shader_program.h"
+#include "mesh.h"
 
 #include <vector>
 #include <memory>
@@ -42,6 +43,9 @@ namespace pbr::shared::apis::graphics::opengl {
 
         /// The shader program to use
         std::shared_ptr<shader_program> _shader_program;
+
+        /// The mesh to render against
+        std::shared_ptr<mesh> _mesh;
 
         /// Loads the resources needed for this compositor
         /// \param shader_manager The shader manager

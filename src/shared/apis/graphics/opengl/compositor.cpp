@@ -6,18 +6,17 @@ namespace pbr::shared::apis::graphics::opengl {
             //return;
         }
 
+        // loop through submitted targets
+            // get texture id
+            // bind texture id
+            //this->_mesh->render();
+
+        this->_destination->submit();
         this->_destination->bind();
 
         this->_shader_program->use();
 
-        // bind shader and vbo
-
-        // loop through submitted targets
-            // get texture id
-            // bind texture id
-            // render
-
-        this->_destination->submit();
+        this->_mesh->render();
 
         this->_shader_program->clear_use();
 
@@ -67,6 +66,8 @@ namespace pbr::shared::apis::graphics::opengl {
                                      "Graphics");
             return false;
         }
+
+        this->_mesh = std::make_shared<mesh>(log_manager);
 
         return true;
     }
