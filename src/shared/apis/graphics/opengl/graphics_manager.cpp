@@ -6,6 +6,8 @@
 
 #include <sstream>
 
+using namespace std::string_literals;
+
 namespace pbr::shared::apis::graphics::opengl {
     /// Sets the api version
     void set_api_version() {
@@ -40,10 +42,7 @@ namespace pbr::shared::apis::graphics::opengl {
                                         "Graphics");
 
         if (SDL_VideoInit(nullptr) < 0) {
-            this->_log_manager->log_message("Failed to init SDL with error:",
-                                            logging::log_levels::error,
-                                            "Graphics");
-            this->_log_manager->log_message(SDL_GetError(),
+            this->_log_manager->log_message("Failed to init SDL with error: "s + SDL_GetError(),
                                             logging::log_levels::error,
                                             "Graphics");
             return false;

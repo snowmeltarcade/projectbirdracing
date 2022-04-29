@@ -1,6 +1,7 @@
 #pragma once
 
 #include "shader.h"
+#include "shader_manager.h"
 #include "shared/apis/logging/ilog_manager.h"
 
 #include <memory>
@@ -22,6 +23,16 @@ namespace pbr::shared::apis::graphics::opengl {
             glDeleteProgram(this->_id);
             this->_id = 0;
         }
+
+        /// Creates a shader program from the passed shader names
+        /// \param log_manager The log manager
+        /// \param shader_manager The shader manager
+        /// \param names The names of the shaders to attach
+        /// \returns The created shader program, else empty on error. If there are
+        /// no names, empty is also returned.
+        static std::optional<std::shared_ptr<shader_program>> create(std::shared_ptr<logging::ilog_manager> log_manager,
+                                                                     std::shared_ptr<shader_manager> shader_manager,
+                                                                     std::initializer_list<std::string> names) noexcept;
 
         /// Attaches a shader to this program
         /// \param shader The shader to attach

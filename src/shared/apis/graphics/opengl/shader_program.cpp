@@ -3,6 +3,47 @@
 #include <cassert>
 
 namespace pbr::shared::apis::graphics::opengl {
+    std::optional<std::shared_ptr<shader_program>> shader_program::create(
+        std::shared_ptr<logging::ilog_manager> log_manager,
+        std::shared_ptr<shader_manager> shader_manager,
+        std::initializer_list<std::string> names) noexcept {
+
+        assert((log_manager));
+        assert((shader_manager));
+
+        if (names.size() == 0) {
+            return {};
+        }
+
+        auto program = std::make_shared<shader_program>(log_manager);
+
+        for (const auto& name : names) {
+            auto shader = shader_manager->get(name);
+            if (!shader) {
+                log_manager->log_message("Failed to find shader with name: " + name,
+                                         logging::log_levels::warning,
+                                         "Graphics");
+                continue;
+            }
+
+            if (!program->attach_shader(shader)) {
+                log_manager->log_message("Failed to attach shader with name: " + name,
+                                         logging::log_levels::warning,
+                                         "Graphics");
+                continue;
+            }
+        }
+
+        if (!program->link()) {
+            log_manager->log_message("Failed to link shader manager",
+                                     logging::log_levels::warning,
+                                     "Graphics");
+            return {};
+        }
+
+        return program;
+    }
+
     bool shader_program::attach_shader(const std::shared_ptr<shader>& shader) noexcept {
         assert((shader));
 
