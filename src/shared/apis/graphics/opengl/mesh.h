@@ -2,6 +2,7 @@
 
 #include "shared/apis/logging/ilog_manager.h"
 #include "opengl_dependencies.h"
+#include "vertex.h"
 
 #include <memory>
 #include <vector>
@@ -35,7 +36,7 @@ namespace pbr::shared::apis::graphics::opengl {
 
     private:
         /// The vertices
-        std::vector<GLfloat> _vertices;
+        std::vector<vertex> _vertices;
 
         /// The indices
         std::vector<GLushort> _indices;

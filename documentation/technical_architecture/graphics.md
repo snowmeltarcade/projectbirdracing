@@ -91,10 +91,10 @@ The required vertex layout for all meshes is as follows:
 | Position X | `single` |
 | Position Y | `single` |
 | Position Z | `single` |
-| Color R | `byte` |
-| Color G | `byte` |
-| Color B | `byte` |
-| Color A | `byte` |
+| Color R | `single` |
+| Color G | `single` |
+| Color B | `single` |
+| Color A | `single` |
 | Texture U | `single` |
 | Texture V | `single` |
 

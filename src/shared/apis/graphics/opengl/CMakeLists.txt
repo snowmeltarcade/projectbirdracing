@@ -12,6 +12,7 @@ target_sources(
         shader.h
         shader_manager.h
         shader_program.h
+        vertex.h
     PRIVATE
         compositor.cpp
         context.cpp
