@@ -37,7 +37,25 @@ namespace pbr::shared::apis::graphics::opengl {
         set_vertex_attribute(attribute_index, 2, offset);
     }
 
-    bool mesh::construct(const std::shared_ptr<logging::ilog_manager>& log_manager) noexcept {
+    bool mesh::construct(const std::vector<vertex>& vertices,
+                         const std::vector<vertex_index_type>& indices,
+                         const std::shared_ptr<logging::ilog_manager>& log_manager) noexcept {
+        if (vertices.empty()) {
+            log_manager->log_message("Empty vertices.",
+                                     logging::log_levels::error,
+                                     "Graphics");
+
+            return false;
+        }
+
+        if (indices.empty()) {
+            log_manager->log_message("Empty indices.",
+                                     logging::log_levels::error,
+                                     "Graphics");
+
+            return false;
+        }
+
         glGenVertexArrays(1, &this->_vao_id);
 
         glGenBuffers(1, &this->_vbo_id);
@@ -51,22 +69,13 @@ namespace pbr::shared::apis::graphics::opengl {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->_index_buffer_id);
 
-        // this is for test
-        this->_vertices = {
-            { { -1.0f, -1.0f, 0.0f, }, { 1.0f, 0.8f, 0.0f, 1.0f, }, { 0.0f, 0.0f } },
-            { { 1.0f, -1.0f, 0.0f, }, { 0.0f, 0.3f, 0.5f, 1.0f, }, { 0.0f, 0.0f } },
-            { { 0.0f, 1.0f, 0.0f, }, { 0.5f, 0.1f, 1.0f, 1.0f, }, { 0.0f, 0.0f } },
-        };
-
         glBindBuffer(GL_ARRAY_BUFFER, this->_vbo_id);
-        glBufferData(GL_ARRAY_BUFFER, this->_vertices.size() * sizeof(vertex), &this->_vertices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertex), &vertices[0], GL_STATIC_DRAW);
 
-        this->_indices = {
-            0, 1, 2,
-        };
+        this->_index_count = indices.size();
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->_index_buffer_id);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->_indices.size() * sizeof(GLushort), &this->_indices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->_index_count * sizeof(GLushort), &indices[0], GL_STATIC_DRAW);
 
         glBindVertexArray(0);
 
@@ -78,7 +87,7 @@ namespace pbr::shared::apis::graphics::opengl {
     void mesh::render() noexcept {
         glBindVertexArray(this->_vao_id);
 
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(this->_indices.size()), GL_UNSIGNED_SHORT, nullptr);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(this->_index_count), GL_UNSIGNED_SHORT, nullptr);
 
         glBindVertexArray(0);
     }

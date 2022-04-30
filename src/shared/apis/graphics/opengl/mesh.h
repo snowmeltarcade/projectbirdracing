@@ -9,15 +9,23 @@
 #include <cassert>
 
 namespace pbr::shared::apis::graphics::opengl {
-    /// A mesh of vertices, containing an index and vertex buffer
+    /// A vertex index
+    typedef GLushort vertex_index_type;
+
+    /// A mesh of vertices, containing an index and vertex buffer. The vertex and index data
+    /// is not saved.
     class mesh final {
     public:
         /// Constructs this mesh
+        /// \param vertices The vertex data
+        /// \param indices The index data
         /// \param log_manager The log manager
-        mesh(const std::shared_ptr<logging::ilog_manager>& log_manager) {
+        mesh(const std::vector<vertex>& vertices,
+             const std::vector<vertex_index_type>& indices,
+             const std::shared_ptr<logging::ilog_manager>& log_manager) {
             assert((log_manager));
 
-            if (!this->construct(log_manager)) {
+            if (!this->construct(vertices, indices, log_manager)) {
                 log_manager->log_message("Failed to construct mesh.",
                                          logging::log_levels::warning,
                                          "Graphics");
@@ -35,12 +43,6 @@ namespace pbr::shared::apis::graphics::opengl {
         void render() noexcept;
 
     private:
-        /// The vertices
-        std::vector<vertex> _vertices;
-
-        /// The indices
-        std::vector<GLushort> _indices;
-
         /// The vertex array object id
         GLuint _vao_id;
 
@@ -50,9 +52,17 @@ namespace pbr::shared::apis::graphics::opengl {
         /// The index buffer id
         GLuint _index_buffer_id;
 
+        /// The number of indices
+        size_t _index_count;
+
         /// Constructs the buffers this mesh needs
+        /// \param vertices The vertex data
+        /// \param indices The index data
+        /// \param log_manager The log manager
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
-        bool construct(const std::shared_ptr<logging::ilog_manager>& log_manager) noexcept;
+        bool construct(const std::vector<vertex>& vertices,
+                       const std::vector<vertex_index_type>& indices,
+                       const std::shared_ptr<logging::ilog_manager>& log_manager) noexcept;
     };
 }

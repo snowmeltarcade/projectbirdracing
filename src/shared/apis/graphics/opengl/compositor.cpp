@@ -1,4 +1,5 @@
 #include "compositor.h"
+#include "mesh_shapes.h"
 
 namespace pbr::shared::apis::graphics::opengl {
     void compositor::render(const std::vector<std::shared_ptr<irender_target>>& submitted_targets) noexcept {
@@ -38,7 +39,9 @@ namespace pbr::shared::apis::graphics::opengl {
             this->_shader_program = *program;
         }
 
-        this->_mesh = std::make_shared<mesh>(log_manager);
+        // the screen goes from -1..1, so we want 2.0f in width and height
+        this->_mesh = create_rectangle(-1.0f, 1.0f, 0.0f, 2.0f, 2.0f, log_manager);
+        assert((this->_mesh));
 
         return true;
     }
