@@ -166,7 +166,7 @@ namespace pbr::shared::apis::graphics::opengl {
     }
 
     void graphics_manager::setup_compositor() noexcept {
-        this->_screen_render_target = std::make_shared<render_targets::screen>();
+        this->_screen_render_target = std::make_shared<render_targets::screen>(1024, 768);
 
         this->_compositor = std::make_shared<compositor>(this->_screen_render_target,
                                                          this->_shader_manager,

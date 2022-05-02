@@ -17,10 +17,10 @@ namespace pbr::shared::apis::graphics::opengl {
         const glm::vec3 bottom_right(left + width, top - height, z);
 
         const std::vector<vertex> vertices {
-            { top_left, { 1.0f, 0.8f, 0.0f, 1.0f, }, { 0.0f, 0.0f } },
-            { top_right, { 0.0f, 0.3f, 0.5f, 1.0f, }, { 0.0f, 0.0f } },
+            { top_left, { 1.0f, 0.8f, 0.0f, 1.0f, }, { 0.0f, 1.0f } },
+            { top_right, { 0.0f, 0.3f, 0.5f, 1.0f, }, { 1.0f, 1.0f } },
             { bottom_left, { 0.5f, 0.1f, 1.0f, 1.0f, }, { 0.0f, 0.0f } },
-            { bottom_right, { 0.5f, 0.1f, 1.0f, 1.0f, }, { 0.0f, 0.0f } },
+            { bottom_right, { 0.5f, 0.1f, 1.0f, 1.0f, }, { 1.0f, 0.0f } },
         };
 
         static const std::vector<vertex_index_type> indices {

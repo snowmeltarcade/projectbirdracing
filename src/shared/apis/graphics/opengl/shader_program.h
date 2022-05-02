@@ -55,6 +55,12 @@ namespace pbr::shared::apis::graphics::opengl {
             glUseProgram(0);
         }
 
+        /// Returns the native id
+        [[nodiscard]]
+        GLuint id() const noexcept {
+            return this->_id;
+        }
+
     private:
         /// The log manager
         std::shared_ptr<logging::ilog_manager> _log_manager;
