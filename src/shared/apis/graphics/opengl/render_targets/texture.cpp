@@ -39,7 +39,7 @@ namespace pbr::shared::apis::graphics::opengl::render_targets {
         glBindTexture(GL_TEXTURE_2D, this->_texture_id);
         CHECK_OPENGL_ERROR(log_manager);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->_width, this->_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->_width, this->_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         CHECK_OPENGL_ERROR(log_manager);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
