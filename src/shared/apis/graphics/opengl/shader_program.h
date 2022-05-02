@@ -61,6 +61,11 @@ namespace pbr::shared::apis::graphics::opengl {
             return this->_id;
         }
 
+        /// Binds the texture names to their locations. The location is set to
+        /// the index of the name in the vector.
+        /// \param names The texture names
+        void bind_textures(const std::vector<std::string>& names) const noexcept;
+
     private:
         /// The log manager
         std::shared_ptr<logging::ilog_manager> _log_manager;

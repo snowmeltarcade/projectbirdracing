@@ -69,9 +69,6 @@ namespace pbr::shared::apis::graphics::opengl::render_targets {
 
         this->unbind();
 
-        glBindTexture(GL_TEXTURE_2D, 0);
-        CHECK_OPENGL_ERROR(log_manager);
-
         return true;
     }
 }

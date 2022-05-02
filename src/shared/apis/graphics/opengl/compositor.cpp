@@ -26,15 +26,7 @@ namespace pbr::shared::apis::graphics::opengl {
 
         this->_shader_program->use();
 
-//        auto texture_uniform = glGetUniformLocation(this->_shader_program->id(), "input_texture");
-//        if (texture_uniform < 0) {
-//            this->_log_manager->log_message("Invalid uniform name.",
-//                                            logging::log_levels::warning,
-//                                            "Graphics");
-//        }
-//        CHECK_OPENGL_ERROR_NO_RETURN(this->_log_manager);
-//
-//        glUniform1i(texture_uniform, this->_texture_target->texture_id());
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, this->_texture_target->texture_id());
         CHECK_OPENGL_ERROR_NO_RETURN(this->_log_manager);
 
@@ -61,6 +53,8 @@ namespace pbr::shared::apis::graphics::opengl {
         } else {
             this->_shader_program = *program;
         }
+
+        this->_shader_program->bind_textures({ "input_texture" });
 
         if (auto program = shader_program::create(log_manager, shader_manager,
                                                   { "color_vertex", "color_fragment" }); !program) {

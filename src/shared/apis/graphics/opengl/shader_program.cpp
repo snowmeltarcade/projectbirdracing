@@ -107,4 +107,28 @@ namespace pbr::shared::apis::graphics::opengl {
 
         return final_log;
     }
+
+    void shader_program::bind_textures(const std::vector<std::string>& names) const noexcept {
+        if (names.empty()) {
+            return;
+        }
+
+        this->use();
+
+        auto location_index {0u};
+
+        for (const auto& name: names) {
+            auto location = glGetUniformLocation(this->_id, name.c_str());
+            if (location < 0) {
+                this->_log_manager->log_message("Failed to find texture with name: `" + name + "`.",
+                                                logging::log_levels::warning,
+                                                "Graphics");
+                continue;
+            }
+
+            glUniform1i(location, location_index++);
+        }
+
+        this->clear_use();
+    }
 }
