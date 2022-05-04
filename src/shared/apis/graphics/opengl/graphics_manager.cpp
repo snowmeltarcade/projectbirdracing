@@ -3,7 +3,6 @@
 #include "graphics_manager.h"
 #include "opengl_errors.h"
 #include "shared/apis/graphics/color.h"
-#include "render_targets/texture.h"
 #include "mesh_shapes.h"
 
 #include <sstream>
@@ -36,6 +35,11 @@ namespace pbr::shared::apis::graphics::opengl {
     /// Sets the stencil buffer size
     void setup_stencil_size() {
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    }
+
+    void setup_blending() {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     bool graphics_manager::load_api(const std::filesystem::path&) noexcept {
@@ -88,6 +92,8 @@ namespace pbr::shared::apis::graphics::opengl {
 
         setup_stencil_size();
 
+        setup_blending();
+
         this->_shader_manager = std::make_shared<shader_manager>(this->_data_manager,
                                                                  this->_log_manager,
                                                                  graphics_manager::shader_list_path);
@@ -128,23 +134,21 @@ namespace pbr::shared::apis::graphics::opengl {
         this->_renderable_entities = renderable_entities;
     }
 
-    void graphics_manager::submit_frame_for_render() noexcept {
-        // submit render targets to compositor
-
+    std::shared_ptr<render_targets::texture> graphics_manager::render_target(float x, float y, float w, float h) {
         auto texture_target = std::make_shared<render_targets::texture>(1024, 768, this->_log_manager);
 
         std::shared_ptr<shader_program> shader;
         if (auto program = shader_program::create(this->_log_manager, this->_shader_manager,
                                                   { "color_vertex", "color_fragment" }); !program) {
             this->_log_manager->log_message("Failed to create shader program.",
-                                     logging::log_levels::error,
-                                     "Graphics");
-            return;
+                                            logging::log_levels::error,
+                                            "Graphics");
+            return {};
         } else {
             shader = *program;
         }
 
-        auto mesh = create_rectangle(0.0f, 0.0f, 0.0f, 0.5f, 0.5f, this->_log_manager);
+        auto mesh = create_rectangle(x, y, 0.0f, w, h, this->_log_manager);
         assert((mesh));
 
         texture_target->bind();
@@ -154,7 +158,17 @@ namespace pbr::shared::apis::graphics::opengl {
         shader->clear_use();
         texture_target->unbind();
 
-        this->_compositor->render({ texture_target });
+        return texture_target;
+    }
+
+    void graphics_manager::submit_frame_for_render() noexcept {
+        // submit render targets to compositor
+
+        auto texture_target1 = render_target(0.0f, 0.0f, 0.5f, 0.5f);
+        auto texture_target2 = render_target(0.5f, 0.5f, 0.5f, 0.5f);
+        auto texture_target3 = render_target(-0.5f, -0.5f, 0.5f, 0.5f);
+
+        this->_compositor->render({ texture_target1, texture_target2, texture_target3 });
 
         auto application_window = this->_window_manager->get_main_application_window();
         application_window->update_display();

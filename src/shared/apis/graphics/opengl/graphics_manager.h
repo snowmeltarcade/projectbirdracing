@@ -9,6 +9,7 @@
 #include "shader_manager.h"
 #include "context.h"
 #include "render_targets/screen.h"
+#include "render_targets/texture.h"
 
 #include <cassert>
 
@@ -141,5 +142,7 @@ namespace pbr::shared::apis::graphics::opengl {
 
         /// Resizes all render targets to match the resolution of the application window
         void sync_resolutions() noexcept;
+
+        std::shared_ptr<render_targets::texture> render_target(float x, float y, float w, float h);
     };
 }
