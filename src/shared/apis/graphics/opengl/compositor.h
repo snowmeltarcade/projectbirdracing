@@ -20,7 +20,7 @@ namespace pbr::shared::apis::graphics::opengl {
         compositor(std::shared_ptr<irender_target> destination,
                    const std::shared_ptr<shader_manager>& shader_manager,
                    const std::shared_ptr<logging::ilog_manager>& log_manager)
-            : _destination(destination), _log_manager(log_manager) {
+            : _destination(destination) {
             assert((destination));
             assert((log_manager));
 
@@ -45,19 +45,8 @@ namespace pbr::shared::apis::graphics::opengl {
         /// The shader program to use
         std::shared_ptr<shader_program> _shader_program;
 
-        /// The destination render target
-        std::shared_ptr<irender_target> _texture_target;
-
-        /// The shader program to use
-        std::shared_ptr<shader_program> _texture_shader;
-
         /// The mesh to render against
         std::shared_ptr<mesh> _mesh;
-
-        std::shared_ptr<mesh> _texture_mesh;
-
-        std::shared_ptr<logging::ilog_manager> _log_manager;
-
         /// Loads the resources needed for this compositor
         /// \param shader_manager The shader manager
         /// \param log_manager The log manager

@@ -3,6 +3,8 @@
 #include "graphics_manager.h"
 #include "opengl_errors.h"
 #include "shared/apis/graphics/color.h"
+#include "render_targets/texture.h"
+#include "mesh_shapes.h"
 
 #include <sstream>
 
@@ -129,7 +131,30 @@ namespace pbr::shared::apis::graphics::opengl {
     void graphics_manager::submit_frame_for_render() noexcept {
         // submit render targets to compositor
 
-        this->_compositor->render({});
+        auto texture_target = std::make_shared<render_targets::texture>(1024, 768, this->_log_manager);
+
+        std::shared_ptr<shader_program> shader;
+        if (auto program = shader_program::create(this->_log_manager, this->_shader_manager,
+                                                  { "color_vertex", "color_fragment" }); !program) {
+            this->_log_manager->log_message("Failed to create shader program.",
+                                     logging::log_levels::error,
+                                     "Graphics");
+            return;
+        } else {
+            shader = *program;
+        }
+
+        auto mesh = create_rectangle(0.0f, 0.0f, 0.0f, 0.5f, 0.5f, this->_log_manager);
+        assert((mesh));
+
+        texture_target->bind();
+        texture_target->clear();
+        shader->use();
+        mesh->render();
+        shader->clear_use();
+        texture_target->unbind();
+
+        this->_compositor->render({ texture_target });
 
         auto application_window = this->_window_manager->get_main_application_window();
         application_window->update_display();
