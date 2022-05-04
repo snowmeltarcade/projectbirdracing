@@ -26,10 +26,6 @@ namespace pbr::shared::apis::graphics::opengl {
 
         this->_shader_program->use();
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, this->_texture_target->texture_id());
-        CHECK_OPENGL_ERROR_NO_RETURN(this->_log_manager);
-
         this->_mesh->render();
 
         this->_shader_program->clear_use();
@@ -54,7 +50,8 @@ namespace pbr::shared::apis::graphics::opengl {
             this->_shader_program = *program;
         }
 
-        this->_shader_program->bind_textures({ "input_texture" });
+        this->_texture_target = std::make_shared<render_targets::texture>(1024, 768, log_manager);
+        this->_shader_program->bind_textures({ { "input_texture", this->_texture_target->texture_id() } });
 
         if (auto program = shader_program::create(log_manager, shader_manager,
                                                   { "color_vertex", "color_fragment" }); !program) {
@@ -65,8 +62,6 @@ namespace pbr::shared::apis::graphics::opengl {
         } else {
             this->_texture_shader = *program;
         }
-
-        this->_texture_target = std::make_shared<render_targets::texture>(1024, 768, log_manager);
 
         // the screen goes from -1..1, so we want 2.0f in width and height
         this->_mesh = create_rectangle(-1.0f, 1.0f, 0.0f, 2.0f, 2.0f, log_manager);

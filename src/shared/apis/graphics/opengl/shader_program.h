@@ -46,9 +46,7 @@ namespace pbr::shared::apis::graphics::opengl {
         bool link() noexcept;
 
         /// Uses this program
-        void use() const noexcept {
-            glUseProgram(this->_id);
-        }
+        void use() const noexcept;
 
         /// Resets the used program
         void clear_use() const noexcept {
@@ -61,10 +59,22 @@ namespace pbr::shared::apis::graphics::opengl {
             return this->_id;
         }
 
+        /// Binds a texture to a uniform name in this shader
+        struct texture_reference {
+            /// The uniform name
+            std::string name;
+
+            /// The texture id
+            /// TODO: This needs to be a texture resource reference (whatever this proves to be)
+            /// when the resource manager is read for this
+            GLuint texture_id;
+        };
+
         /// Binds the texture names to their locations. The location is set to
-        /// the index of the name in the vector.
-        /// \param names The texture names
-        void bind_textures(const std::vector<std::string>& names) const noexcept;
+        /// the index of the name in the vector. This clears any previously set
+        /// textures.
+        /// \param textures The texture references
+        void bind_textures(const std::vector<texture_reference>& textures) noexcept;
 
     private:
         /// The log manager
@@ -80,5 +90,8 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \returns Any error messages when linking this shader program
         [[nodiscard]]
         std::string get_error_messages() const noexcept;
+
+        /// The textures to bind when using this shader
+        std::vector<GLuint> _textures;
     };
 }
