@@ -50,8 +50,8 @@ namespace pbr::shared::apis::graphics::opengl::render_targets {
         glGenRenderbuffers(1, &depth_buffer_id);
         glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer_id);
 
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, this->_width, this->_height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer_id);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->_width, this->_height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_buffer_id);
         CHECK_OPENGL_ERROR(log_manager);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->_texture_id, 0);
