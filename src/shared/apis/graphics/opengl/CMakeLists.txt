@@ -1,12 +1,30 @@
 target_sources(
     "${SHARED_PROJECT_NAME}"
     PUBLIC
+        compositor.h
         context.h
+        framebuffer.h
         graphics_manager.h
+        irender_target.h
+        mesh.h
+        mesh_shapes.h
         opengl_dependencies.h
         opengl_errors.h
+        shader.h
+        shader_manager.h
+        shader_program.h
+        vertex.h
     PRIVATE
+        compositor.cpp
         context.cpp
+        framebuffer.cpp
         graphics_manager.cpp
+        mesh.cpp
+        mesh_shapes.cpp
         opengl_errors.cpp
+        shader.cpp
+        shader_manager.cpp
+        shader_program.cpp
 )
+
+add_subdirectory("render_targets")

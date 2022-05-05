@@ -67,6 +67,9 @@ namespace pbr::shared::apis::windowing {
         [[nodiscard]]
         bool set_size(pixels width, pixels height, bool fullscreen) noexcept override;
 
+        /// Updates the display by swapping any buffers
+        void update_display() noexcept override;
+
     private:
         /// The log manager
         std::shared_ptr<apis::logging::ilog_manager> _log_manager;

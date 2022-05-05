@@ -5,25 +5,37 @@
 #include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/graphics/application_information.h"
 #include "shared/apis/graphics/performance_settings.h"
+#include "compositor.h"
+#include "shader_manager.h"
 #include "context.h"
+#include "render_targets/screen.h"
+#include "render_targets/texture.h"
+
+#include <cassert>
 
 namespace pbr::shared::apis::graphics::opengl {
     /// Handles the OpenGL graphics API and rendering processes
     class graphics_manager final : public igraphics_manager {
     public:
         /// Constructs this manager
-        /// \param log_manager The log manager to use
+        /// \param data_manager The data manager to use
         /// \param window_manager The window manager
+        /// \param log_manager The log manager to use
         /// \param application_information Needed application information
         /// \param performance_settings The performance settings to use
-        graphics_manager(std::shared_ptr<logging::ilog_manager> log_manager,
+        graphics_manager(std::shared_ptr<data::data_manager> data_manager,
                          std::shared_ptr<windowing::iwindow_manager> window_manager,
+                         std::shared_ptr<logging::ilog_manager> log_manager,
                          application_information application_information,
                          performance_settings performance_settings)
-            : _log_manager(log_manager),
+            : _data_manager(data_manager),
                 _window_manager(window_manager),
+                _log_manager(log_manager),
                 _application_information(application_information),
                 _performance_settings(performance_settings) {
+            assert((this->_data_manager));
+            assert((this->_window_manager));
+            assert((this->_log_manager));
         }
 
         /// Destroys this manager
@@ -76,11 +88,17 @@ namespace pbr::shared::apis::graphics::opengl {
         }
 
     private:
-        /// The log manager
-        std::shared_ptr<logging::ilog_manager> _log_manager;
+        /// The path of the shader list
+        static inline const std::string shader_list_path = "graphics/shaders/list";
+
+        /// The data manager
+        std::shared_ptr<data::data_manager> _data_manager;
 
         /// The window manager
         std::shared_ptr<windowing::iwindow_manager> _window_manager;
+
+        /// The log manager
+        std::shared_ptr<logging::ilog_manager> _log_manager;
 
         /// The OpenGL context
         std::shared_ptr<context> _context;
@@ -93,6 +111,15 @@ namespace pbr::shared::apis::graphics::opengl {
 
         /// The entities to render
         renderable_entities _renderable_entities;
+
+        // The screen's render target
+        std::shared_ptr<render_targets::screen> _screen_render_target;
+
+        /// The compositor
+        std::shared_ptr<compositor> _compositor;
+
+        /// The shader manager
+        std::shared_ptr<shader_manager> _shader_manager;
 
         /// Shuts down the graphics manager
         /// \returns `true` upon success, else `false`
@@ -109,5 +136,13 @@ namespace pbr::shared::apis::graphics::opengl {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         bool enable_vsync(bool enable) const noexcept;
+
+        /// Sets up the compositor
+        void setup_compositor() noexcept;
+
+        /// Resizes all render targets to match the resolution of the application window
+        void sync_resolutions() noexcept;
+
+        std::shared_ptr<render_targets::texture> render_target(float x, float y, float z, float w, float h);
     };
 }

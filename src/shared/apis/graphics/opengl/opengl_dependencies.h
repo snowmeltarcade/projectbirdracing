@@ -19,3 +19,5 @@
 #undef USE_OPENGL_ES
 #endif
 #endif
+
+#include <SDL_opengl.h>

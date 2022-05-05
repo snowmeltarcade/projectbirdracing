@@ -1,5 +1,11 @@
 add_library("${SHARED_PROJECT_NAME}")
 
+target_sources(
+    "${SHARED_PROJECT_NAME}"
+    PUBLIC
+        types.h
+)
+
 if (IOS)
     target_link_libraries(
         "${SHARED_PROJECT_NAME}"
@@ -45,6 +51,7 @@ add_subdirectory("diagnostics")
 add_subdirectory("game")
 add_subdirectory("memory")
 add_subdirectory("platform")
+add_subdirectory("resource")
 add_subdirectory("scene")
 add_subdirectory("tests")
 add_subdirectory("utils")

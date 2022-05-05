@@ -17,6 +17,7 @@ namespace pbr::shared::apis::graphics {
     public:
         /// Creates a graphics manager based on the graphics config
         /// \param config The graphics config
+        /// \param data_manager The data manager
         /// \param log_manager The log manager to use
         /// \param graphics_log_manager The log manager to use for the graphics manager
         /// \param window_manager The window manager
@@ -26,6 +27,7 @@ namespace pbr::shared::apis::graphics {
         [[nodiscard]]
         static std::shared_ptr<igraphics_manager> create(
             const config& config,
+            const std::shared_ptr<data::data_manager>& data_manager,
             const std::shared_ptr<logging::ilog_manager>& log_manager,
             const std::shared_ptr<logging::ilog_manager>& graphics_log_manager,
             const std::shared_ptr<windowing::iwindow_manager>& window_manager,

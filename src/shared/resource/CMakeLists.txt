@@ -1,0 +1,9 @@
+target_sources(
+    "${SHARED_PROJECT_NAME}"
+    PUBLIC
+        item.h
+        resource_manager.h
+    PRIVATE
+        item.cpp
+        resource_manager.cpp
+)

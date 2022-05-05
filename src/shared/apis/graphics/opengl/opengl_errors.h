@@ -15,7 +15,13 @@ namespace pbr::shared::apis::graphics::opengl {
         log_manager->log_message("OpenGL Error: " + *error, logging::log_levels::error, "Graphics"); \
         return false; \
     }
+#define CHECK_OPENGL_ERROR_NO_RETURN(log_manager) \
+    if (auto error = pbr::shared::apis::graphics::opengl::check_opengl_error_internal(__FILE__, __LINE__); error) \
+    { \
+        log_manager->log_message("OpenGL Error: " + *error, logging::log_levels::error, "Graphics"); \
+    }
 #else
 #define CHECK_OPENGL_ERROR
+#define CHECK_OPENGL_ERROR_NO_RETURN
 #endif
 }

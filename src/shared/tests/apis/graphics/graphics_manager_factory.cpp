@@ -52,12 +52,14 @@ std::shared_ptr<windowing::iwindow_manager> create_window_manager() {
 //////////
 
 TEST_CASE("create - invalid api name - returns empty", "[shared/apis/graphics/graphics_manager]") {
+    auto data_manager = create_data_manager();
     auto window_manager = create_window_manager();
     auto config = create_config();
 
     config.set_api(static_cast<graphics::apis>(99999));
 
     auto result = graphics_manager_factory::create(config,
+                                                   data_manager,
                                                    g_log_manager,
                                                    g_log_manager,
                                                    window_manager,
@@ -68,12 +70,14 @@ TEST_CASE("create - invalid api name - returns empty", "[shared/apis/graphics/gr
 }
 
 TEST_CASE("create - vulkan api name - returns vulkan manager", "[shared/apis/graphics/graphics_manager]") {
+    auto data_manager = create_data_manager();
     auto window_manager = create_window_manager();
     auto config = create_config();
 
     config.set_api(graphics::apis::vulkan);
 
     auto result_manager = graphics_manager_factory::create(config,
+                                                           data_manager,
                                                            g_log_manager,
                                                            g_log_manager,
                                                            window_manager,
@@ -85,12 +89,14 @@ TEST_CASE("create - vulkan api name - returns vulkan manager", "[shared/apis/gra
 }
 
 TEST_CASE("create - opengl api name - returns opengl manager", "[shared/apis/graphics/graphics_manager]") {
+    auto data_manager = create_data_manager();
     auto window_manager = create_window_manager();
     auto config = create_config();
 
     config.set_api(graphics::apis::opengl);
 
     auto result_manager = graphics_manager_factory::create(config,
+                                                           data_manager,
                                                            g_log_manager,
                                                            g_log_manager,
                                                            window_manager,

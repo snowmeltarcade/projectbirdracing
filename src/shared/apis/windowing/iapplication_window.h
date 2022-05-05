@@ -23,5 +23,8 @@ namespace pbr::shared::apis::windowing {
         /// \returns `true` upon success, else `false`
         [[nodiscard]]
         virtual bool set_size(pixels width, pixels height, bool fullscreen) noexcept = 0;
+
+        /// Updates the display by swapping any buffers
+        virtual void update_display() noexcept = 0;
     };
 }

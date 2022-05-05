@@ -22,6 +22,7 @@ target_include_directories(
     ${VMA_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIRS}
     "${CATCH2_INCLUDE_DIRS}"
+    ${GLEW_INCLUDE_DIRS}
 )
 
 add_subdirectory("apis")
@@ -29,6 +30,7 @@ add_subdirectory("data")
 add_subdirectory("diagnostics")
 add_subdirectory("game")
 add_subdirectory("memory")
+add_subdirectory("resource")
 add_subdirectory("scene")
 add_subdirectory("utils")
 add_subdirectory("test_data")

@@ -42,7 +42,7 @@ namespace pbr::shared::data {
     }
 
     std::optional<settings> data_manager::read_settings(const std::filesystem::path& relative_path) const noexcept {
-        auto path = this->resolve_path(relative_path);
+        auto path = this->resolve_path(relative_path, { ".json" });
         if (!path) {
             this->_log_manager->log_message("Failed to find path: " + relative_path.generic_string(),
                                             apis::logging::log_levels::error,
@@ -81,13 +81,54 @@ namespace pbr::shared::data {
         }
     }
 
-    std::optional<std::filesystem::path> data_manager::resolve_path(
-        const std::filesystem::path& relative_path) const noexcept {
-        // we're only supporting json at the moment
-        auto path = this->_data_path / (relative_path.generic_string() + ".json");
+    std::optional<shader_code> data_manager::read_shader_code(
+        const std::filesystem::path& relative_path,
+        const apis::graphics::shader_types type_hint) const noexcept {
+        auto path = this->resolve_path(relative_path, { ".vert", ".frag", ".glsl" });
+        if (!path) {
+            this->_log_manager->log_message("Failed to find path: " + relative_path.generic_string(),
+                                            apis::logging::log_levels::error,
+                                            "Data Manager");
+            return {};
+        }
 
-        if (std::filesystem::exists(path)) {
-            return path;
+        auto uri = utils::build_uri("file:///" + path->generic_string());
+        if (!uri) {
+            this->_log_manager->log_message("Failed to build uri for path: " + relative_path.generic_string(),
+                                            apis::logging::log_levels::error,
+                                            "Data Manager");
+            return {};
+        }
+
+        auto text = this->_file_manager->read_file_text(*uri);
+        if (!text) {
+            this->_log_manager->log_message("Failed to get text for path: " + relative_path.generic_string(),
+                                            apis::logging::log_levels::error,
+                                            "Data Manager");
+            return {};
+        }
+
+        auto file_extension = path->extension();
+
+        auto shader_type = type_hint;
+
+        // we default to vertex, so no need to check for that
+        if (file_extension == ".frag") {
+            shader_type = apis::graphics::shader_types::fragment;
+        }
+
+        return { { *text, shader_type } };
+    }
+
+    std::optional<std::filesystem::path> data_manager::resolve_path(
+        const std::filesystem::path& relative_path,
+        const std::initializer_list<std::string>& expected_extensions) const noexcept {
+        for (const auto& extension : expected_extensions) {
+            auto path = this->_data_path / (relative_path.generic_string() + extension);
+
+            if (std::filesystem::exists(path)) {
+                return path;
+            }
         }
 
         return {};

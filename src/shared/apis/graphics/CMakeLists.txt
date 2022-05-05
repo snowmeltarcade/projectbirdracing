@@ -8,6 +8,7 @@ target_sources(
         graphics_manager_factory.h
         igraphics_manager.h
         performance_settings.h
+        shader_types.h
         renderable_entities.h
         renderable_entity_2d.h
     PRIVATE

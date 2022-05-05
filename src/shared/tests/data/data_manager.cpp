@@ -81,3 +81,54 @@ TEST_CASE("read_settings - valid settings file - returns valid settings", "[shar
     REQUIRE((*array1)[1].get("string3") == "value3");
     REQUIRE((*array1)[1].get("string4") == "value4");
 }
+
+//////////
+/// read_shader_code
+//////////
+
+TEST_CASE("read_shader_code - invalid path - returns empty", "[shared/data]") {
+    auto dm = create_data_manager();
+
+    auto path = "invalid";
+
+    auto result = dm.read_shader_code(path);
+
+    REQUIRE_FALSE(result);
+}
+
+TEST_CASE("read_shader_code - valid path - returns shader code", "[shared/data]") {
+    auto dm = create_data_manager();
+
+    auto path = "shader_vertex";
+
+    auto result = dm.read_shader_code(path);
+    REQUIRE(result);
+
+    auto expected = "#version 330 core\n"
+                    "\n"
+                    "layout (location = 0) in vec2 aPos;\n"
+                    "\n"
+                    "void main()\n"
+                    "{\n"
+                    "    gl_Position = vec4(aPos, 0, 1);\n"
+                    "}\n";
+
+    REQUIRE(result->code == expected);
+}
+
+TEST_CASE("read_shader_code - valid path - returns correct shader types", "[shared/data]") {
+    auto dm = create_data_manager();
+
+    std::vector<std::pair<std::string, apis::graphics::shader_types>> test_data {
+        { "shader_vertex", apis::graphics::shader_types::vertex, },
+        { "shader_fragment", apis::graphics::shader_types::fragment, },
+        { "shader_unknown", apis::graphics::shader_types::fragment, },
+    };
+
+    for (const auto& [path, expected] : test_data) {
+        auto result = dm.read_shader_code(path, expected);
+        REQUIRE(result);
+
+        REQUIRE(result->type == expected);
+    }
+}

@@ -3,7 +3,7 @@
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
 #include "shared/apis/windowing/iwindow_manager.h"
-#include "shared/apis/windowing/types.h"
+#include "shared/types.h"
 #include "shared/apis/graphics/igraphics_manager.h"
 #include "shared/apis/graphics/renderable_entities.h"
 #include "shared/apis/windowing/iconsole_window.h"
@@ -22,9 +22,11 @@ public:
         return {};
     }
 
-    bool set_size(apis::windowing::pixels, apis::windowing::pixels, bool) noexcept override {
+    bool set_size(pixels, pixels, bool) noexcept override {
         return true;
     }
+
+    void update_display() noexcept override {}
 };
 
 class test_window_manager : public apis::windowing::iwindow_manager {
