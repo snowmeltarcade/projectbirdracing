@@ -8,6 +8,8 @@ namespace pbr::shared::apis::graphics::opengl {
             return;
         }
 
+        glDisable(GL_DEPTH_TEST);
+
         this->_destination->bind();
         this->_destination->clear();
 
@@ -20,6 +22,8 @@ namespace pbr::shared::apis::graphics::opengl {
 
         this->_shader_program->clear_use();
         this->_destination->unbind();
+
+        glEnable(GL_DEPTH_TEST);
     }
 
     bool compositor::load_resources(const std::shared_ptr<shader_manager>& shader_manager,

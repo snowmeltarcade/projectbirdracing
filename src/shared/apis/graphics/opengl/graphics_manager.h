@@ -143,6 +143,6 @@ namespace pbr::shared::apis::graphics::opengl {
         /// Resizes all render targets to match the resolution of the application window
         void sync_resolutions() noexcept;
 
-        std::shared_ptr<render_targets::texture> render_target(float x, float y, float w, float h);
+        std::shared_ptr<render_targets::texture> render_target(float x, float y, float z, float w, float h);
     };
 }

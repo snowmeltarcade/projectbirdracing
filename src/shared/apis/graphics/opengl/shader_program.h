@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <SDL_opengl.h>
+#include <glm/mat4x4.hpp>
 
 namespace pbr::shared::apis::graphics::opengl {
     /// A set of shaders bound together to form a program
@@ -75,6 +76,20 @@ namespace pbr::shared::apis::graphics::opengl {
         /// textures.
         /// \param textures The texture references
         void bind_textures(const std::vector<texture_reference>& textures) noexcept;
+
+        /// Sets a uniform with the passed name
+        /// \param name The name of the uniform
+        /// \param value The value to set
+        /// \returns `true` upon success, else `false` if the uniform is not found
+        [[nodiscard]]
+        bool set_uniform(const std::string& name, int value) const noexcept;
+
+        /// Sets a uniform with the passed name
+        /// \param name The name of the uniform
+        /// \param value The value to set
+        /// \returns `true` upon success, else `false` if the uniform is not found
+        [[nodiscard]]
+        bool set_uniform(const std::string& name, const glm::mat4& value) const noexcept;
 
     private:
         /// The log manager

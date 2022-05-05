@@ -135,19 +135,44 @@ namespace pbr::shared::apis::graphics::opengl {
         auto location_index {0u};
 
         for (const auto& texture : textures) {
-            auto location = glGetUniformLocation(this->_id, texture.name.c_str());
-            if (location < 0) {
+            if (!this->set_uniform(texture.name, location_index++)) {
                 this->_log_manager->log_message("Failed to find texture with name: `" + texture.name + "`.",
                                                 logging::log_levels::warning,
                                                 "Graphics");
                 continue;
             }
 
-            glUniform1i(location, location_index++);
-
             this->_textures.emplace_back(texture.texture_id);
         }
 
         this->clear_use();
+    }
+
+    bool shader_program::set_uniform(const std::string& name, int value) const noexcept {
+        auto location = glGetUniformLocation(this->_id, name.c_str());
+        if (location < 0) {
+            this->_log_manager->log_message("Failed to find uniform with name: `" + name + "`.",
+                                            logging::log_levels::warning,
+                                            "Graphics");
+            return false;
+        }
+
+        glUniform1i(location, value);
+
+        return true;
+    }
+
+    bool shader_program::set_uniform(const std::string& name, const glm::mat4& value) const noexcept {
+        auto location = glGetUniformLocation(this->_id, name.c_str());
+        if (location < 0) {
+            this->_log_manager->log_message("Failed to find uniform with name: `" + name + "`.",
+                                            logging::log_levels::warning,
+                                            "Graphics");
+            return false;
+        }
+
+        glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
+
+        return true;
     }
 }
