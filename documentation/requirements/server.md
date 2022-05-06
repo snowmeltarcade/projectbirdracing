@@ -91,12 +91,7 @@ UDP packets will be sent with a timestamp. This will help the client discard pac
 
 ## Scene
 
-Manages the current scene the user is in. A scene may or may not contain a world. The required scenes are:
-
-- Loading
-  - Handles the loading of worlds, various components and displays the loading UIs
-- World
-  - Contains the current running world and the UIs
+See [here](scenes.md) for more information.
 
 ## World
 
