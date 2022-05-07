@@ -96,7 +96,9 @@ This algorithm will be followed to render a complete scene:
 // == render time ==
 // ECS submits all renderable entities in scene
 
-// ensure that all named textures are rendered
+// graphics manager to inform all render targets a new frame is beginning
+
+// ensure that all named textures are rendered...
   // loop through all layers in graphics manager, starting from the furthest layer and ending with the closest layer
     // call render_entities(layer's camera)
 
