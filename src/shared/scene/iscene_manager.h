@@ -13,7 +13,7 @@ namespace pbr::shared::scene {
         virtual ~iscene_manager() = default;
 
         /// Runs the scene manager
-        /// \returns `true` upon success else `false`
+        /// \returns `true` upon success, else `false`
         [[nodiscard]]
         virtual bool run() noexcept = 0;
     };

@@ -39,6 +39,12 @@ function(configure_data_files)
     )
 
     install_data_files(
+            "${CMAKE_CURRENT_LIST_DIR}/data/scenes/"
+            "${CMAKE_BINARY_DIR}/bin/data/scenes/"
+            "${INSTALL_DIRECTORY}/data/scenes/"
+    )
+
+    install_data_files(
         "${CMAKE_CURRENT_LIST_DIR}/data/windowing/"
         "${CMAKE_BINARY_DIR}/bin/data/windowing/"
         "${INSTALL_DIRECTORY}/data/windowing/"

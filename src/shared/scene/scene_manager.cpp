@@ -113,6 +113,8 @@ namespace pbr::shared::scene {
                 return false;
             }
 
+            this->construct_scene(scene);
+
             if (!scene->load()) {
                 this->_log_manager->log_message("Failed to load with type: " +
                                                 std::to_string(static_cast<uint32_t>(type)),
@@ -125,5 +127,28 @@ namespace pbr::shared::scene {
         }
 
         return true;
+    }
+
+    /// Builds the file path for the passed scene's data file
+    /// \param scene The scene to build the file path for
+    /// \returns The build file path
+    std::filesystem::path build_scene_data_path(const std::shared_ptr<scene_base>& scene) noexcept {
+        assert((scene));
+
+        auto data_file_name = scene->get_data_file_name();
+
+        return "scenes" / data_file_name;
+    }
+
+    void scene_manager::construct_scene(const std::shared_ptr<scene_base>& scene) noexcept {
+        assert((scene));
+
+        auto scene_data_path = build_scene_data_path(scene);
+        if (!this->_data_manager->read_settings(scene_data_path)) {
+            this->_log_manager->log_message("Could not find scene data file: " + scene_data_path.generic_string(),
+                                            apis::logging::log_levels::info,
+                                            "Scene");
+            return;
+        }
     }
 }

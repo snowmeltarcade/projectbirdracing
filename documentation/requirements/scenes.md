@@ -6,7 +6,8 @@ The server contains the master representation of the scene. It manages all playe
 
 - [Scenes](#scenes)
   - [Required Scenes](#required-scenes)
-  - [File Format](#file-format)
+  - [Loading](#loading)
+    - [Scene File Format](#scene-file-format)
 
 ## Required Scenes
 
@@ -17,7 +18,11 @@ The required scenes are:
 - World
   - Contains the current running world and the UIs
 
-## File Format
+## Loading
+
+The scene manager loads scenes as needed. When a scene loads, it builds the scene from a scene file, if one is present. The filename of this file is `data/scenes/<scene type>.json`. As all scene types are known at compile time, the filename to look for is also known at compile time.
+
+### Scene File Format
 
 The file format to represent a scene is as follows:
 

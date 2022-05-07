@@ -7,7 +7,6 @@ target_sources(
         scene_manager.h
         scene_types.h
     PRIVATE
-        scene_base.cpp
         scene_manager.cpp
 )
 

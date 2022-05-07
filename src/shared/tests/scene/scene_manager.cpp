@@ -2,6 +2,9 @@
 #include "shared/scene/scene_manager.h"
 #include "shared/apis/datetime/datetime_manager.h"
 #include "shared/apis/logging/log_manager.h"
+#include "shared/apis/file/file_manager.h"
+#include "shared/data/data_manager.h"
+#include "test_utils.h"
 
 #include <memory>
 #include <thread>
@@ -66,6 +69,10 @@ public:
         // to speed up the tests, just quit as soon as we can
         return true;
     }
+
+    std::filesystem::path get_data_file_name() const noexcept override {
+        return "test";
+    }
 };
 
 std::shared_ptr<test_scene> g_test_scene_loading;
@@ -110,9 +117,24 @@ public:
 
 std::shared_ptr<test_scene_factory> g_test_scene_factory;
 
+static std::shared_ptr<data::data_manager> create_data_manager() {
+    auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
+    auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
+    auto file_manager = std::make_shared<apis::file::file_manager>();
+
+    auto data_path = get_test_data_file_path("scenes");
+
+    auto dm = std::make_shared<data::data_manager>(data_path,
+                                                   file_manager,
+                                                   log_manager);
+    return dm;
+}
+
 std::shared_ptr<scene_manager> create_scene_manager(scene_types scene_type = scene_types::loading) {
     auto datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
     auto log_manager = std::make_shared<apis::logging::log_manager>(datetime_manager);
+
+    auto data_manager = create_data_manager();
 
     g_test_scene_loading = std::make_shared<test_scene>(log_manager, scene_types::loading);
     g_test_scene_1 = std::make_shared<test_scene>(log_manager, test_scene_type_1);
@@ -124,8 +146,9 @@ std::shared_ptr<scene_manager> create_scene_manager(scene_types scene_type = sce
     g_have_all_scenes_loaded = false;
 
     auto sm = std::make_shared<scene_manager>(g_test_scene_factory,
-                                                            scene_type,
-                                                            log_manager);
+                                              scene_type,
+                                              data_manager,
+                                              log_manager);
     return sm;
 }
 

@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <memory>
+#include <filesystem>
 
 namespace pbr::shared::scene {
     /// Provides the base functionality of a scene. This manages the ECS, UI, physics and world
@@ -37,6 +38,11 @@ namespace pbr::shared::scene {
         /// \returns `true` if this scene should quit, else `false`
         [[nodiscard]]
         virtual bool should_quit() const noexcept = 0;
+
+        /// Returns the file name of the data file
+        /// \returns The file name of the data file
+        [[nodiscard]]
+        virtual std::filesystem::path get_data_file_name() const noexcept = 0;
 
     protected:
         /// The log manager to use

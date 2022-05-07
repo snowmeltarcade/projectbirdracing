@@ -86,6 +86,7 @@ game::game_manager create_game_manager(const utils::program_arguments& arguments
 
     auto scene_manager = std::make_shared<scene::scene_manager>(scene_factory,
                                                                 scene::scene_types::loading,
+                                                                data_manager,
                                                                 game_log_manager);
 
     game::game_manager gm(executable_path,

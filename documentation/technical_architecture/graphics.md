@@ -85,7 +85,7 @@ It is expected that all post processing will have been performed on the render t
 
 ### Rendering Algorithm
 
-This algorithm will be followed to render a complete scene:
+This algorithm will be used to render a complete scene:
 
 ```c++
 // == load time ==

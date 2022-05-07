@@ -35,5 +35,12 @@ namespace pbr::shared::scene::scenes {
         bool should_quit() const noexcept override {
             return false;
         }
+
+        /// Returns the file name of the data file
+        /// \returns The file name of the data file
+        [[nodiscard]]
+        std::filesystem::path get_data_file_name() const noexcept override {
+            return "world_generation";
+        }
     };
 }
