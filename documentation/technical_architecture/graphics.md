@@ -9,6 +9,7 @@
       - [2D Render System Materials](#2d-render-system-materials)
     - [3D Render System](#3d-render-system)
     - [Compositor](#compositor)
+    - [Rendering Algorithm](#rendering-algorithm)
   - [Meshes](#meshes)
   - [Materials](#materials)
     - [Material Update Script](#material-update-script)
@@ -81,6 +82,39 @@ Position, size and scale values must be in the range of screen space. Translatio
 All of the render targets will be passed to the compositor, where they will then be rendered to the screen. The screen will be a simple quad which will have the results of the render targets textured onto it.
 
 It is expected that all post processing will have been performed on the render targets before the compositor renders them.
+
+### Rendering Algorithm
+
+This algorithm will be followed to render a complete scene:
+
+```c++
+// == load time ==
+// load all cameras in scene
+
+// submit cameras assigned to layers to the graphics manager
+
+// == render time ==
+// ECS submits all renderable entities in scene
+
+// ensure that all named textures are rendered
+  // loop through all layers in graphics manager, starting from the furthest layer and ending with the closest layer
+    // call render_entities(layer's camera)
+
+// render_entities(camera)
+  // get subset of renderable entities that are renderable from the camera
+  // call prepare_renderable_entities(layer's camera, entities)
+  // render entities using camera's render system (if the camera's render target is a texture, the render target object will mark itself as rendered)
+
+// prepare_renderable_entities(camera, entities)
+  // if camera has already been prepared
+    // return
+  // else
+    // add camera to list of prepared cameras
+  // for each entity
+    // if named texture is not rendered
+      // call render_entities(named texture's camera)
+
+```
 
 ## Meshes
 
