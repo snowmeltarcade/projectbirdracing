@@ -91,9 +91,8 @@ This algorithm will be used to render a complete scene:
 // == load time ==
 // load all cameras in scene
 
-// submit cameras assigned to layers to the graphics manager
-
 // == render time ==
+// ECS submits all cameras in scene
 // ECS submits all renderable entities in scene
 
 // graphics manager to inform all render targets a new frame is beginning

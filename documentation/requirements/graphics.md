@@ -6,6 +6,7 @@
   - [Materials](#materials)
     - [Material File](#material-file)
   - [Cameras](#cameras)
+    - [Render Targets](#render-targets)
     - [Tripods](#tripods)
   - [Lighting](#lighting)
   - [Performance Settings Profiles](#performance-settings-profiles)
@@ -74,6 +75,15 @@ The following post processing effects must be supported:
 
 - Bloom
 - HDR
+
+### Render Targets
+
+A camera renders to a target. The valid types are target are as follows:
+
+| Name | Description |
+| -- | -- |
+| Screen | The display |
+| Texture | A named texture. These textures can be referenced by materials. |
 
 ### Tripods
 

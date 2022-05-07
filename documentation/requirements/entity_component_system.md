@@ -13,6 +13,10 @@ All entities in the game are managed by the ECS (entity component system). The c
   - [velocity_2d](#velocity_2d)
   - [velocity_3d](#velocity_3d)
   - [script](#script)
+  - [camera](#camera)
+  - [Types](#types)
+    - [render_target](#render_target)
+    - [render_system](#render_system)
 
 The following components will be used.
 
@@ -20,11 +24,24 @@ The following components will be used.
 
 Contains the 2D location of this entity in screen space.
 
+The parameters are as follows:
+
+| Name | Type | Description |
+| -- | -- | -- |
+| `x` | `single` | The x position. `0.0f` is left of screen space and `1.0f` is the right of screen space. |
+| `y` | `single` | The y position. `0.0f` is top of screen space and `1.0f` is the bottom of screen space. |
+
 ## location_3d
 
 Contains the 3D location of this entity in the world.
 
-An array of potential anchor points will also be provided. These anchor points can be used by other entities to provide a point of anchor, such as a camera. Each anchor will be an offset from the location in this entity.
+The parameters are as follows:
+
+| Name | Type | Description |
+| -- | -- | -- |
+| `x` | `single` | The x position in world space |
+| `y` | `single` | The y position in world space |
+| `z` | `single` | The z position in world space |
 
 ## sprite
 
@@ -59,3 +76,42 @@ Contains the needed data to impart movement to the attached `location_3d` compon
 Contains the data needed to run a script that will act on this entity in some way. This will be used extensively for NPCs to run their AI.
 
 See [here](ai.md) for more information on how AI is managed.
+
+## camera
+
+Renders its view to a render target.
+
+The parameters are as follows:
+
+| Name | Type | Description |
+| -- | -- | -- |
+| `name` | `string` | The name of this camera |
+| `render_target` | [`render_target`](#render_target) | The render target |
+| `render_system` | [`render_system`](#render_system) | The render system |
+| `layer_index` | | `int` | The index of the layer to render. `0` is counted as closest to the screen, with higher indexes being counted as farther away. Layer indexes are only used for `screen` render targets. |
+
+## Types
+
+The types used in the ECS are as follows.
+
+### render_target
+
+Represents a [render target](./requirements.md#render_targets).
+
+Valid values are as follows:
+
+| Name | Description |
+| -- | -- |
+| `screen` | The screen render target |
+| `texture` | A named texture |
+
+### render_system
+
+Represents a [render system](../technical_architecture/graphics.md#render-systems).
+
+Valid values are as follows:
+
+| Name | Description |
+| -- | -- |
+| `2d` | The 2D render system |
+| `3d` | The 3D render system |
