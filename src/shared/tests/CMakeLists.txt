@@ -28,6 +28,7 @@ target_include_directories(
 add_subdirectory("apis")
 add_subdirectory("data")
 add_subdirectory("diagnostics")
+add_subdirectory("entity_component_system")
 add_subdirectory("game")
 add_subdirectory("memory")
 add_subdirectory("resource")

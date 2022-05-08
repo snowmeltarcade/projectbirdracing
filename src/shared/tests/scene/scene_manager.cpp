@@ -231,6 +231,12 @@ TEST_CASE("run - run loading scenes fails - returns false", "[shared/scene]") {
     REQUIRE(has_returned_false);
 }
 
+TEST_CASE("run - constructs loading scenes", "[shared/scene]") {
+    auto sm = create_scene_manager();
+
+    REQUIRE(sm->run());
+}
+
 TEST_CASE("run - load test scene 1 fails - returns false", "[shared/scene]") {
     auto sm = create_scene_manager();
 
