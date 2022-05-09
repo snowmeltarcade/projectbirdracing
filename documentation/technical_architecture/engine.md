@@ -4,7 +4,9 @@ A specific engine needs to be constructed to run the game. The engine is fully f
 
 ## Game Loop
 
-There are multiple game loops on different threads. Each loop needs synchronizing to enable data transfer, such as submitting renderable entities to the graphics manager.
+The main thread controls the windowing and game logic. If the graphics API requires, it too will run on the main thread.
+
+See [here](../requirements/entity_component_system.md) for how the ECS will work with the game loop.
 
 Here is a diagram showing how each game loop is synchronized:
 
