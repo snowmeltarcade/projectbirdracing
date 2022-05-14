@@ -227,8 +227,6 @@ As an example - a world scene has a TV screen that shows another world scene tha
 
 ![Camera Graph Dependency Graph Example](images/camera_graph_example.drawio.png)
 
-The dependency graphs are created by the scenes themselves.
-
 ### Named Texture Render Targets
 
 If a named texture is rendered to, the material using that texture will display the results of that render.

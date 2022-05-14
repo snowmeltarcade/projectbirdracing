@@ -18,7 +18,6 @@ All entities in the game are managed by the ECS (entity component system). The c
     - [script](#script)
     - [camera](#camera)
   - [Types](#types)
-    - [render_target](#render_target)
     - [render_system](#render_system)
 
 ## Repositories
@@ -111,30 +110,19 @@ The parameters are as follows:
 | Name | Type | Description |
 | -- | -- | -- |
 | `name` | `string` | The name of this camera |
-| `render_target` | [`render_target`](#render_target) | The render target |
+| `render_target_index` | `uint?` | The index of the render target to render to |
 | `render_system` | [`render_system`](#render_system) | The render system |
-| `layer_index` | | `int` | The index of the layer to render. `0` is counted as closest to the screen, with higher indexes being counted as farther away. Layer indexes are only used for `screen` render targets. |
+| `layer_index` | `uint?` | The index of the layer to render. `0` is counted as closest to the screen, with higher indexes being counted as farther away. Layer indexes are only used for `screen` render targets. |
 
 ## Types
 
 The types used in the ECS are as follows.
 
-### render_target
-
-Represents a [render target](./requirements.md#render_targets).
-
-Valid values are as follows:
-
-| Name | Description |
-| -- | -- |
-| `screen` | The screen render target |
-| `texture` | A named texture |
-
 ### render_system
 
 Represents a [render system](../technical_architecture/graphics.md#render-systems).
 
-Valid values are as follows:
+Valid `enum` values are as follows:
 
 | Name | Description |
 | -- | -- |
