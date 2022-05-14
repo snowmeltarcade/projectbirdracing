@@ -1,4 +1,5 @@
 #include "scene_manager.h"
+#include "constructor.h"
 
 namespace pbr::shared::scene {
     bool scene_manager::run() noexcept {
@@ -144,11 +145,12 @@ namespace pbr::shared::scene {
         assert((scene));
 
         auto scene_data_path = build_scene_data_path(scene);
-        if (!this->_data_manager->read_settings(scene_data_path)) {
-            this->_log_manager->log_message("Could not find scene data file: " + scene_data_path.generic_string(),
-                                            apis::logging::log_levels::info,
-                                            "Scene");
-            return;
+        if (auto settings = this->_data_manager->read_settings(scene_data_path); settings) {
+            constructor::construct(scene, settings, this->_log_manager);
         }
+
+        this->_log_manager->log_message("Could not find scene data file: " + scene_data_path.generic_string(),
+                                        apis::logging::log_levels::info,
+                                        "Scene");
     }
 }

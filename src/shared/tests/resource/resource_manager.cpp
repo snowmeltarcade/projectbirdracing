@@ -11,8 +11,8 @@ using namespace pbr::shared;
 using namespace pbr::shared::data;
 using namespace pbr::shared::resource;
 
-auto g_datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
-auto g_log_manager = std::make_shared<apis::logging::log_manager>(g_datetime_manager);
+static auto g_datetime_manager = std::make_shared<apis::datetime::datetime_manager>();
+static auto g_log_manager = std::make_shared<apis::logging::log_manager>(g_datetime_manager);
 
 static std::shared_ptr<data_manager> create_data_manager() {
     auto file_manager = std::make_shared<apis::file::file_manager>();

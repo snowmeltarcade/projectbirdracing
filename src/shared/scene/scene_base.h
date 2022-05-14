@@ -1,7 +1,8 @@
 #pragma once
 
-#include "scene_types.h"
 #include "shared/apis/logging/ilog_manager.h"
+#include "scene_types.h"
+#include "constructor_types.h"
 
 #include <cassert>
 #include <memory>
@@ -43,6 +44,10 @@ namespace pbr::shared::scene {
         /// \returns The file name of the data file
         [[nodiscard]]
         virtual std::filesystem::path get_data_file_name() const noexcept = 0;
+
+        /// Adds a camera to this scene
+        /// \param camera The camera to add
+        void add_camera(camera_data camera) noexcept;
 
     protected:
         /// The log manager to use
