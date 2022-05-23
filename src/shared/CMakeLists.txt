@@ -46,6 +46,7 @@ target_include_directories(
 copy_sdl_dependencies(${PROJECT_BINARY_DIR})
 
 add_subdirectory("apis")
+add_subdirectory("compile_time")
 add_subdirectory("data")
 add_subdirectory("diagnostics")
 add_subdirectory("entity_component_system")

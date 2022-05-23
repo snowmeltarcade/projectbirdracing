@@ -91,7 +91,21 @@ TEST_CASE("construct - invalid camera - missing name - camera not added", "[shar
     auto data_manager = create_data_manager();
 
     settings settings;
+    settings.add("name", "");
+
     add_camera(settings);
 
     constructor::construct(scene, settings, g_log_manager);
+}
+
+TEST_CASE("construct - valid cameras - add cameras", "[shared/scene]") {
+    auto scene = create_scene();
+    auto data_manager = create_data_manager();
+
+    settings settings;
+    add_camera(settings);
+
+    constructor::construct(scene, settings, g_log_manager);
+
+
 }

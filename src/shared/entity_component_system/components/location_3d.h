@@ -13,5 +13,19 @@ namespace pbr::shared::entity_component_system::components {
 
         // The z-position
         apis::graphics::coordinate z;
+
+        /// Operator ==
+        /// \param other The other to compare against
+        bool operator ==(const location_3d& other) const noexcept {
+            return this->x == other.x &&
+                   this->y == other.y &&
+                   this->z == other.z;
+        }
+
+        /// Operator !=
+        /// \param other The other to compare against
+        bool operator !=(const location_3d& other) const noexcept {
+            return !(this->operator==(other));
+        }
     };
 }
