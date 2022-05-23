@@ -16,16 +16,10 @@ namespace pbr::shared::entity_component_system::components {
 
         /// Operator ==
         /// \param other The other to compare against
-        bool operator ==(const location_3d& other) const noexcept {
-            return this->x == other.x &&
-                   this->y == other.y &&
-                   this->z == other.z;
-        }
+        bool operator ==(const location_3d& other) const noexcept = default;
 
         /// Operator !=
         /// \param other The other to compare against
-        bool operator !=(const location_3d& other) const noexcept {
-            return !(this->operator==(other));
-        }
+        bool operator !=(const location_3d& other) const noexcept = default;
     };
 }

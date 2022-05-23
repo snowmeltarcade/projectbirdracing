@@ -22,17 +22,10 @@ namespace pbr::shared::entity_component_system::components {
 
         /// Operator ==
         /// \param other The other to compare against
-        bool operator ==(const camera& other) const noexcept {
-            return this->name == other.name &&
-                    this->render_target_index == other.render_target_index &&
-                    this->render_system == other.render_system &&
-                    this->layer_index == other.layer_index;
-        }
+        bool operator ==(const camera& other) const noexcept = default;
 
         /// Operator !=
         /// \param other The other to compare against
-        bool operator !=(const camera& other) const noexcept {
-            return !(this->operator==(other));
-        }
+        bool operator !=(const camera& other) const noexcept = default;
     };
 }

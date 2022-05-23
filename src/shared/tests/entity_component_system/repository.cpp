@@ -13,24 +13,32 @@ using namespace pbr::shared::entity_component_system::components;
 TEST_CASE("add_camera - add camera - adds camera", "[entity_component_system/repository]") {
     repository repository;
 
-    camera camera {
-        "camera name",
-        {},
-        apis::graphics::render_systems::_3d,
-        {},
+    std::vector<camera> cameras {
+        { "camera name1", {}, apis::graphics::render_systems::_2d, 1, },
+        { "camera name2", 1, apis::graphics::render_systems::_3d, 3, },
+        { "camera name3", 2, apis::graphics::render_systems::_2d, {}, },
     };
 
-    location_3d location {
-        0.0f,
-        1.0f,
-        2.0f,
+    std::vector<location_3d> locations {
+        { 0.0f, 1.0f, 2.0f, },
+        { 1.0f, 2.0f, 3.0f, },
+        { 2.0f, 3.0f, 4.0f, },
     };
 
-    auto id = repository.add_camera(camera, location);
+    std::vector<entity_id> ids;
+    ids.reserve(cameras.size());
 
-    auto result_camera = repository.get<components::camera>(id);
-    auto result_location = repository.get<location_3d>(id);
+    for (auto i {0u}; i < cameras.size(); ++i) {
+        ids.push_back(repository.add_camera(cameras[i], locations[i]));
+    }
 
-    REQUIRE(result_camera == camera);
-    REQUIRE(result_location == location);
+    for (auto i {0u}; i < cameras.size(); ++i) {
+        auto id = ids[i];
+
+        auto result_camera = repository.get<camera>(id);
+        auto result_location = repository.get<location_3d>(id);
+
+        REQUIRE(result_camera == cameras[i]);
+        REQUIRE(result_location == locations[i]);
+    }
 }

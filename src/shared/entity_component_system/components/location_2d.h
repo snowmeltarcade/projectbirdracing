@@ -10,5 +10,13 @@ namespace pbr::shared::entity_component_system::components {
 
         // The y-position. 0.0f is top
         apis::graphics::coordinate y;
+
+        /// Operator ==
+        /// \param other The other to compare against
+        bool operator ==(const location_2d& other) const noexcept = default;
+
+        /// Operator !=
+        /// \param other The other to compare against
+        bool operator !=(const location_2d& other) const noexcept = default;
     };
 }
