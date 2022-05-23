@@ -26,7 +26,9 @@ namespace pbr::shared::entity_component_system {
         [[nodiscard]]
         entity_id add_camera(components::camera camera, components::location_3d location) noexcept;
 
-        /// Removes the entity with the given id
+        /// Removes the entity with the given id. This marks the entity id as not used and resets
+        /// the data. It does not remove the actual index. The index will be potentially used for
+        /// a future add entity operation.
         /// \param id The id of the entity to remove
         void remove_entity(entity_id id) noexcept;
 
@@ -72,5 +74,15 @@ namespace pbr::shared::entity_component_system {
         entity_id push_entity(components::camera camera,
                               components::location_2d location_2d,
                               components::location_3d location_3d) noexcept;
+
+        /// Sets the given entity with the given components
+        /// \param id The id of the entity to set
+        /// \param camera The camera to add
+        /// \param location_2d The 2d location
+        /// \param location_3d The 3d location
+        void set_entity(entity_id id,
+                        components::camera camera,
+                        components::location_2d location_2d,
+                        components::location_3d location_3d) noexcept;
     };
 }
